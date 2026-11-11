@@ -46,13 +46,15 @@ def _recorded_run(store: Store, command: str,
         store.record_run(run)
 
 
-def _store_rounds(store: Store, raws: list[dict]) -> tuple[int, int]:
-    """Write raw rounds, then companies, then rounds.
+def _store_rounds(store: Store, raws: list[dict], *,
+                  store_raw: bool = True) -> tuple[int, int]:
+    """Write raw rounds (unless `store_raw` is False), then companies, then rounds.
 
     Returns (companies_upserted, rounds_upserted). Each company row comes from
     its latest round in the batch; on equal dates the later one wins.
     """
-    store.upsert_raw_rounds(raws)
+    if store_raw:
+        store.upsert_raw_rounds(raws)
     rounds = {}
     companies = {}
     # Sorted by date (stable), so the last one seen per company is its latest.
@@ -83,7 +85,11 @@ def sync_changes(client: TechEuClient, store: Store) -> dict:
             raise RuntimeError("no successful run found: run backfill first")
         since = (datetime.fromisoformat(last) - timedelta(days=1)).isoformat()
         added, removed = client.fetch_changes(since)
-        ours = [r for r in added if r["company"]["country"] in COUNTRIES]
+        removed_ids = set(removed)
+        # Removed wins: a round in both lists is deleted, not resurrected.
+        ours = [r for r in added
+                if r["company"]["country"] in COUNTRIES
+                and r["id"] not in removed_ids]
         run["rounds_removed"] = store.delete_rounds(removed)
         companies, rounds = _store_rounds(store, ours)
         run["companies_upserted"] = companies
@@ -121,7 +127,8 @@ def fetch_company_details(client: TechEuClient, store: Store,
 
 def reclean(store: Store) -> dict:
     with _recorded_run(store, "reclean") as run:
-        companies, rounds = _store_rounds(store, store.all_raw_rounds())
+        companies, rounds = _store_rounds(
+            store, store.all_raw_rounds(), store_raw=False)
         run["companies_upserted"] = companies
         run["rounds_upserted"] = rounds
     return run

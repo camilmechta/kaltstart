@@ -55,3 +55,19 @@ def test_empty_string_amounts_become_none():
 
 def test_company_details_empty_founded_becomes_none():
     assert transform_company_details({"founded": ""})["founded"] is None
+
+
+def test_fractional_amount_eur_is_rounded_to_int():
+    raw = _round()
+    raw["amountEur"] = 4547887.4
+    amount = transform_round(raw)[1]["amount_eur"]
+    assert amount == 4547887
+    assert isinstance(amount, int)
+
+
+def test_integer_and_missing_amount_eur_are_unchanged():
+    raw = _round()
+    raw["amountEur"] = 2_000_000
+    assert transform_round(raw)[1]["amount_eur"] == 2_000_000
+    raw["amountEur"] = None
+    assert transform_round(raw)[1]["amount_eur"] is None

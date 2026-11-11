@@ -72,6 +72,8 @@ def transform_round(raw: dict) -> tuple[CompanyRow, RoundRow]:
     }
     stage = _text(raw.get("stage"))
     amount_eur = _number(raw.get("amountEur"))
+    if isinstance(amount_eur, float):
+        amount_eur = round(amount_eur)  # amount_eur is a bigint column
     rnd: RoundRow = {
         "id": raw["id"],
         "company_id": raw_company["id"],

@@ -300,3 +300,32 @@ def test_interrupt_is_recorded_as_failed():
     assert run["status"] == "failed"
     assert run["error"]
     assert store.last_successful_run_started_at() is None
+
+
+def test_reclean_does_not_rewrite_raw_rounds():
+    class SpyStore(InMemoryStore):
+        raw_writes = 0
+
+        def upsert_raw_rounds(self, raws):
+            self.raw_writes += 1
+            super().upsert_raw_rounds(raws)
+
+    store = SpyStore()
+    store.upsert_raw_rounds([make_raw("r1")])
+    store.raw_writes = 0
+    run = reclean(store)
+    assert store.raw_writes == 0
+    assert run["rounds_upserted"] == 1
+    assert store.counts() == {"raw_rounds": 1, "companies": 1, "rounds": 1}
+
+
+def test_sync_changes_removed_wins_over_added():
+    store = InMemoryStore()
+    store.record_run(run_row("success", "2026-11-10T03:00:00+00:00"))
+    client = FakeClient(changes=([make_raw("gone"), make_raw("kept", "co-2")],
+                                 ["gone"]))
+    run = sync_changes(client, store)
+    ids = [r["id"] for r in store.all_rounds_with_company()]
+    assert ids == ["kept"]
+    assert store.counts()["raw_rounds"] == 1
+    assert run["rounds_upserted"] == 1
