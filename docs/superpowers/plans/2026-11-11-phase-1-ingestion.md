@@ -334,6 +334,7 @@ Les tests construisent le client avec `httpx.Client(transport=httpx.MockTranspor
   - `last_successful_run_started_at() -> str | None` (horodatage ISO)
   - `record_run(run: dict) -> None`
   - `counts() -> dict[str, int]` avec les clés `raw_rounds`, `companies`, `rounds`
+  - `all_rounds_with_company() -> list[dict]` : chaque élément est une `RoundRow` avec une clé `company` contenant sa `CompanyRow`
 - `InMemoryStore` et `SupabaseStore(client: supabase.Client)` implémentent `Store`.
 - `SupabaseStore.from_env() -> SupabaseStore` lit `SUPABASE_URL` et `SUPABASE_SERVICE_KEY`, et lève `RuntimeError("SUPABASE_URL and SUPABASE_SERVICE_KEY must be set")` si l'une manque.
 
@@ -342,6 +343,7 @@ Les tests construisent le client avec `httpx.Client(transport=httpx.MockTranspor
   - `upsert_companies` sur une entreprise dont la fiche est déjà remplie conserve `website`, `description`, `founded` et `details_fetched_at` ;
   - `company_ids_missing_details(limit=2)` renvoie au plus 2 identifiants, uniquement ceux sans `details_fetched_at` ; après `set_company_details`, l'entreprise n'y figure plus, même si `website` vaut `None` ;
   - `delete_rounds(["a", "inconnu"])` renvoie 1 et retire `a` de `rounds` et de `raw_rounds` ;
+  - `all_rounds_with_company()` renvoie une entrée par levée, avec la ligne de son entreprise sous la clé `company` ;
   - `last_successful_run_started_at()` renvoie `None` sans exécution, ignore les exécutions `failed`, et renvoie le `started_at` le plus récent parmi les `success` ;
   - `SupabaseStore.from_env()` lève `RuntimeError` quand les variables sont absentes (avec `monkeypatch.delenv`).
 - [ ] **Step 2 :** lancer `pytest tests/ingestion/test_store.py -q`. Attendu : échec à l'import.
@@ -471,9 +473,9 @@ Les tests utilisent `InMemoryStore` et un faux client (classe de test avec les t
   - `main(["cities"])` affiche `Zurich` avec son nombre ;
   - `main([])` renvoie 2.
 - [ ] **Step 2 :** lancer `pytest tests/ingestion/test_cli.py -q`. Attendu : échec à l'import.
-- [ ] **Step 3 :** implémenter `main` avec `argparse`. Sans `client` ni `store` fournis, il construit `TechEuClient(httpx.Client(base_url=BASE_URL, timeout=30))` et `SupabaseStore.from_env()`. Ajouter à `SupabaseStore` et `InMemoryStore` la méthode de lecture dont `report` et `cities` ont besoin : `all_rounds_with_company() -> list[dict]` (chaque élément est une `RoundRow` avec une clé `company` contenant sa `CompanyRow`), et l'ajouter au protocole `Store` avec son test dans `tests/ingestion/test_store.py`.
+- [ ] **Step 3 :** implémenter `main` avec `argparse`. Sans `client` ni `store` fournis, il construit `TechEuClient(httpx.Client(base_url=BASE_URL, timeout=30))` et `SupabaseStore.from_env()`. `report` et `cities` lisent les données avec `store.all_rounds_with_company()`.
 - [ ] **Step 4 :** relancer toute la suite : `pytest -q`. Attendu : tout passe.
-- [ ] **Step 5 :** créer `.github/workflows/nightly.yml` : déclencheurs `schedule` (`cron: "17 2 * * *"`) et `workflow_dispatch` ; Python 3.12 ; `pip install -e .` ; `python -m kaltstart.ingestion sync` avec `SUPABASE_URL` et `SUPABASE_SERVICE_KEY` tirés des secrets du repo ; `timeout-minutes: 180`.
+- [ ] **Step 5 :** créer `.github/workflows/nightly.yml` : déclencheurs `schedule` (`cron: "17 2 * * *"`) et `workflow_dispatch` avec une entrée `command` (choix `sync`, `backfill`, `reclean` ; défaut `sync`) ; Python 3.12 ; `pip install -e .` ; `python -m kaltstart.ingestion <command>`, soit `sync` pour le déclenchement planifié, avec `SUPABASE_URL` et `SUPABASE_SERVICE_KEY` tirés des secrets du repo ; `timeout-minutes: 180`.
 - [ ] **Step 6 :** commit `feat: add ingestion CLI and nightly workflow`.
 
 ### Task 8 : mise en service et vérification sur les vraies données
@@ -483,7 +485,7 @@ Cette tâche demande des actions du porteur du projet : elles sont marquées **[
 - [ ] **Step 1 [Camil] :** créer un repo GitHub public nommé `kaltstart`, puis y pousser le code (`git remote add origin ...`, `git push -u origin main`). Vérifier que le workflow `tests` est vert.
 - [ ] **Step 2 [Camil] :** créer un projet Supabase gratuit, région Europe. Dans l'éditeur SQL, exécuter le contenu de `supabase/migrations/0001_ingestion.sql`.
 - [ ] **Step 3 [Camil] :** copier l'URL du projet et la clé `service_role` dans les secrets du repo GitHub, sous les noms `SUPABASE_URL` et `SUPABASE_SERVICE_KEY`. Ne jamais les coller dans le chat ni dans un fichier du repo.
-- [ ] **Step 4 :** lancer le premier chargement depuis l'onglet Actions (workflow `nightly`, modifié temporairement ou lancé avec une entrée `command=backfill` ajoutée à `workflow_dispatch`). Durée attendue : environ 1 h 30, à cause de l'attente de 7 secondes entre les fiches d'entreprise.
+- [ ] **Step 4 :** lancer le premier chargement depuis l'onglet Actions (workflow `nightly`, lancé à la main avec `command=backfill`). Durée attendue : environ 1 h 30, à cause de l'attente de 7 secondes entre les fiches d'entreprise.
 - [ ] **Step 5 :** vérifier avec `report` : `rounds` vaut environ 830 (260 pour la Suisse, 503 pour l'Allemagne, 63 pour l'Autriche, à quelques unités près selon la date) ; aucune ligne `rounds` sans `size_category`.
 - [ ] **Step 6 :** relancer `sync` deux fois de suite. Attendu : la seconde exécution a `rounds_upserted` égal au nombre de levées ajoutées par Tech.eu dans les dernières 24 heures (quelques unités au plus) et `counts()` ne change pas entre les deux, hors nouveautés réelles.
 - [ ] **Step 7 :** calibrer les bornes de taille. Lire dans `report` la médiane de `amount_eur` pour `Seed`, `Series A` et `Series B`. Si la médiane `Series A` sort de l'intervalle 3 à 15 millions d'euros, ou si la médiane `Seed` dépasse 3 millions, proposer de nouvelles bornes au porteur du projet, modifier `SMALL_MAX_EUR` et `MEDIUM_MAX_EUR` et les tests correspondants, puis lancer `reclean`. Noter le résultat dans `DECISIONS.md`, que les bornes changent ou non.
