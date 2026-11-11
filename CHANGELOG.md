@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   SQL schema, pipelines (backfill, sync, details, reclean), command line
   interface and nightly GitHub Actions workflow. Implemented and tested
   offline; not yet run against a live database.
+- Weekly backfill schedule (Sundays) to pick up edits to known rounds, which
+  the `/changes` endpoint does not report.
 
 ## Phase 0 - 2026-11-11
 

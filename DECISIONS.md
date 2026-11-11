@@ -20,3 +20,4 @@
 | D16 | The sync watermark counts only successful `backfill` and `sync` runs; interrupted runs are recorded as failed | A successful details or reclean run must not hide a failed sync | Latest successful run of any command; interrupted runs left unrecorded |
 | D17 | The details fetch stops and fails after 3 consecutive failures | Do not hammer a failing API; make systemic failure visible | Continue through every company; stop at the first failure |
 | D18 | A repeated pagination cursor or an incomplete removed list is an error | A visible failure is better than silent data loss | Stop silently and record success |
+| D19 | Weekly `backfill` every Sunday, in addition to the nightly `sync` | `/changes` reports added and removed rounds only, so edits to known rounds (such as an amount published later) would never arrive; a re-read costs about ten requests | Accept stale rounds; re-read `/rounds` every night |
