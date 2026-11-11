@@ -1,0 +1,168 @@
+{
+  "type": "rounds",
+  "since": "2026-11-01T00:00:00.000Z",
+  "data": [
+    {
+      "id": "2EBD57D6-F2EB-4561-B269-6DDED32B13CB",
+      "url": "/deals/2EBD57D6-F2EB-4561-B269-6DDED32B13CB",
+      "pageUrl": "https://funding.tech.eu/deals/2EBD57D6-F2EB-4561-B269-6DDED32B13CB",
+      "date": "2026-11-02",
+      "stage": "Series B",
+      "rawRoundType": "series b",
+      "amountEur": 100000000,
+      "amountEurStored": null,
+      "amountNative": 100000000,
+      "currency": "EUR",
+      "fx": {
+        "rate": 1,
+        "asOf": null,
+        "source": "ECB"
+      },
+      "company": {
+        "id": "D25B4432-1DD7-438C-A2C9-EE3236A3FE26",
+        "name": "Hypersonica",
+        "country": "Germany",
+        "pageUrl": "https://funding.tech.eu/companies/hypersonica-d25b4432",
+        "city": "Weßling",
+        "founded": null,
+        "sectors": [
+          "Cybersecurity",
+          "Defence"
+        ]
+      },
+      "investors": [
+        "Plural",
+        "201 Ventures",
+        "Lightspeed Ventures",
+        "General Catalyst"
+      ],
+      "source": {
+        "domain": "tech.eu",
+        "tier": "own"
+      },
+      "confidence": "high",
+      "createdAt": "2026-11-03T09:43:13.609025Z"
+    },
+    {
+      "id": "04BB57FE-6588-4434-9E79-F9E4FD4B19BF",
+      "url": "/deals/04BB57FE-6588-4434-9E79-F9E4FD4B19BF",
+      "pageUrl": "https://funding.tech.eu/deals/04BB57FE-6588-4434-9E79-F9E4FD4B19BF",
+      "date": "2026-11-03",
+      "stage": "Other",
+      "rawRoundType": "funding round",
+      "amountEur": 163648,
+      "amountEurStored": null,
+      "amountNative": 150000,
+      "currency": "CHF",
+      "fx": {
+        "rate": 0.9166,
+        "asOf": "2026-11-03",
+        "source": "ECB"
+      },
+      "company": {
+        "id": "9FE1DAED-3F1C-41AB-B7C8-611CC650A70A",
+        "name": "Apolarion",
+        "country": "Switzerland",
+        "pageUrl": "https://funding.tech.eu/companies/apolarion-9fe1daed",
+        "city": "Zurich",
+        "founded": null,
+        "sectors": [
+          "Agritech"
+        ]
+      },
+      "investors": [
+        "Venture Kick"
+      ],
+      "source": {
+        "domain": "tech.eu",
+        "tier": "own"
+      },
+      "confidence": "high",
+      "createdAt": "2026-11-03T17:55:09.719493Z"
+    },
+    {
+      "id": "0976D9C8-0A8E-4EF1-B644-62B19835063F",
+      "url": "/deals/0976D9C8-0A8E-4EF1-B644-62B19835063F",
+      "pageUrl": "https://funding.tech.eu/deals/0976D9C8-0A8E-4EF1-B644-62B19835063F",
+      "date": "2026-11-03",
+      "stage": "Other",
+      "rawRoundType": "funding round",
+      "amountEur": 2639219,
+      "amountEurStored": null,
+      "amountNative": 2200000,
+      "currency": "GBP",
+      "fx": {
+        "rate": 0.83358,
+        "asOf": "2026-11-03",
+        "source": "ECB"
+      },
+      "company": {
+        "id": "B6BB8E85-F859-4C13-8EE5-9D69450FF3A5",
+        "name": "ViridiCO2",
+        "country": "UK",
+        "pageUrl": "https://funding.tech.eu/companies/viridico2-b6bb8e85",
+        "city": "London",
+        "founded": null,
+        "sectors": [
+          "Cleantech"
+        ]
+      },
+      "investors": [
+        "Alphatron Impact Ventures",
+        "Odyssey Ventures"
+      ],
+      "source": {
+        "domain": "eu-startups.com",
+        "tier": "established"
+      },
+      "confidence": "high",
+      "createdAt": "2026-11-03T17:55:09.719493Z"
+    },
+    {
+      "id": "1994C3CF-0A19-4DC5-9D13-E0955536FEC7",
+      "url": "/deals/1994C3CF-0A19-4DC5-9D13-E0955536FEC7",
+      "pageUrl": "https://funding.tech.eu/deals/1994C3CF-0A19-4DC5-9D13-E0955536FEC7",
+      "date": "2026-11-03",
+      "stage": "Other",
+      "rawRoundType": "funding round",
+      "amountEur": 2639219,
+      "amountEurStored": null,
+      "amountNative": 2200000,
+      "currency": "GBP",
+      "fx": {
+        "rate": 0.83358,
+        "asOf": "2026-11-03",
+        "source": "ECB"
+      },
+      "company": {
+        "id": "471198BF-7E7B-45BF-8C39-FC33087B11D1",
+        "name": "1nhaler",
+        "country": "UK",
+        "pageUrl": "https://funding.tech.eu/companies/1nhaler-471198bf",
+        "city": "Edinburgh",
+        "founded": null,
+        "sectors": [
+          "Healthtech"
+        ]
+      },
+      "investors": [
+        "Scottish Enterprise",
+        "Archangels",
+        "BBB Investments"
+      ],
+      "source": {
+        "domain": "tech.eu",
+        "tier": "own"
+      },
+      "confidence": "high",
+      "createdAt": "2026-11-03T17:55:09.719493Z"
+    }
+  ],
+  "count": 4,
+  "removed": [],
+  "removedComplete": true,
+  "nextCursor": null,
+  "coverage": "Added and removed rows only. The source tables carry an ingestion timestamp but no modification timestamp, so in-place edits to rows that already existed are NOT reported here. Re-read a record by id when you need its current state.",
+  "source": "Tech.eu Funding Explorer",
+  "methodology": "https://funding.tech.eu/methodology"
+}

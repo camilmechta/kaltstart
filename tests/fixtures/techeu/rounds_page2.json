@@ -1,0 +1,80 @@
+{
+  "data": [
+    {
+      "id": "EA09BDB1-FE42-44C9-AB95-0F7A861D430C",
+      "url": "/deals/EA09BDB1-FE42-44C9-AB95-0F7A861D430C",
+      "pageUrl": "https://funding.tech.eu/deals/EA09BDB1-FE42-44C9-AB95-0F7A861D430C",
+      "date": "2026-11-04",
+      "stage": "Other",
+      "rawRoundType": "funding round",
+      "amountEur": null,
+      "amountEurStored": null,
+      "amountNative": null,
+      "currency": "",
+      "fx": null,
+      "company": {
+        "id": "AE8C430D-4C1B-44BE-984E-2536F81C1EDC",
+        "name": "Epalero",
+        "country": "Switzerland",
+        "pageUrl": "https://funding.tech.eu/companies/epalero-ae8c430d",
+        "city": "Zurich",
+        "founded": null,
+        "sectors": [
+          "Edtech"
+        ]
+      },
+      "investors": [
+        "Klett Group"
+      ],
+      "source": {
+        "domain": "deutsche-startups.de",
+        "tier": "established"
+      },
+      "confidence": "none"
+    },
+    {
+      "id": "41FD43EE-460C-4118-A298-2E6EB603EB2D",
+      "url": "/deals/41FD43EE-460C-4118-A298-2E6EB603EB2D",
+      "pageUrl": "https://funding.tech.eu/deals/41FD43EE-460C-4118-A298-2E6EB603EB2D",
+      "date": "2026-11-04",
+      "stage": "Pre-Seed",
+      "rawRoundType": "pre-seed",
+      "amountEur": 531128,
+      "amountEurStored": null,
+      "amountNative": 488000,
+      "currency": "CHF",
+      "fx": {
+        "rate": 0.9188,
+        "asOf": "2026-11-04",
+        "source": "ECB"
+      },
+      "company": {
+        "id": "4D654C2E-C7AC-45C2-84EC-55566F0C0B84",
+        "name": "avaisor",
+        "country": "Switzerland",
+        "pageUrl": "https://funding.tech.eu/companies/avaisor-4d654c2e",
+        "city": "Davos",
+        "founded": null,
+        "sectors": [
+          "Healthtech"
+        ]
+      },
+      "investors": [],
+      "source": {
+        "domain": "startupticker.ch",
+        "tier": "established"
+      },
+      "confidence": "high"
+    }
+  ],
+  "nextCursor": null,
+  "count": 2,
+  "appliedFilters": {
+    "country": "Switzerland",
+    "from": "2026-09-01",
+    "to": "2026-11-10"
+  },
+  "source": "Tech.eu Funding Explorer",
+  "methodology": "https://funding.tech.eu/methodology",
+  "incrementalSync": "https://funding.tech.eu/api/v1/changes"
+}

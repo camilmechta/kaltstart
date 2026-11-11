@@ -1,0 +1,106 @@
+{
+  "id": "0DF151BE-8F90-42FB-8833-C7237F936BB5",
+  "url": "https://funding.tech.eu/companies/0DF151BE-8F90-42FB-8833-C7237F936BB5",
+  "canonicalUrl": "https://funding.tech.eu/companies/light-frame-0df151be",
+  "name": "Light Frame",
+  "description": "Proprietary technology platform to deliver unprecedented levels of autonomy, capability, and intelligence within the operations of Swiss Private Banks",
+  "website": "https://www.lightframe.tech/",
+  "country": "Switzerland",
+  "city": "Lausanne",
+  "founded": null,
+  "sectors": [
+    "Fintech"
+  ],
+  "totalEur": 6113697,
+  "roundsCount": 2,
+  "rounds": [
+    {
+      "id": "F9B3B3D0-5A02-48EB-949B-449B6DC094B5",
+      "url": "https://funding.tech.eu/deals/F9B3B3D0-5A02-48EB-949B-449B6DC094B5",
+      "date": "2026-11-10",
+      "stage": "Seed",
+      "rawRoundType": "seed",
+      "amountEur": 4547887,
+      "investors": [
+        "Altair Capital",
+        "Chamaeleon",
+        "Fortino Ventures",
+        "New Stack Ventures",
+        "Rogue Venture Partners",
+        "Sidekick Partners",
+        "Studio Alpha",
+        "Tenity "
+      ]
+    },
+    {
+      "id": "AC169438-21A4-4CC1-AA6D-05BF1FF2C8F9",
+      "url": "https://funding.tech.eu/deals/AC169438-21A4-4CC1-AA6D-05BF1FF2C8F9",
+      "date": "2024-05-29",
+      "stage": "Pre-Seed",
+      "rawRoundType": "pre-seed",
+      "amountEur": 1565810,
+      "investors": [
+        "ATX Venture Partners ",
+        "Half Court Ventures",
+        "New Stack Ventures",
+        "Rogue Venture Partners",
+        "StudioAlpha",
+        "Underdog Labs"
+      ]
+    }
+  ],
+  "investors": [
+    "Altair Capital",
+    "ATX Venture Partners ",
+    "Chamaeleon",
+    "Fortino Ventures",
+    "Half Court Ventures",
+    "New Stack Ventures",
+    "Rogue Venture Partners",
+    "Sidekick Partners",
+    "Studio Alpha",
+    "StudioAlpha",
+    "Tenity ",
+    "Underdog Labs"
+  ],
+  "founders": [],
+  "exit": null,
+  "signals": {
+    "raiseNext": {
+      "base": 44,
+      "score": 16,
+      "factors": [
+        {
+          "label": "Raised very recently",
+          "effect": "down"
+        },
+        {
+          "label": "Up-round momentum",
+          "effect": "up"
+        },
+        {
+          "label": "Low backer re-investment",
+          "effect": "down"
+        }
+      ]
+    },
+    "exit": {
+      "base": 11,
+      "score": 15,
+      "factors": [
+        {
+          "label": "Young (<3y)",
+          "effect": "down"
+        },
+        {
+          "label": "Recently backed by strong-exit-track investors",
+          "effect": "up"
+        }
+      ]
+    },
+    "heat": 71,
+    "confidence": "high"
+  },
+  "source": "Tech.eu Funding Explorer",
+  "methodology": "https://funding.tech.eu/methodology"
+}

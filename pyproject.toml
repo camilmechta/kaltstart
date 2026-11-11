@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kaltstart"
+version = "0.1.0"
+description = "Ingests startup funding rounds from the Tech.eu Funding Explorer API into Supabase."
+requires-python = ">=3.12"
+dependencies = [
+    "httpx",
+    "supabase",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

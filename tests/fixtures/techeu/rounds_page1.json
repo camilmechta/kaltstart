@@ -1,0 +1,126 @@
+{
+  "data": [
+    {
+      "id": "F9B3B3D0-5A02-48EB-949B-449B6DC094B5",
+      "url": "/deals/F9B3B3D0-5A02-48EB-949B-449B6DC094B5",
+      "pageUrl": "https://funding.tech.eu/deals/F9B3B3D0-5A02-48EB-949B-449B6DC094B5",
+      "date": "2026-11-10",
+      "stage": "Seed",
+      "rawRoundType": "seed",
+      "amountEur": 4547887,
+      "amountEurStored": null,
+      "amountNative": 5100000,
+      "currency": "USD",
+      "fx": {
+        "rate": 1.1214,
+        "asOf": "2026-11-10",
+        "source": "ECB"
+      },
+      "company": {
+        "id": "0DF151BE-8F90-42FB-8833-C7237F936BB5",
+        "name": "Light Frame",
+        "country": "Switzerland",
+        "pageUrl": "https://funding.tech.eu/companies/light-frame-0df151be",
+        "city": "Lausanne",
+        "founded": null,
+        "sectors": [
+          "Fintech"
+        ]
+      },
+      "investors": [
+        "Rogue Venture Partners",
+        "Altair Capital",
+        "New Stack Ventures",
+        "Studio Alpha",
+        "Sidekick Partners",
+        "Tenity",
+        "Chamaeleon",
+        "Fortino Ventures"
+      ],
+      "source": {
+        "domain": "tech.eu",
+        "tier": "own"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "2AE9C044-48E9-43A3-A0A0-A28EE92BF7FA",
+      "url": "/deals/2AE9C044-48E9-43A3-A0A0-A28EE92BF7FA",
+      "pageUrl": "https://funding.tech.eu/deals/2AE9C044-48E9-43A3-A0A0-A28EE92BF7FA",
+      "date": "2026-11-09",
+      "stage": "Other",
+      "rawRoundType": "funding round",
+      "amountEur": 163684,
+      "amountEurStored": null,
+      "amountNative": 150000,
+      "currency": "CHF",
+      "fx": {
+        "rate": 0.9164,
+        "asOf": "2026-11-09",
+        "source": "ECB"
+      },
+      "company": {
+        "id": "D199A413-FEC7-4ED3-9626-4147B24C1DAA",
+        "name": "Vale Biolabs",
+        "country": "Switzerland",
+        "pageUrl": "https://funding.tech.eu/companies/vale-biolabs-d199a413",
+        "city": "Zurich",
+        "founded": null,
+        "sectors": [
+          "Healthtech"
+        ]
+      },
+      "investors": [
+        "Venture Kick"
+      ],
+      "source": {
+        "domain": "tech.eu",
+        "tier": "own"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "0E25A4E3-C6F2-49ED-8059-D97B5BC923C5",
+      "url": "/deals/0E25A4E3-C6F2-49ED-8059-D97B5BC923C5",
+      "pageUrl": "https://funding.tech.eu/deals/0E25A4E3-C6F2-49ED-8059-D97B5BC923C5",
+      "date": "2026-11-09",
+      "stage": "Seed",
+      "rawRoundType": "seed",
+      "amountEur": null,
+      "amountEurStored": null,
+      "amountNative": null,
+      "currency": "",
+      "fx": null,
+      "company": {
+        "id": "8CA4E4F2-6858-472D-85E5-407759DC544B",
+        "name": "GraphEnergyTech",
+        "country": "Switzerland",
+        "pageUrl": "https://funding.tech.eu/companies/graphenergytech-8ca4e4f2",
+        "city": "Lausanne ",
+        "founded": null,
+        "sectors": [
+          "Cleantech"
+        ]
+      },
+      "investors": [
+        "Aramco Ventures",
+        "existing shareholders"
+      ],
+      "source": {
+        "domain": "finsmes.com",
+        "tier": "established"
+      },
+      "confidence": "none"
+    }
+  ],
+  "nextCursor": "fixture-cursor-page-2",
+  "count": 3,
+  "appliedFilters": {
+    "country": "Switzerland",
+    "from": "2026-09-01",
+    "to": "2026-11-10"
+  },
+  "source": "Tech.eu Funding Explorer",
+  "methodology": "https://funding.tech.eu/methodology",
+  "incrementalSync": "https://funding.tech.eu/api/v1/changes"
+}
