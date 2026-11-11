@@ -34,9 +34,9 @@ def _recorded_run(store: Store, command: str,
     }
     try:
         yield run
-    except Exception as exc:
+    except BaseException as exc:
         run["status"] = "failed"
-        run["error"] = str(exc)
+        run["error"] = str(exc) or type(exc).__name__
         raise
     finally:
         run["finished_at"] = datetime.now(timezone.utc).isoformat()

@@ -6,6 +6,8 @@ from typing import Protocol
 
 from kaltstart.ingestion.transform import CompanyDetails, CompanyRow, RoundRow
 
+WATERMARK_COMMANDS = ("backfill", "sync")
+
 
 class Store(Protocol):
     def upsert_raw_rounds(self, raws: list[dict]) -> None: ...
@@ -24,7 +26,9 @@ class Store(Protocol):
         self, company_id: str, details: CompanyDetails
     ) -> None: ...
 
-    def last_successful_run_started_at(self) -> str | None: ...
+    def last_successful_run_started_at(self) -> str | None:
+        """Latest started_at among successful runs of WATERMARK_COMMANDS."""
+        ...
 
     def record_run(self, run: dict) -> None: ...
 
@@ -93,7 +97,11 @@ class InMemoryStore:
         row["details_fetched_at"] = datetime.now(timezone.utc).isoformat()
 
     def last_successful_run_started_at(self) -> str | None:
-        started = [r["started_at"] for r in self._runs if r["status"] == "success"]
+        started = [
+            r["started_at"]
+            for r in self._runs
+            if r["status"] == "success" and r["command"] in WATERMARK_COMMANDS
+        ]
         return max(started) if started else None
 
     def record_run(self, run: dict) -> None:

@@ -1,5 +1,6 @@
 import copy
 import json
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -205,3 +206,26 @@ def test_reclean_reapplies_rules_without_client():
     assert store.all_rounds_with_company()[0]["size_category"] == "small"
     assert run["command"] == "reclean"
     assert run["requests_made"] == 0
+
+
+def test_details_run_does_not_move_sync_watermark():
+    store = InMemoryStore()
+    backfill(FakeClient(rounds={"Switzerland": [make_raw("r1")]}), store,
+             "2026-01-01", "2026-12-31")
+    started = last_run(store)["started_at"]
+    fetch_company_details(FakeClient(), store)
+    client = FakeClient()
+    sync_changes(client, store)
+    expected = (datetime.fromisoformat(started) - timedelta(days=1)).isoformat()
+    assert client.calls["fetch_changes"] == [expected]
+
+
+def test_interrupt_is_recorded_as_failed():
+    store = InMemoryStore()
+    client = FakeClient(fail_at={("iter_rounds", 1): KeyboardInterrupt()})
+    with pytest.raises(KeyboardInterrupt):
+        backfill(client, store, "2026-01-01", "2026-12-31")
+    run = last_run(store)
+    assert run["status"] == "failed"
+    assert run["error"]
+    assert store.last_successful_run_started_at() is None

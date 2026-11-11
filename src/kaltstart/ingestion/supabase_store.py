@@ -6,6 +6,7 @@ from typing import Any, Iterator
 
 from supabase import Client, create_client
 
+from kaltstart.ingestion.store import WATERMARK_COMMANDS
 from kaltstart.ingestion.transform import CompanyDetails, CompanyRow, RoundRow
 
 WRITE_BATCH = 500
@@ -121,6 +122,7 @@ class SupabaseStore:
             self._client.table("sync_runs")
             .select("started_at")
             .eq("status", "success")
+            .in_("command", list(WATERMARK_COMMANDS))
             .order("started_at", desc=True)
             .limit(1)
             .execute()

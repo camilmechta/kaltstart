@@ -34,9 +34,9 @@ def round_row(rid="a", company_id="c1", amount=1_000_000):
     }
 
 
-def run(status, started_at):
+def run(status, started_at, command="sync"):
     return {
-        "command": "sync",
+        "command": command,
         "started_at": started_at,
         "finished_at": started_at,
         "status": status,
@@ -162,3 +162,13 @@ def test_upsert_companies_with_duplicate_id_in_one_call_keeps_last():
     store.upsert_rounds([round_row()])
     assert store.counts()["companies"] == 1
     assert store.all_rounds_with_company()[0]["company"]["name"] == "Last"
+
+
+def test_watermark_ignores_details_and_reclean_runs():
+    store = InMemoryStore()
+    store.record_run(run("success", "2026-01-01T00:00:00+00:00", "backfill"))
+    store.record_run(run("success", "2026-02-01T00:00:00+00:00", "details"))
+    store.record_run(run("success", "2026-03-01T00:00:00+00:00", "reclean"))
+    assert store.last_successful_run_started_at() == "2026-01-01T00:00:00+00:00"
+    store.record_run(run("success", "2026-04-01T00:00:00+00:00", "sync"))
+    assert store.last_successful_run_started_at() == "2026-04-01T00:00:00+00:00"
