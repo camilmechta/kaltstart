@@ -55,7 +55,8 @@ formulaire de contact.
 - Scraping de LinkedIn.
 - Adresses mail devinées à partir d'un nom.
 - Appel à une API d'IA à l'exécution.
-- Pays autres que la Suisse, l'Allemagne et l'Autriche.
+- Autres pays européens. Le périmètre géographique est la Suisse, l'Allemagne
+  et l'Autriche ; d'autres pays pourront être ajoutés plus tard.
 - Demandes autres que stage ou temps partiel (premier emploi, simple appel).
 - Offres d'emploi.
 
@@ -237,8 +238,12 @@ Une entreprise sans aucune adresse est masquée de la liste étudiante.
   Allemagne, en Autriche ou dans un canton germanophone ; anglais sinon.
   L'étudiant peut basculer. La première version ne propose que l'anglais et
   l'allemand.
-- Structure fixe : ouverture sur la levée, phrase sur le secteur, exemple
-  concret de l'étudiant, paragraphe sur le rôle, demande, signature.
+- Structure : un mélange de blocs fixes et de parties qui varient selon le
+  style de template. Les blocs de départ sont : ouverture sur la levée, phrase
+  sur le secteur, exemple concret de l'étudiant, paragraphe sur le rôle,
+  demande, signature. La répartition exacte entre ce qui est commun à tous les
+  styles et ce qui change d'un style à l'autre n'est pas encore décidée : elle
+  le sera en phase 3, avec les modèles fournis.
 - Ouverture : dépend de la catégorie de taille, avec montant, date et
   investisseur principal. Trois formulations par catégorie. Le choix est
   déterminé par la paire étudiant-entreprise : régénérer donne le même texte,
@@ -349,6 +354,7 @@ code. La phase 1 est planifiée en premier.
 | D10 | Mails présumés envoyés exclus des taux | On ne sait pas s'ils sont partis ; ils fausseraient la métrique | Les compter comme envoyés |
 | D11 | Inscription sur code d'invitation, sans contrôle du domaine | Plus simple, pas de dépendance aux boîtes mail universitaires, contrôle de qui entre | Adresse HSG obligatoire ; inscription libre |
 | D12 | Plusieurs styles de template, style enregistré par mail | L'étudiant choisit le ton qui lui convient ; le test compare les styles | Un seul template |
+| D13 | Documents publics du repo en anglais (README, PRD, DECISIONS, CHANGELOG, CLAUDE.md, code et commits) | Lisible par les recruteurs tech européens | Français |
 
 ## 12. Questions ouvertes
 
@@ -356,6 +362,6 @@ Elles ne bloquent pas la phase 1.
 
 - Contenu exact des styles de template (à définir en phase 3, à partir des
   modèles fournis).
-- Langue des documents publics du repo (README, PRD) : français ou anglais.
+- Répartition entre structure fixe et styles de template (phase 3).
 - Outil du front : Lovable ou front écrit à la main (à trancher en phase 4).
 - Hébergeur du serveur FastAPI (à trancher en phase 4).
