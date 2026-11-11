@@ -7,6 +7,7 @@ import pytest
 
 from kaltstart.ingestion.pipeline import (
     COUNTRIES,
+    MAX_CONSECUTIVE_DETAIL_FAILURES,
     backfill,
     fetch_company_details,
     reclean,
@@ -189,6 +190,76 @@ def test_fetch_company_details_counts_failures_and_continues():
     assert run["details_fetched"] == 2
     assert run["error"] == "details failed for 1 companies"
     assert len(store.company_ids_missing_details(10)) == 1
+
+
+def test_details_breaker_trips_after_consecutive_failures():
+    store = _store_with_companies(5)
+    client = FakeClient(fail_at={("get_company", n): TechEuError(f"down {n}")
+                                 for n in (1, 2, 3)})
+    with pytest.raises(TechEuError, match=(
+            "details fetch stopped after 3 consecutive failures: down 3")):
+        fetch_company_details(client, store)
+    assert MAX_CONSECUTIVE_DETAIL_FAILURES == 3
+    assert len(client.calls["get_company"]) == 3
+    run = last_run(store)
+    assert run["command"] == "details"
+    assert run["status"] == "failed"
+    assert "3 consecutive failures" in run["error"]
+
+
+def test_details_breaker_keeps_details_stored_before_the_trip():
+    store = _store_with_companies(5)
+    client = FakeClient(fail_at={("get_company", n): TechEuError("down")
+                                 for n in (2, 3, 4)})
+    with pytest.raises(TechEuError):
+        fetch_company_details(client, store)
+    assert len(store.company_ids_missing_details(10)) == 4
+
+
+def test_details_success_resets_consecutive_failures():
+    store = _store_with_companies(6)
+    failing = (1, 2, 4, 5)
+    client = FakeClient(fail_at={("get_company", n): TechEuError("flaky")
+                                 for n in failing})
+    run = fetch_company_details(client, store)
+    assert run["status"] == "success"
+    assert run["details_fetched"] == 2
+    assert run["error"] == "details failed for 4 companies"
+    assert len(client.calls["get_company"]) == 6
+
+
+def test_details_non_techeu_error_counts_as_company_failure_and_continues():
+    store = _store_with_companies(3)
+    client = FakeClient(fail_at={("get_company", 1): ValueError("bad shape")})
+    run = fetch_company_details(client, store)
+    assert run["status"] == "success"
+    assert run["details_fetched"] == 2
+    assert run["error"] == "details failed for 1 companies"
+    assert len(client.calls["get_company"]) == 3
+
+
+def test_details_store_error_counts_as_company_failure():
+    class FlakyStore(InMemoryStore):
+        def set_company_details(self, company_id, details):
+            if company_id == "co-0":
+                raise RuntimeError("cast error")
+            super().set_company_details(company_id, details)
+
+    store = FlakyStore()
+    backfill(FakeClient(rounds={"Switzerland": [
+        make_raw(f"r{i}", f"co-{i}") for i in range(3)]}),
+        store, "2026-01-01", "2026-12-31")
+    run = fetch_company_details(FakeClient(), store)
+    assert run["details_fetched"] == 2
+    assert run["error"] == "details failed for 1 companies"
+
+
+def test_details_keyboard_interrupt_is_not_swallowed():
+    store = _store_with_companies(2)
+    client = FakeClient(fail_at={("get_company", 1): KeyboardInterrupt()})
+    with pytest.raises(KeyboardInterrupt):
+        fetch_company_details(client, store)
+    assert last_run(store)["status"] == "failed"
 
 
 def test_reclean_reapplies_rules_without_client():

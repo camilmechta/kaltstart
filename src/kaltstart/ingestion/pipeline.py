@@ -13,6 +13,7 @@ from kaltstart.ingestion.techeu_client import BudgetExhaustedError, TechEuClient
 from kaltstart.ingestion.transform import transform_company_details, transform_round
 
 COUNTRIES = ("Switzerland", "Germany", "Austria")
+MAX_CONSECUTIVE_DETAIL_FAILURES = 3
 
 
 @contextmanager
@@ -94,15 +95,24 @@ def fetch_company_details(client: TechEuClient, store: Store,
                           limit: int = 1000) -> dict:
     with _recorded_run(store, "details", client) as run:
         failures = 0
+        consecutive = 0
         for company_id in store.company_ids_missing_details(limit):
             try:
                 raw = client.get_company(company_id)
+                store.set_company_details(
+                    company_id, transform_company_details(raw))
             except BudgetExhaustedError:
                 break
-            except TechEuError:
+            except Exception as exc:
                 failures += 1
+                consecutive += 1
+                if consecutive >= MAX_CONSECUTIVE_DETAIL_FAILURES:
+                    raise TechEuError(
+                        f"details fetch stopped after "
+                        f"{MAX_CONSECUTIVE_DETAIL_FAILURES} consecutive "
+                        f"failures: {exc}") from exc
                 continue
-            store.set_company_details(company_id, transform_company_details(raw))
+            consecutive = 0
             run["details_fetched"] += 1
         if failures:
             run["error"] = f"details failed for {failures} companies"
