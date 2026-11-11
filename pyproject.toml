@@ -8,8 +8,8 @@ version = "0.1.0"
 description = "Ingests startup funding rounds from the Tech.eu Funding Explorer API into Supabase."
 requires-python = ">=3.12"
 dependencies = [
-    "httpx",
-    "supabase",
+    "httpx>=0.28,<1",
+    "supabase>=2.34,<3",
 ]
 
 [project.optional-dependencies]
