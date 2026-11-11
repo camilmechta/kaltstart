@@ -1,12 +1,13 @@
-# Spec de design : candidatures spontanées pour étudiants HSG
+# Kaltstart : spec de design
 
 Date : 2026-11-11
 Statut : en attente de relecture
-Nom de travail du projet : `hsg-spontan` (provisoire)
+Nom du projet : Kaltstart (le dossier local s'appelle encore `hsg-spontan`)
 
 ## 1. Résumé
 
-Une web app réservée aux étudiants de l'Université de Saint-Gall (HSG). Elle
+Kaltstart est une web app réservée aux étudiants de l'Université de Saint-Gall
+(HSG), sur invitation. Elle
 repère les startups et scale-ups tech de Suisse, d'Allemagne et d'Autriche qui
 ont levé des fonds dans les 12 derniers mois, trouve à qui écrire, et prépare
 une candidature spontanée qui s'ouvre sur la levée. L'étudiant relit et envoie
@@ -130,9 +131,9 @@ du prochain essai.
 
 | Table | Une ligne représente | Colonnes principales |
 |---|---|---|
-| `profiles` | Un étudiant | adresse HSG, prénom et nom, filière, langues, rôle visé, type de demande, disponibilités (date de début, durée ou taux), secteurs et lieux souhaités |
+| `profiles` | Un étudiant | adresse mail, prénom et nom, filière, langues, rôle visé, type de demande, disponibilités (date de début, durée ou taux), secteurs et lieux souhaités |
 | `experiences` | Un exemple concret de l'étudiant (deux au maximum) | étudiant, texte en anglais, texte en allemand, ordre |
-| `emails` | Un mail généré | étudiant, entreprise, levée, contact, objet, texte, langue, statut, date de chaque changement de statut |
+| `emails` | Un mail généré | étudiant, entreprise, levée, contact, style de template utilisé, objet, texte, langue, statut, date de chaque changement de statut |
 
 ### 6.3 Catégorie de taille
 
@@ -168,8 +169,10 @@ mails en attente et les taux de réponse. Il n'y a pas de table de réservations
   profil, ses exemples et ses mails.
 - Pour le plafond, il voit un nombre de places prises par entreprise, jamais
   l'identité des autres étudiants.
-- Inscription réservée aux adresses HSG (`@student.unisg.ch` et `@unisg.ch`),
-  avec confirmation par mail.
+- Inscription avec n'importe quelle adresse mail, à condition de saisir un
+  code d'invitation. Le code est unique pour tout le test, distribué par le
+  porteur du projet aux étudiants HSG, et vérifié par le serveur. Il n'y a pas
+  de contrôle du domaine de l'adresse.
 - Un étudiant peut supprimer son compte et toutes ses données.
 - Les contacts d'entreprise viennent uniquement de pages publiques et gardent
   leur page source.
@@ -251,6 +254,13 @@ Une entreprise sans aucune adresse est masquée de la liste étudiante.
   taux d'occupation).
 - Signature : prénom, nom, filière HSG, disponibilités.
 - Longueur : 150 mots au plus pour le corps, 60 caractères au plus pour l'objet.
+- Styles de template : l'étudiant pourra choisir entre plusieurs styles de
+  mail (trois au plus), chacun en anglais et en allemand. Les styles seront
+  définis en phase 3 à partir des modèles fournis par le porteur du projet,
+  dont on reprend la structure et non le texte. Le style utilisé est
+  enregistré avec chaque mail, pour comparer les taux de réponse par style
+  dans le rapport de la phase 5. Les règles ci-dessus (données manquantes,
+  longueurs, variantes) s'appliquent à tous les styles.
 - Si une donnée obligatoire manque (prénom, filière, date de début, adresse du
   contact), le générateur refuse avec un message qui nomme la donnée.
 
@@ -301,7 +311,7 @@ test ne fait d'appel réseau réel.
 |---|---|---|
 | Ingestion | Pagination, absence de doublon, arrêt si un filtre est ignoré, nettoyage des villes, catégorie de taille | Réponses Tech.eu enregistrées dans des fichiers |
 | Contacts | Extraction des adresses et des noms, respect de robots.txt, choix du contact, confiance | Pages HTML sauvegardées |
-| Générateur | Aucune variable vide, aucun montant manquant affiché, longueurs, anglais et allemand | Toutes les combinaisons taille × rôle × langue × demande × données manquantes (240 cas) |
+| Générateur | Aucune variable vide, aucun montant manquant affiché, longueurs, anglais et allemand | Toutes les combinaisons taille × rôle × langue × demande × données manquantes (240 cas par style de template) |
 | Serveur | Les trois refus de 7.4, le passage à présumé envoyé | Base de test avec données fictives |
 
 Mesure de la phase 2 : 20 entreprises suisses tirées au hasard parmi les levées
@@ -316,8 +326,8 @@ la main pour compter aussi les erreurs du scraper.
 | 0. Cadrage | Spec, PRD.md, repo, CLAUDE.md, structure | La spec est validée |
 | 1. Ingestion | Tech.eu vers Supabase pour les trois pays, nettoyage, mise à jour incrémentale | Les levées sont en base, propres ; un second lancement n'ajoute que les nouveautés |
 | 2. Contacts | Scraper testé sur 20 sites suisses | Les taux sont mesurés et comparés aux seuils de 70 % et 40 % |
-| 3. Mails | Générateur et templates en anglais et en allemand | Les 240 cas de test passent |
-| 4. Front | Serveur FastAPI, inscription HSG, filtres, liste, fiche, suivi | Un étudiant va de l'inscription au mail copié sans aide |
+| 3. Mails | Générateur et templates en anglais et en allemand | Tous les cas de test passent, pour chaque style |
+| 4. Front | Serveur FastAPI, inscription sur code d'invitation, filtres, liste, fiche, suivi | Un étudiant va de l'inscription au mail copié sans aide |
 | 5. Test | 20 étudiants HSG, environ 200 mails | Rapport comparant les taux aux seuils de 10 % et 3 % |
 
 Chaque phase a son propre plan d'implémentation et se termine par une revue de
@@ -337,12 +347,15 @@ code. La phase 1 est planifiée en premier.
 | D8 | Seuils du scraper à 70 % et 40 % | Point de contrôle avant d'investir dans les phases 3 à 5 | 50 % ; 85 % |
 | D9 | FastAPI pour la génération, GitHub Actions pour la nuit | Le Python doit tourner au clic ; le travail de nuit n'a pas besoin d'un serveur | File d'attente en base ; templates réécrits en JavaScript |
 | D10 | Mails présumés envoyés exclus des taux | On ne sait pas s'ils sont partis ; ils fausseraient la métrique | Les compter comme envoyés |
+| D11 | Inscription sur code d'invitation, sans contrôle du domaine | Plus simple, pas de dépendance aux boîtes mail universitaires, contrôle de qui entre | Adresse HSG obligatoire ; inscription libre |
+| D12 | Plusieurs styles de template, style enregistré par mail | L'étudiant choisit le ton qui lui convient ; le test compare les styles | Un seul template |
 
 ## 12. Questions ouvertes
 
 Elles ne bloquent pas la phase 1.
 
-- Nom définitif du produit et du repo.
+- Contenu exact des styles de template (à définir en phase 3, à partir des
+  modèles fournis).
 - Langue des documents publics du repo (README, PRD) : français ou anglais.
 - Outil du front : Lovable ou front écrit à la main (à trancher en phase 4).
 - Hébergeur du serveur FastAPI (à trancher en phase 4).
