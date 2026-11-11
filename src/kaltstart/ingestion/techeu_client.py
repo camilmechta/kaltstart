@@ -41,22 +41,27 @@ class TechEuClient:
     def iter_rounds(self, country: str, date_from: str,
                     date_to: str) -> Iterator[dict]:
         sent = {"country": country, "from": date_from, "to": date_to}
+        seen_cursors: set[str] = set()
         cursor = None
         while True:
             params = {**sent, "limit": PAGE_SIZE}
             if cursor:
                 params["after"] = cursor
             page = self._get("/rounds", params)
+            data = _page_data(page, "/rounds")
             applied = page.get("appliedFilters") or {}
             for key, value in sent.items():
                 if applied.get(key) != value:
                     raise FilterMismatchError(
                         f"API applied {key}={applied.get(key)!r}, "
                         f"expected {value!r}")
-            yield from page["data"]
+            yield from data
             cursor = page.get("nextCursor")
             if not cursor:
                 return
+            if cursor in seen_cursors:
+                raise TechEuError(f"pagination cursor repeated: {cursor}")
+            seen_cursors.add(cursor)
 
     def fetch_changes(self, since: str) -> tuple[list[dict], list[str]]:
         added: list[dict] = []
@@ -68,12 +73,17 @@ class TechEuClient:
             if cursor:
                 params["after"] = cursor
             page = self._get("/changes", params)
-            added.extend(page.get("data") or [])
+            added.extend(_page_data(page, "/changes"))
+            if page.get("removedComplete") is False:
+                raise TechEuError(
+                    "Tech.eu reports an incomplete list of removed rounds")
             for entry in page.get("removed") or []:
                 removed.append(entry["id"] if isinstance(entry, dict) else entry)
             cursor = page.get("nextCursor")
-            if not cursor or cursor in seen_cursors:
+            if not cursor:
                 return added, removed
+            if cursor in seen_cursors:
+                raise TechEuError(f"pagination cursor repeated: {cursor}")
             seen_cursors.add(cursor)
 
     def get_company(self, company_id: str) -> dict:
@@ -111,9 +121,20 @@ class TechEuClient:
                 raise TechEuError(
                     f"GET {path} failed with HTTP {status}"
                     f"{_error_detail(response)}")
-            return response.json()
+            try:
+                return response.json()
+            except ValueError as exc:
+                raise TechEuError(
+                    f"GET {path} returned a body that is not valid JSON"
+                ) from exc
         raise TechEuError(
             f"GET {path} failed after {MAX_ATTEMPTS} attempts ({last_problem})")
+
+
+def _page_data(page, path: str) -> list:
+    if not isinstance(page, dict) or "data" not in page:
+        raise TechEuError(f"GET {path} response has no 'data' key")
+    return page["data"]
 
 
 def _error_detail(response: httpx.Response) -> str:

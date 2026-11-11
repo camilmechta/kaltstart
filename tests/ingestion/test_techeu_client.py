@@ -146,7 +146,7 @@ def test_fetch_changes_returns_added_and_removed():
     assert removed == ["X1", "X2"]
 
 
-def test_fetch_changes_stops_on_repeated_cursor():
+def test_fetch_changes_raises_on_repeated_cursor():
     payload = _load("changes.json")
     payload["nextCursor"] = "same-cursor"
     calls = []
@@ -156,5 +156,67 @@ def test_fetch_changes_stops_on_repeated_cursor():
         return _json(payload)
 
     client, _ = _client(handler)
-    client.fetch_changes("2026-11-01")
+    with pytest.raises(TechEuError, match="pagination cursor repeated: same-cursor"):
+        client.fetch_changes("2026-11-01")
     assert len(calls) == 2
+
+
+def test_iter_rounds_raises_on_repeated_cursor():
+    page = _load("rounds_page1.json")
+    page["nextCursor"] = "same-cursor"
+    calls = []
+
+    def handler(request):
+        calls.append(request)
+        return _json(page)
+
+    client, _ = _client(handler)
+    with pytest.raises(TechEuError, match="pagination cursor repeated: same-cursor"):
+        list(client.iter_rounds(*ARGS))
+    assert len(calls) == 2
+
+
+def test_non_json_success_body_raises_techeu_error_without_retry():
+    calls = []
+
+    def handler(request):
+        calls.append(request)
+        return httpx.Response(200, content=b"<html>maintenance</html>")
+
+    client, _ = _client(handler)
+    with pytest.raises(TechEuError, match="not valid JSON"):
+        client.get_company("abc")
+    assert len(calls) == 1
+
+
+@pytest.mark.parametrize("payload", [{"appliedFilters": {}}, [1, 2]])
+def test_page_without_data_key_raises_techeu_error(payload):
+    client, _ = _client(lambda request: _json(payload))
+    with pytest.raises(TechEuError, match="data"):
+        list(client.iter_rounds(*ARGS))
+    with pytest.raises(TechEuError, match="data"):
+        client.fetch_changes("2026-11-01")
+
+
+def test_fetch_changes_raises_when_removed_list_is_incomplete():
+    payload = _load("changes.json")
+    payload["nextCursor"] = None
+    payload["removedComplete"] = False
+    client, _ = _client(lambda request: _json(payload))
+    with pytest.raises(
+            TechEuError,
+            match="Tech.eu reports an incomplete list of removed rounds"):
+        client.fetch_changes("2026-11-01")
+
+
+@pytest.mark.parametrize("flag", [True, "absent"])
+def test_fetch_changes_accepts_complete_or_absent_removed_flag(flag):
+    payload = _load("changes.json")
+    payload["nextCursor"] = None
+    if flag == "absent":
+        payload.pop("removedComplete", None)
+    else:
+        payload["removedComplete"] = flag
+    client, _ = _client(lambda request: _json(payload))
+    added, _ = client.fetch_changes("2026-11-01")
+    assert len(added) == 4
