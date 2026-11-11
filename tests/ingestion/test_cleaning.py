@@ -46,7 +46,7 @@ def test_size_category(stage, amount, expected):
     ("https://www.lightframe.tech/", "https://www.lightframe.tech"),
     (" www.example.ch ", "https://www.example.ch"),
     ("http://example.de/path", "http://example.de/path"),
-    ("", None), (None, None), ("not a url", None),
+    ("", None), (None, None), ("not a url", None), ("[abc.com", None),
 ])
 def test_clean_website(raw, expected):
     assert clean_website(raw) == expected

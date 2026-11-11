@@ -75,7 +75,10 @@ def clean_website(raw: str | None) -> str | None:
         value = f"https://{value}"
     if re.search(r"\s", value):
         return None
-    host = urlsplit(value).hostname
+    try:
+        host = urlsplit(value).hostname
+    except ValueError:
+        return None
     if not host or "." not in host:
         return None
     return value
