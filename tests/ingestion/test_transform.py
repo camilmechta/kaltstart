@@ -47,3 +47,11 @@ def test_company_details_with_bad_website_and_blank_description():
     assert transform_company_details(
         {"website": "n/a", "description": "  ", "founded": None}
     ) == {"website": None, "description": None, "founded": None}
+
+def test_empty_string_amounts_become_none():
+    company, rnd = transform_round(_round(amountEur="", amountNative="", stage=None))
+    assert (rnd["amount_eur"], rnd["amount_native"]) == (None, None)
+    assert rnd["size_category"] == "small"
+
+def test_company_details_empty_founded_becomes_none():
+    assert transform_company_details({"founded": ""})["founded"] is None

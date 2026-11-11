@@ -50,6 +50,11 @@ def _text(value: str | None) -> str | None:
     return value
 
 
+def _number(value):
+    """Map None and "" to None; return any other value unchanged."""
+    return None if value is None or value == "" else value
+
+
 def transform_round(raw: dict) -> tuple[CompanyRow, RoundRow]:
     """Split one raw round into a company row and a round row."""
     raw_company = raw["company"]
@@ -66,7 +71,7 @@ def transform_round(raw: dict) -> tuple[CompanyRow, RoundRow]:
         "techeu_url": raw_company["pageUrl"],
     }
     stage = _text(raw.get("stage"))
-    amount_eur = raw.get("amountEur")
+    amount_eur = _number(raw.get("amountEur"))
     rnd: RoundRow = {
         "id": raw["id"],
         "company_id": raw_company["id"],
@@ -74,7 +79,7 @@ def transform_round(raw: dict) -> tuple[CompanyRow, RoundRow]:
         "stage": stage,
         "raw_round_type": _text(raw.get("rawRoundType")),
         "amount_eur": amount_eur,
-        "amount_native": raw.get("amountNative"),
+        "amount_native": _number(raw.get("amountNative")),
         "currency": _text(raw.get("currency")),
         "size_category": size_category(stage, amount_eur),
         "investors": clean_investors(raw.get("investors")),
@@ -91,5 +96,5 @@ def transform_company_details(raw: dict) -> CompanyDetails:
     return {
         "website": clean_website(raw.get("website")),
         "description": description.strip() if description else None,
-        "founded": raw.get("founded"),
+        "founded": _number(raw.get("founded")),
     }
