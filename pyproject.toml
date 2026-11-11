@@ -20,5 +20,8 @@ dev = [
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+"kaltstart.ingestion" = ["*.csv"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
