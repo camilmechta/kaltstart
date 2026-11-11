@@ -10,6 +10,7 @@ from kaltstart.ingestion.store import WATERMARK_COMMANDS
 from kaltstart.ingestion.transform import CompanyDetails, CompanyRow, RoundRow
 
 WRITE_BATCH = 500
+DELETE_BATCH = 100  # ids are 36-character UUIDs, and they go into the URL
 PAGE_SIZE = 1000
 
 
@@ -80,7 +81,7 @@ class SupabaseStore:
 
     def delete_rounds(self, ids: list[str]) -> int:
         deleted = 0
-        for batch in _batches(ids):
+        for batch in _batches(ids, DELETE_BATCH):
             data = self._client.table("rounds").delete().in_("id", batch).execute().data
             deleted += len(data)
             self._client.table("raw_rounds").delete().in_("id", batch).execute()
