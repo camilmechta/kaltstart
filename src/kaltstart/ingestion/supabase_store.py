@@ -17,6 +17,14 @@ def _batches(rows: list, size: int = WRITE_BATCH) -> Iterator[list]:
         yield rows[start : start + size]
 
 
+def dedupe_by_id(rows: list[dict]) -> list[dict]:
+    """Keep one row per id: the last one wins, ids stay in first-seen order.
+
+    Postgres rejects an upsert that touches the same row twice in one statement.
+    """
+    return list({row["id"]: row for row in rows}.values())
+
+
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -34,7 +42,7 @@ class SupabaseStore:
         return cls(create_client(url, key))
 
     def _upsert(self, table: str, rows: list[dict]) -> None:
-        for batch in _batches(rows):
+        for batch in _batches(dedupe_by_id(rows)):
             self._client.table(table).upsert(batch).execute()
 
     def _read_all(self, table: str, columns: str = "*") -> list[dict]:

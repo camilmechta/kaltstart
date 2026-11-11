@@ -101,7 +101,7 @@ def test_delete_rounds_returns_count_and_removes_raw():
     store.upsert_companies([company()])
     store.upsert_raw_rounds([{"id": "a"}, {"id": "b"}])
     store.upsert_rounds([round_row("a"), round_row("b")])
-    assert store.delete_rounds(["a", "inconnu"]) == 1
+    assert store.delete_rounds(["a", "unknown"]) == 1
     assert [r["id"] for r in store.all_rounds_with_company()] == ["b"]
     assert [r["id"] for r in store.all_raw_rounds()] == ["b"]
     assert store.counts() == {"raw_rounds": 1, "companies": 1, "rounds": 1}
@@ -143,3 +143,22 @@ def test_supabase_store_from_env_requires_variables(monkeypatch):
     monkeypatch.delenv("SUPABASE_SERVICE_KEY", raising=False)
     with pytest.raises(RuntimeError, match="SUPABASE_URL and SUPABASE_SERVICE_KEY"):
         SupabaseStore.from_env()
+
+
+def test_dedupe_by_id_keeps_last_version_in_first_seen_order():
+    from kaltstart.ingestion.supabase_store import dedupe_by_id
+
+    rows = [
+        {"id": "a", "v": 1},
+        {"id": "b", "v": 1},
+        {"id": "a", "v": 2},
+    ]
+    assert dedupe_by_id(rows) == [{"id": "a", "v": 2}, {"id": "b", "v": 1}]
+
+
+def test_upsert_companies_with_duplicate_id_in_one_call_keeps_last():
+    store = InMemoryStore()
+    store.upsert_companies([company("c1", "First"), company("c1", "Last")])
+    store.upsert_rounds([round_row()])
+    assert store.counts()["companies"] == 1
+    assert store.all_rounds_with_company()[0]["company"]["name"] == "Last"
