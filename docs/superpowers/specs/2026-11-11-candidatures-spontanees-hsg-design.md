@@ -106,14 +106,16 @@ et pour lancer les tests à chaque commit. Le choix de l'outil pour le front
 Structure du repo :
 
 ```
-src/ingestion/    src/contacts/    src/mailgen/    src/api/
-tests/            docs/            .github/workflows/
+src/kaltstart/ingestion/    src/kaltstart/contacts/
+src/kaltstart/mailgen/      src/kaltstart/api/
+supabase/migrations/        tests/        docs/        .github/workflows/
 PRD.md  DECISIONS.md  CHANGELOG.md  CLAUDE.md  README.md
 ```
 
 ## 6. Données
 
-Sept tables.
+Sept tables, plus une table technique `sync_runs` qui garde le bilan de chaque
+exécution de nuit.
 
 ### 6.1 Données sur les entreprises (écrites par les scripts de nuit)
 
@@ -146,6 +148,9 @@ une catégorie à trois valeurs, stockée à côté du stade d'origine :
 | Petite | Pre-seed, Seed | Moins de 3 millions d'euros |
 | Moyenne | Series A | De 3 à 15 millions d'euros |
 | Grande | Series B et au-delà | Plus de 15 millions d'euros |
+
+Les stades `Grant` et `Debt` sont traités comme `Other` : la catégorie vient
+du montant. `Series C`, `Series D+` et `Growth/Late` sont « grande ».
 
 Les bornes 3 et 15 millions sont des valeurs de départ. Elles sont recalées en
 phase 1 sur les levées dont on connaît à la fois le stade et le montant, et la
@@ -186,17 +191,20 @@ mails en attente et les taux de réponse. Il n'y a pas de table de réservations
   l'Autriche, par pages de 100, puis une requête par entreprise pour sa fiche.
   Environ 830 levées. Le rythme est limité pour rester sous 600 requêtes par
   heure.
-- Chaque nuit : on demande les levées depuis la date de la plus récente en
-  base, moins 7 jours de marge. Une levée déjà connue est mise à jour, jamais
-  dupliquée. La fiche d'une entreprise déjà connue n'est pas redemandée.
-- À chaque appel, on compare `appliedFilters` aux filtres envoyés. S'ils
-  diffèrent, le script s'arrête avec une erreur et n'écrit rien.
+- Chaque nuit : on interroge le point d'accès `/changes` de Tech.eu, prévu pour
+  la synchronisation, avec la date de la dernière exécution réussie moins un
+  jour de marge. Il renvoie les levées ajoutées et les levées supprimées. Une
+  levée déjà connue est mise à jour, jamais dupliquée. La fiche d'une
+  entreprise déjà connue n'est pas redemandée.
+- À chaque appel de `/rounds`, on compare `appliedFilters` aux filtres envoyés.
+  S'ils diffèrent, le script s'arrête avec une erreur et n'écrit rien.
+  `/changes` ne renvoie pas `appliedFilters` : on y filtre les pays nous-mêmes.
 - Nettoyage des villes : suppression des espaces en trop, puis table de
   correspondance écrite à la main (variantes d'orthographe ramenées à un seul
   nom, cantons et régions sortis du champ ville). Toute valeur inconnue est
   listée dans un rapport, pas corrigée en silence.
-- Les montants sont convertis en euros si Tech.eu les fournit dans une autre
-  devise ; le montant et la devise d'origine sont conservés.
+- Tech.eu fournit déjà chaque montant en euros (`amountEur`). On le stocke tel
+  quel, avec le montant et la devise d'origine.
 
 ### 7.2 Contacts
 
