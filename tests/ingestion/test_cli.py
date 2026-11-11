@@ -49,7 +49,7 @@ class FakeClient:
 def company(cid, country="Switzerland", city="Zurich", city_raw=None):
     return {"id": cid, "name": cid, "country": country, "city": city,
             "city_raw": city_raw if city_raw is not None else city,
-            "region": None, "sectors": [], "techeu_url": None}
+            "region": None, "sectors": [], "techeu_url": f"https://funding.tech.eu/companies/{cid}"}
 
 
 def round_row(rid, cid, stage, size_category, amount_eur):
@@ -57,7 +57,8 @@ def round_row(rid, cid, stage, size_category, amount_eur):
             "raw_round_type": None, "amount_eur": amount_eur,
             "amount_native": amount_eur, "currency": "EUR",
             "size_category": size_category, "investors": [],
-            "source_url": None, "source_domain": None, "confidence": "high"}
+            "source_url": f"https://funding.tech.eu/deals/{rid}",
+            "source_domain": None, "confidence": "high"}
 
 
 def report_store():
@@ -71,7 +72,7 @@ def report_store():
         round_row("r2", "c2", "Seed", "small", 3_000_000),
         round_row("r3", "c3", "Series A", "medium", 10_000_000),
         round_row("r4", "c4", "Other", "large", None),
-        round_row("r5", "c1", "Pre-Seed", "micro", None)])
+        round_row("r5", "c1", "Pre-Seed", "small", None)])
     return store
 
 
@@ -86,7 +87,7 @@ def test_backfill_runs_and_stores_rounds(capsys):
     assert "command: details" in out
 
 
-def test_backfill_date_range_uses_months(capsys, monkeypatch):
+def test_backfill_date_range_uses_months(monkeypatch):
     monkeypatch.setattr(cli, "_today", lambda: date(2026, 5, 31))
     client = FakeClient()
     assert main(["backfill", "--months", "3"], client=client, store=InMemoryStore()) == 0
@@ -126,10 +127,9 @@ def test_reclean_runs(capsys):
 def test_report_prints_counts_sizes_and_medians(capsys):
     assert main(["report"], store=report_store()) == 0
     out = capsys.readouterr().out
-    print(out)
     for line in ("raw_rounds: 0", "companies: 4", "rounds: 5"):
         assert line in out
-    for size in ("micro", "small", "medium", "large"):
+    for size in ("small", "medium", "large"):
         assert any(l.split()[:1] == [size] for l in out.splitlines()), size
     assert "Switzerland" in out and "Germany" in out
     seed = next(l for l in out.splitlines() if l.startswith("Seed") and "2,000,000" in l)
@@ -171,12 +171,12 @@ def test_cities_sorting_none_label_and_raw_differences(capsys):
     assert "Vienna region" in out
 
 
-def test_cities_on_empty_store(capsys):
+def test_cities_on_empty_store():
     assert main(["cities"], store=InMemoryStore()) == 0
 
 
 @pytest.mark.parametrize("argv", [[], ["nonsense"], ["backfill", "--bogus"]])
-def test_usage_errors_return_2(argv, capsys):
+def test_usage_errors_return_2(argv):
     assert main(argv) == 2
 
 
@@ -188,13 +188,26 @@ def test_nothing_is_built_before_arguments_are_parsed(monkeypatch):
     assert main([]) == 2
 
 
-def test_report_cities_reclean_never_build_a_client(monkeypatch, capsys):
+def test_report_cities_reclean_never_build_a_client(monkeypatch):
     def boom(*a, **k):
         raise AssertionError("client constructed")
     monkeypatch.setattr(cli, "_default_client", boom)
     store = InMemoryStore()
     for command in ("report", "cities", "reclean"):
         assert main([command], store=store) == 0
+
+
+class FalsyStore(InMemoryStore):
+    def __bool__(self):
+        return False
+
+
+def test_a_falsy_store_is_still_used(monkeypatch):
+    def boom(*a, **k):
+        raise AssertionError("default store constructed")
+    monkeypatch.setattr(cli, "_default_store", boom)
+    assert main(["report"], store=FalsyStore()) == 0
+    assert main(["reclean"], store=FalsyStore()) == 0
 
 
 def test_missing_supabase_env_returns_1(monkeypatch, capsys):

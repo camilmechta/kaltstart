@@ -18,7 +18,7 @@ from kaltstart.ingestion.pipeline import (
 from kaltstart.ingestion.store import Store
 from kaltstart.ingestion.techeu_client import BASE_URL, TechEuClient, TechEuError
 
-SIZE_ORDER = ("micro", "small", "medium", "large")
+SIZE_ORDER = ("small", "medium", "large")
 NONE_LABEL = "(none)"
 
 
@@ -128,8 +128,9 @@ def _cities(store: Store) -> None:
 
 def _run_command(args: argparse.Namespace, client, store) -> None:
     command = args.command
+    if store is None:
+        store = _default_store()
     if command in ("report", "cities", "reclean"):
-        store = store or _default_store()
         if command == "report":
             _report(store)
         elif command == "cities":
@@ -137,8 +138,8 @@ def _run_command(args: argparse.Namespace, client, store) -> None:
         else:
             _print_run(reclean(store))
         return
-    store = store or _default_store()
-    client = client or _default_client()
+    if client is None:
+        client = _default_client()
     if command == "backfill":
         today = _today()
         run = backfill(client, store, months_back(today, args.months).isoformat(),
