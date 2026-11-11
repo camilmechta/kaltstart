@@ -17,6 +17,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Weekly backfill schedule (Sundays) to pick up edits to known rounds, which
   the `/changes` endpoint does not report.
 
+### Changed
+
+- Design spec and Phase 1 plan translated to English; the spec file is now
+  `docs/superpowers/specs/2026-11-11-kaltstart-design.md`.
+
 ## Phase 0 - 2026-11-11
 
 ### Added

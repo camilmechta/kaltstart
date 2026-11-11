@@ -21,3 +21,4 @@
 | D17 | The details fetch stops and fails after 3 consecutive failures | Do not hammer a failing API; make systemic failure visible | Continue through every company; stop at the first failure |
 | D18 | A repeated pagination cursor or an incomplete removed list is an error | A visible failure is better than silent data loss | Stop silently and record success |
 | D19 | Weekly `backfill` every Sunday, in addition to the nightly `sync` | `/changes` reports added and removed rounds only, so edits to known rounds (such as an amount published later) would never arrive; a re-read costs about ten requests | Accept stale rounds; re-read `/rounds` every night |
+| D20 | The design spec and the implementation plans are in English too, extending D13 to every file in the repository | The repository is public; a reader should not hit a language switch between the code and its design documents | Keep the spec and plans in French |

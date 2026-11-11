@@ -24,7 +24,8 @@ pytest -q
   `Austria`.
 - The README must credit the source: "Tech.eu Funding Explorer", licence
   CC BY 4.0.
-- Public repository files, code, comments and commit messages are in English.
+- Every file in the repository is in English: public documents, spec, plans,
+  code, comments and commit messages.
 - No secret in the repository. Supabase keys come from the environment
   variables `SUPABASE_URL` and `SUPABASE_SERVICE_KEY`.
 - Test-driven development: write the test and see it fail before writing the
