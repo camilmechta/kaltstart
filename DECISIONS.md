@@ -17,3 +17,6 @@
 | D13 | Public repository documents in English (README, PRD, DECISIONS, CHANGELOG, CLAUDE.md, code and commits) | Readable by European tech recruiters | French |
 | D14 | Package `src/kaltstart/` instead of `src/ingestion/` directly | A single package name avoids import conflicts | One top-level package per component |
 | D15 | Nightly synchronisation through `/changes` | It is the mechanism the API provides for synchronisation, and it also reports deletions | Re-reading `/rounds` every night |
+| D16 | The sync watermark counts only successful `backfill` and `sync` runs; interrupted runs are recorded as failed | A successful details or reclean run must not hide a failed sync | Latest successful run of any command; interrupted runs left unrecorded |
+| D17 | The details fetch stops and fails after 3 consecutive failures | Do not hammer a failing API; make systemic failure visible | Continue through every company; stop at the first failure |
+| D18 | A repeated pagination cursor or an incomplete removed list is an error | A visible failure is better than silent data loss | Stop silently and record success |

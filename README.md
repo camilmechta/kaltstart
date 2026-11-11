@@ -32,8 +32,9 @@ pytest -q
 ```
 
 Supabase credentials are read from the environment variables `SUPABASE_URL` and
-`SUPABASE_SERVICE_KEY`. Copy `.env.example` to `.env` for local use. Never
-commit real values.
+`SUPABASE_SERVICE_KEY`. Nothing loads a `.env` file: export both variables in
+your shell, or set them as GitHub Actions secrets. `.env.example` only lists
+their names. Never commit real values.
 
 ## Data
 
