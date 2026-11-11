@@ -1,8 +1,8 @@
 # Kaltstart : spec de design
 
 Date : 2026-11-11
-Statut : en attente de relecture
-Nom du projet : Kaltstart (le dossier local s'appelle encore `hsg-spontan`)
+Statut : validée
+Nom du projet : Kaltstart
 
 ## 1. Résumé
 
@@ -305,7 +305,7 @@ Suivi :
 
 | Situation | Réaction |
 |---|---|
-| Tech.eu ne répond pas ou quota atteint | Trois essais espacés, puis arrêt propre. La marge de 7 jours rattrape le retard la nuit suivante. |
+| Tech.eu ne répond pas ou quota atteint | Trois essais espacés, puis arrêt propre. La marge d'un jour rattrape le retard la nuit suivante. |
 | `appliedFilters` ne correspond pas | Arrêt immédiat, rien n'est écrit. |
 | Site lent, en erreur ou interdit par robots.txt | Raison notée, on passe au suivant. Nouvel essai 7 jours plus tard, trois fois au plus. |
 | Entreprise sans contact | Masquée de la liste étudiante. |
