@@ -1,5 +1,7 @@
 # Phase 2: Contact Scraper Measurement Implementation Plan
 
+> **Status note:** Tasks 1 to 9 were executed on 2026-11-12. A whole-branch review then changed several rules (redirect handling, bare-word addresses, the company-domain rule, founder extraction, `--exclude-file`); the spec and `DECISIONS.md` (D31 to D35) hold the current rules where this plan differs. Task 10 is still to do.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build the contact scraper and measure, on 20 Swiss companies, how often it finds a usable address and a founder's name.
@@ -498,6 +500,6 @@ Steps marked **[Owner]** need the project owner.
 - [ ] **Step 4:** first verification pass: visit each of the 20 sites, fill `email_check`, `founder_check` and `notes` in `local/phase-2-results.csv`. Use the cheapest model and page text, not screenshots.
 - [ ] **Step 5 [Owner]:** open the source links of the reported finds, and check 5 companies independently, drawn with `random.Random(2026).sample(range(20), 5)`. If any of the 5 disagrees with the first pass, all 20 are checked again.
 - [ ] **Step 6:** run `.venv/bin/python -m kaltstart.contacts summary local/phase-2-results.csv`, read the two verdicts.
-- [ ] **Step 7:** if a verdict is `inconclusive`, draw 20 more with `gh workflow run nightly -f command=sample -f args="--seed 2027 --exclude-seed 2026"`, append them to the sample file, and repeat Steps 3 to 6 so that the summary covers the 40 companies.
+- [ ] **Step 7:** if a verdict is `inconclusive`, draw 20 more with `gh workflow run nightly -f command=sample -f args="--seed 2027 --exclude-file docs/measurements/phase-2-sample.csv"`, append them to the sample file, and repeat Steps 3 to 6 so that the summary covers the 40 companies.
 - [ ] **Step 8:** record the result in `DECISIONS.md` (rates reported and confirmed, verdicts, the most frequent failure causes), update `README.md` (Phase 2 status and the summary's figures) and `CHANGELOG.md`. Commit `docs: record phase 2 measurement`.
 - [ ] **Step 9 [Owner]:** decide the next step with the verdicts in hand: the second plan (nightly run and `contacts` table) if both pass, or a plan B from the parent spec, section 2.

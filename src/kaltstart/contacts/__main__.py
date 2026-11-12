@@ -12,6 +12,15 @@ from kaltstart.contacts.scrape import scrape_company
 from kaltstart.contacts.site import site_host
 
 
+VERIFICATION_GUIDE = """
+To verify, fill email_check and founder_check on every row with one of:
+  confirmed    every reported address (or name) is right
+  wrong        at least one reported address (or name) is false
+  missed       nothing was reported, but the site publishes one
+  none_exists  nothing was reported and there is nothing to find
+Then run: python -m kaltstart.contacts summary <results file>"""
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="python -m kaltstart.contacts")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -41,6 +50,7 @@ def _measure(sample: Path, out: Path, fetcher) -> None:
     print(f"Usable contact (reported): {contacts}")
     print(f"Founder name (reported): {founders}")
     print(f"Results written to {out}")
+    print(VERIFICATION_GUIDE)
 
 
 def _summary(results: Path, out: Path) -> None:

@@ -84,3 +84,32 @@ def test_fallback_paths_when_no_link_matches():
         ("/impressum", "legal"), ("/imprint", "legal"), ("/contact", "contact"),
         ("/team", "team"), ("/about", "team"), ("/careers", "careers"),
         ("/jobs", "careers"))
+
+
+def test_legal_notice_is_preferred_over_privacy_and_terms_pages():
+    html = home(a("/legal/privacy", "Privacy & Legal"), a("/legal/terms", "Legal terms"),
+                a("/datenschutz", "Datenschutz"), a("/impressum", "Impressum"),
+                a("/legal", "Legal"))
+    assert choose_links(html, HOME, HOSTS) == [
+        ("https://example.ch/impressum", "legal"),
+        ("https://example.ch/legal", "legal"),
+    ]
+
+
+def test_same_page_under_two_spellings_takes_one_slot():
+    html = home(a("/team"), a("/team/"), a("/contact?ref=nav"), a("/contact"))
+    assert choose_links(html, HOME, HOSTS) == [
+        ("https://example.ch/contact?ref=nav", "contact"),
+        ("https://example.ch/team", "team"),
+    ]
+
+
+def test_keywords_match_whole_words_only():
+    html = home(a("/blog/joint-venture", "News"), a("/teamwork-tips", "Blog"),
+                a("/join-us", "Work with us"))
+    assert choose_links(html, HOME, HOSTS) == [("https://example.ch/join-us", "careers")]
+
+
+def test_home_page_variants_are_never_chosen():
+    html = home(a("/?lang=en", "Company"), a("https://www.example.ch/", "About"), a("/team"))
+    assert choose_links(html, HOME, HOSTS) == [("https://example.ch/team", "team")]

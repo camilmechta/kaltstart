@@ -21,6 +21,14 @@ def names(body, kind="team"):
     ("<div><p>CEO</p><h3>Jonas von Beispiel</h3></div>", [("Jonas von Beispiel", "CEO")]),
     ("<p>Anna Muster, Founder</p>", [("Anna Muster", "Founder")]),
     ("<p>Gründerin Anna Maria Muster</p>", [("Anna Maria Muster", "Gründerin")]),
+    # The label before a colon is never the name.
+    ("<p>Vertretungsberechtigte Person: Dr. Anna Muster, Geschäftsführerin</p>",
+     [("Anna Muster", "Geschäftsführerin")]),
+    # Each role binds to its own name: only founder roles are returned.
+    ("<p>CEO: Anna Muster, CTO: Peter Beispiel, CFO: Clara Vorlage</p>", [("Anna Muster", "CEO")]),
+    ("<p>Anna Muster (CEO) and Peter Beispiel (CTO)</p>", [("Anna Muster", "CEO")]),
+    ("<p>Our CEO Anna Muster previously worked at Example Labs</p>", [("Anna Muster", "CEO")]),
+    ("<p>ANNA MUSTER, Founder</p>", [("Anna Muster", "Founder")]),
 ])
 def test_names_next_to_a_role(body, expected):
     assert names(body) == expected
@@ -32,6 +40,17 @@ def test_names_next_to_a_role(body, expected):
     "<p>CEO Office 2nd Floor</p>",
     "<p>Our founders met in Zurich</p>",
     "<p>Backed by Founder Collective</p>",
+    "<p>Verantwortliche Stelle: Beispiel Robotics GmbH, Geschäftsleitung</p>",
+    "<p>About Us</p><p>Founder Story</p>",
+    "<p>Message From Our CEO</p>",
+    "<p>Dear Friends</p><p>CEO</p>",
+    "<p>Investor, Founder of Example Ventures</p>",
+    "<p>Advisor, former CEO at Example Corp</p>",
+    "<p>Founder Associate: Mia Probe</p>",
+    "<p>Head of CEO Office: Mia Probe</p>",
+    "<p>Former CEO: Mia Probe</p>",
+    "<blockquote><p>A great product, says Hans Probe, CEO of Example Bank</p></blockquote>",
+    "<nav><span>Founder</span><span>Anna Muster</span></nav>",
 ])
 def test_rejections(body):
     assert names(body) == []

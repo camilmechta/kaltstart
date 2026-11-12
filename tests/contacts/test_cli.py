@@ -49,6 +49,10 @@ def test_measure_writes_results_and_prints_reported_rates(tmp_path, capsys):
     assert "Usable contact (reported): 1/2 (50%)" in printed
     assert "Founder name (reported): 1/2 (50%)" in printed
     assert str(out) in printed
+    # The verifier is told what each check value means.
+    for word in ("email_check", "founder_check", "confirmed", "wrong", "missed", "none_exists"):
+        assert word in printed
+    assert "every reported" in printed
 
 
 def test_measure_continues_after_a_failing_company(tmp_path):

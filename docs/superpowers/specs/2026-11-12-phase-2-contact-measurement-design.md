@@ -71,7 +71,8 @@ Out of scope, deferred to a later plan that depends on the verdict:
 Twenty companies is a small sample: one company is 5 percentage points. A
 result within one company of a threshold (65 % to 75 % for contacts, 35 % to
 45 % for founders) is treated as inconclusive, and 20 more companies are
-drawn with seed 2027, excluding the first 20, before deciding on all 40.
+drawn with seed 2027, excluding the companies of the first sample file,
+before deciding on all 40.
 
 ## 4. What is public and what stays local
 
@@ -95,14 +96,25 @@ Five steps, one module each, under `src/kaltstart/contacts/`.
 
 ### 5.1 Fetch politely (`fetcher.py`)
 
-- Reads `robots.txt` first and obeys the rules addressed to all robots
-  (`User-agent: *`). If the site forbids the home page, nothing is fetched.
-  A missing or unreadable `robots.txt` means no restriction.
-- Waits at least 2 seconds between two requests to the same site.
+- Reads the `robots.txt` of a host before any other request to that host, and
+  obeys the rules addressed to all robots (`User-agent: *`) and those
+  addressed to its own `User-Agent`. If the site forbids the home page,
+  nothing is fetched. A missing `robots.txt` (a 4xx answer) means no
+  restriction; one that cannot be read (network error, 5xx answer) means the
+  site is treated as forbidden, as RFC 9309 asks.
+- Waits at least 2 seconds between two requests to the same site, redirect
+  hops included.
 - Fetches at most 8 pages per company, home page included.
-- Stays on the company's site: same registrable domain as the website in the
-  sample, with or without `www`. Links to any other site are ignored. LinkedIn
-  is never fetched.
+- Stays on the company's site: same host as the website in the sample, with
+  or without `www`, or a subdomain of it. Links to any other site are
+  ignored. Redirects are followed by hand, at most 5 hops, and each hop is
+  checked before it is requested: a page that redirects to another site is
+  dropped without that site being contacted.
+- The home page alone may redirect to a new domain, which then counts as the
+  company's site, after that domain's own `robots.txt` has been read.
+- Social networks and link-in-bio hosts (LinkedIn, Facebook, Instagram, X,
+  Xing, YouTube, TikTok, Linktree) are never requested, whatever points to
+  them, including a website value or a home-page redirect.
 - Reads HTML only, at most 2 MB per page, with a 15-second timeout.
 - Does not announce the project: no project name and no link in the
   `User-Agent` header. It uses the HTTP library's default header and does not
@@ -128,8 +140,14 @@ fixed paths of the parent spec (`/impressum`, `/imprint`, `/contact`, `/team`,
 ### 5.3 Extract addresses (`emails.py`)
 
 - From `mailto:` links and from the visible text.
-- Including common disguised forms: `[at]`, `(at)`, ` at `, `[dot]`, `(dot)`.
-- Only addresses on the company's domain are kept. Addresses on another
+- Including the bracketed disguised forms `[at]`, `(at)`, `[dot]`, `(dot)`,
+  written in lower case. Bare words (`hello at example.ch`) are never read as
+  an address: a heading such as "Jobs at Example.ch" would otherwise become
+  one, and an address is never constructed.
+- Only addresses on the company's domain are kept: the site's host, a
+  subdomain of it, or its parent when the host is a generic subdomain such as
+  `app.` or `shop.`. The parent of any other subdomain may belong to a
+  university or a site builder and is not trusted. Addresses on another
   domain are counted, not kept (see 5.6).
 - Addresses of website tooling are discarded (for example error-tracking or
   site-builder domains, and image file names that look like addresses).
@@ -144,17 +162,23 @@ Role words: Founder, Co-Founder, Cofounder, CEO, Chief Executive Officer,
 Managing Director, Gründer, Gründerin, Mitgründer, Mitgründerin,
 Geschäftsführer, Geschäftsführerin, Geschäftsleitung.
 
-A name is two to four capitalised words. A candidate is rejected if it
-contains a role word, a company suffix (AG, GmbH, SA, Sàrl, Ltd) or a digit.
+A name is two to four capitalised words. In a "label: content" line the
+label is never the name, and each role binds to the name nearest to it, so
+that "CEO: A, CTO: B" returns A only. A candidate is rejected if it contains
+a role word, a company suffix (AG, GmbH, SA, Sàrl, Ltd), a digit or a common
+non-name word, or if it follows "of", "at" or "bei", which introduce an
+organisation. "Former CEO", "Head of CEO Office" and "Founder Associate" are
+not founder roles. Navigation, page headers and quotations are not read.
 This step is the least reliable of the five, which the 40 % threshold
-reflects.
+reflects; when in doubt it returns nothing.
 
 ### 5.5 Classify and choose (`selection.py`)
 
 The rules of the parent spec, section 7.2, unchanged:
 
-- Address types: personal (the local part contains the first or last name of
-  a founder found), careers (`careers@`, `jobs@`, `talent@`, `hr@`,
+- Address types: personal (the local part carries the last name of a founder
+  found, alone or with the first name or its initial, or is exactly the first
+  name), careers (`careers@`, `jobs@`, `talent@`, `hr@`,
   `karriere@`, `recruiting@`), generic (everything else).
 - Contact proposed, by size category: for small, a founder's personal
   address, else generic or careers with the founder's first name, else generic

@@ -60,8 +60,8 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--country", default="Switzerland")
     p.add_argument("--n", type=int, default=20)
     p.add_argument("--seed", type=int, default=2026)
-    p.add_argument("--exclude-seed", type=int, action="append", default=[],
-                   help="leave out the companies drawn with this seed")
+    p.add_argument("--exclude-file", action="append", default=[],
+                   help="leave out the companies listed in this earlier sample CSV")
     return parser
 
 
@@ -147,7 +147,7 @@ def _draw(candidates: list[dict], n: int, seed: int) -> list[dict]:
 
 
 def _sample(store: Store, country: str, n: int, seed: int,
-            exclude_seeds: list[int]) -> None:
+            exclude_files: list[str]) -> None:
     """Print a reproducible random draw of companies that have a website."""
     latest: dict[str, dict] = {}
     for item in store.all_rounds_with_company():
@@ -159,9 +159,13 @@ def _sample(store: Store, country: str, n: int, seed: int,
             latest[company["id"]] = item
     # Sorted, so the draw does not depend on the order the store returns rows.
     candidates = [latest[company_id] for company_id in sorted(latest)]
-    for excluded_seed in exclude_seeds:
-        excluded = {i["company"]["id"] for i in _draw(candidates, n, excluded_seed)}
-        candidates = [i for i in candidates if i["company"]["id"] not in excluded]
+    # Earlier samples are excluded from their files, not by drawing them
+    # again: the database grows every night, so a redraw would differ.
+    excluded = set()
+    for path in exclude_files:
+        with open(path, newline="", encoding="utf-8") as handle:
+            excluded |= {row["company_id"] for row in csv.DictReader(handle)}
+    candidates = [i for i in candidates if i["company"]["id"] not in excluded]
     writer = csv.writer(sys.stdout, lineterminator="\n")
     writer.writerow(["company_id", "name", "website", "size_category"])
     for item in _draw(candidates, n, seed):
@@ -176,7 +180,7 @@ def _run_command(args: argparse.Namespace, client, store) -> None:
         store = _default_store()
     if command in ("report", "cities", "reclean", "sample"):
         if command == "sample":
-            _sample(store, args.country, args.n, args.seed, args.exclude_seed)
+            _sample(store, args.country, args.n, args.seed, args.exclude_file)
         elif command == "report":
             _report(store)
         elif command == "cities":
@@ -203,7 +207,7 @@ def main(argv: list[str], *, client=None, store=None) -> int:
         return exc.code if isinstance(exc.code, int) else 2
     try:
         _run_command(args, client, store)
-    except (RuntimeError, TechEuError) as exc:
+    except (RuntimeError, OSError, TechEuError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
     return 0

@@ -221,8 +221,8 @@ pending mails and the reply rates. There is no reservations table.
 - Founder names: spotted through role words (Founder, Co-Founder, CEO,
   Gründer, Mitgründer, Geschäftsführer) close to a name, on the team and
   Impressum pages.
-- Address types: personal (contains the first or last name of a founder
-  found), careers (careers@, jobs@, talent@, hr@), generic (hello@, info@,
+- Address types: personal (carries the last name of a founder found, or is exactly
+  the first name), careers (careers@, jobs@, talent@, hr@), generic (hello@, info@,
   contact@ and equivalents).
 
 Choice of the contact offered to the student:

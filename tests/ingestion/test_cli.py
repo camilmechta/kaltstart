@@ -306,12 +306,31 @@ def test_sample_size_category_is_that_of_the_latest_round(capsys):
     assert next(r for r in rows if r[0] == "ch-01")[3] == "small"
 
 
-def test_sample_exclude_seed(capsys):
-    first = {r[0] for r in sample_rows(capsys, "--n", "10")}
-    second = {r[0] for r in sample_rows(capsys, "--n", "10", "--seed", "2027",
-                                        "--exclude-seed", "2026")}
+def test_sample_exclude_file(capsys, tmp_path):
+    first = sample_rows(capsys, "--n", "10")
+    drawn = tmp_path / "first.csv"
+    drawn.write_text("company_id,name,website,size_category\n"
+                     + "".join(",".join(r) + "\n" for r in first), encoding="utf-8")
+    second = sample_rows(capsys, "--n", "10", "--seed", "2027", "--exclude-file", str(drawn))
     assert len(second) == 10
-    assert not first & second
+    assert not {r[0] for r in first} & {r[0] for r in second}
+
+
+def test_sample_exclude_file_survives_new_companies(capsys, tmp_path):
+    # The first sample is a committed file: later arrivals in the database
+    # must not change which companies it excludes.
+    first = sample_rows(capsys)
+    drawn = tmp_path / "first.csv"
+    drawn.write_text("company_id,name,website,size_category\n"
+                     + "".join(",".join(r) + "\n" for r in first), encoding="utf-8")
+    store = sample_store()
+    store.upsert_companies([company("ch-99")])
+    store.upsert_rounds([round_row("r-ch-99", "ch-99", "Seed", "small", 1_000_000)])
+    store.set_company_details("ch-99", {"website": "https://ch-99.example.ch",
+                                        "description": None, "founded": None})
+    second = sample_rows(capsys, "--seed", "2027", "--exclude-file", str(drawn), store=store)
+    assert len(second) == 11
+    assert not {r[0] for r in first} & {r[0] for r in second}
 
 
 def test_sample_with_fewer_companies_than_n_prints_them_all(capsys):
