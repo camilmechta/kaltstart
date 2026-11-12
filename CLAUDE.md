@@ -13,6 +13,18 @@ pip install -e ".[dev]"
 pytest -q
 ```
 
+Ingestion commands (they need `SUPABASE_URL` and `SUPABASE_SERVICE_KEY`; there
+are no local credentials, so run them from the `nightly` workflow in GitHub
+Actions):
+
+```
+python -m kaltstart.ingestion backfill [--months 12]
+python -m kaltstart.ingestion sync
+python -m kaltstart.ingestion reclean
+python -m kaltstart.ingestion report
+python -m kaltstart.ingestion cities
+```
+
 ## Constraints
 
 - No call to any AI API at runtime.
@@ -45,7 +57,7 @@ docs/                       specification and plans
 .github/workflows/          CI and nightly jobs
 ```
 
-Only `ingestion/` exists so far; the other directories are created in their
+Only `ingestion/` exists so far (Phase 1 is done); the other directories are created in their
 phase.
 
 ## Maintenance

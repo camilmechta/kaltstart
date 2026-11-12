@@ -11,7 +11,7 @@ reviews and sends the mail from their own mailbox; the app never sends anything.
 | Phase | Content | Status |
 |---|---|---|
 | 0. Scoping | Spec, PRD, repository, structure | Done |
-| 1. Ingestion | Tech.eu funding rounds to Supabase | In progress |
+| 1. Ingestion | Tech.eu funding rounds to Supabase | Done |
 | 2. Contacts | Contact scraper | Not started |
 | 3. Mails | Mail generator, English and German | Not started |
 | 4. Front end | Server and web app | Not started |
@@ -19,6 +19,20 @@ reviews and sends the mail from their own mailbox; the app never sends anything.
 
 See [PRD.md](PRD.md) for scope and success metrics and
 [DECISIONS.md](DECISIONS.md) for the decision log.
+
+### Phase 1 result
+
+First load on 2026-11-11, covering the previous 12 months:
+
+| | Count |
+|---|---|
+| Funding rounds | 832 (Germany 508, Switzerland 260, Austria 64) |
+| Companies | 783 |
+| Companies with a website | 780 |
+| Rounds by size category | 594 small, 119 medium, 119 large |
+
+A nightly job keeps the data up to date, and a weekly job re-reads the last
+12 months to pick up edits to known rounds.
 
 ## Installation
 
@@ -35,6 +49,21 @@ Supabase credentials are read from the environment variables `SUPABASE_URL` and
 `SUPABASE_SERVICE_KEY`. Nothing loads a `.env` file: export both variables in
 your shell, or set them as GitHub Actions secrets. `.env.example` only lists
 their names. Never commit real values.
+
+## Usage
+
+```
+python -m kaltstart.ingestion backfill [--months 12]   # first load, then company details
+python -m kaltstart.ingestion sync                      # added and removed rounds since the last run
+python -m kaltstart.ingestion reclean                   # reapply cleaning rules, no API call
+python -m kaltstart.ingestion report                    # counts, size categories, median amounts
+python -m kaltstart.ingestion cities                    # city values, to maintain the alias table
+```
+
+The database schema is in `supabase/migrations/0001_ingestion.sql`. The
+workflow `.github/workflows/nightly.yml` runs `sync` every night and `backfill`
+every Sunday, and can run any command by hand from the Actions tab. GitHub
+disables scheduled workflows after 60 days without repository activity.
 
 ## Data
 
