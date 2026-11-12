@@ -11,6 +11,10 @@ def _bare(host: str) -> str:
     return host[4:] if host.startswith("www.") else host
 
 
+def _is_or_under(host: str, parent: str) -> bool:
+    return host == parent or host.endswith("." + parent)
+
+
 def site_host(website: str) -> str:
     """Lower-case host of a website value, without a leading `www.`."""
     value = website.strip()
@@ -19,8 +23,16 @@ def site_host(website: str) -> str:
     return _bare(urlsplit(value).hostname or "")
 
 
-def _is_or_under(host: str, parent: str) -> bool:
-    return host == parent or host.endswith("." + parent)
+# Never fetched, whatever links or redirects point to them.
+SOCIAL_HOSTS = ("linkedin.com", "facebook.com", "instagram.com", "x.com",
+                "twitter.com", "xing.com", "youtube.com", "tiktok.com",
+                "linktr.ee")
+
+
+def is_social(url: str) -> bool:
+    """True for a social network or link-in-bio host: never a company's own site."""
+    host = _bare(urlsplit(url).hostname or "")
+    return any(_is_or_under(host, social) for social in SOCIAL_HOSTS)
 
 
 def same_site(url: str, hosts: Iterable[str]) -> bool:

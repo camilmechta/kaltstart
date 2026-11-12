@@ -83,10 +83,10 @@ def test_robots_disallowed_page_is_skipped():
 
 @pytest.mark.parametrize("robots", [
     (404, {}, ""),
-    (500, {}, "error"),
+    (403, {}, "forbidden"),
     (200, HTML, "<html><body>Disallow: /</body></html>"),
 ])
-def test_missing_or_broken_robots_means_no_restriction(robots):
+def test_missing_or_unusable_robots_means_no_restriction(robots):
     site = simple_site(**{"https://example.ch/robots.txt": robots})
     f, _ = fetcher(site)
     outcome = f.fetch_site("https://example.ch")
@@ -94,10 +94,26 @@ def test_missing_or_broken_robots_means_no_restriction(robots):
     assert outcome.pages[0].url == "https://example.ch/"
 
 
-def test_robots_connection_error_means_no_restriction():
-    site = simple_site(**{"https://example.ch/robots.txt": httpx.ConnectError("boom")})
+@pytest.mark.parametrize("robots", [
+    (500, {}, "error"),
+    (503, {}, "busy"),
+    httpx.ConnectError("boom"),
+])
+def test_robots_that_cannot_be_read_forbids_the_site(robots):
+    # RFC 9309: when robots.txt is unreachable, assume everything is disallowed.
+    site = simple_site(**{"https://example.ch/robots.txt": robots})
     f, _ = fetcher(site)
-    assert f.fetch_site("https://example.ch").status == "ok"
+    outcome = f.fetch_site("https://example.ch")
+    assert outcome.status == "robots_forbidden"
+    assert site.urls == ["https://example.ch/robots.txt"]
+
+
+def test_rules_addressed_to_our_own_user_agent_are_obeyed():
+    rules = "User-agent: python-httpx\nDisallow: /\n\nUser-agent: *\nDisallow:\n"
+    site = simple_site(**{"https://example.ch/robots.txt":
+                          (200, {"content-type": "text/plain"}, rules)})
+    f, _ = fetcher(site)
+    assert f.fetch_site("https://example.ch").status == "robots_forbidden"
 
 
 def test_fetches_home_then_chosen_links_with_kinds():
@@ -152,6 +168,100 @@ def test_page_redirecting_off_site_is_dropped():
     f, _ = fetcher(site)
     outcome = f.fetch_site("https://example.ch")
     assert [p.url for p in outcome.pages] == ["https://example.ch/", "https://example.ch/team"]
+    assert not any("other.example.de" in url for url in site.urls)
+
+
+def test_redirects_to_other_hosts_are_never_requested():
+    site = simple_site(**{
+        "https://example.ch/": (200, HTML, page("/team", "/jobs")),
+        "https://example.ch/team": (301, {"location": "https://www.linkedin.com/company/example"}, ""),
+        "https://example.ch/jobs": (302, {"location": "https://jobs.example-ats.com/example"}, ""),
+        "https://www.linkedin.com/company/example": (200, HTML, page()),
+        "https://jobs.example-ats.com/example": (200, HTML, page()),
+    })
+    f, _ = fetcher(site)
+    outcome = f.fetch_site("https://example.ch")
+    assert [p.url for p in outcome.pages] == ["https://example.ch/"]
+    assert all(httpx.URL(url).host == "example.ch" for url in site.urls)
+
+
+def test_home_redirect_to_a_social_network_is_unreachable():
+    site = simple_site(**{
+        "https://example.ch/": (301, {"location": "https://www.linkedin.com/company/example"}, ""),
+        "https://www.linkedin.com/company/example": (200, HTML, page("/company/example/people")),
+        "https://www.linkedin.com/robots.txt": ROBOTS_OK,
+    })
+    f, _ = fetcher(site)
+    outcome = f.fetch_site("https://example.ch")
+    assert outcome.status == "unreachable"
+    assert outcome.hosts == ("example.ch",)
+    assert not any("linkedin" in url for url in site.urls)
+
+
+@pytest.mark.parametrize("website", [
+    "https://www.linkedin.com/company/example",
+    "https://facebook.com/example",
+    "https://linktr.ee/example",
+])
+def test_website_that_is_a_social_profile_is_refused(website):
+    site = Site({})
+    f, _ = fetcher(site)
+    assert f.fetch_site(website).status == "unreachable"
+    assert site.requests == []
+
+
+def test_new_host_robots_is_read_before_the_redirect_target():
+    site = Site({
+        "https://example.ch/robots.txt": ROBOTS_OK,
+        "https://example.ch/": (301, {"location": "https://www.example.com/"}, ""),
+        "https://www.example.com/robots.txt":
+            (200, {"content-type": "text/plain"}, "User-agent: *\nDisallow: /\n"),
+        "https://www.example.com/": (200, HTML, page()),
+    })
+    f, _ = fetcher(site)
+    outcome = f.fetch_site("https://example.ch")
+    assert outcome.status == "robots_forbidden"
+    assert site.urls == ["https://example.ch/robots.txt", "https://example.ch/",
+                         "https://www.example.com/robots.txt"]
+
+
+def test_each_origin_has_its_own_robots():
+    site = simple_site(**{
+        "https://example.ch/": (200, HTML, page("https://jobs.example.ch/karriere", "/kontakt")),
+        "https://jobs.example.ch/robots.txt":
+            (200, {"content-type": "text/plain"}, "User-agent: *\nDisallow: /\n"),
+        "https://jobs.example.ch/karriere": (200, HTML, page()),
+    })
+    f, _ = fetcher(site)
+    outcome = f.fetch_site("https://example.ch")
+    assert "https://jobs.example.ch/karriere" not in site.urls
+    assert [p.url for p in outcome.pages] == ["https://example.ch/", "https://example.ch/kontakt"]
+
+
+def test_redirect_hops_are_throttled_too(monkeypatch):
+    monkeypatch.setattr("kaltstart.contacts.fetcher.time.monotonic", lambda: 100.0)
+    site = Site({
+        "https://example.ch/robots.txt": ROBOTS_OK,
+        "https://example.ch/": (301, {"location": "https://www.example.ch/"}, ""),
+        "https://www.example.ch/robots.txt": ROBOTS_OK,
+        "https://www.example.ch/": (200, HTML, page()),
+    })
+    f, sleeps = fetcher(site)
+    assert f.fetch_site("https://example.ch").status == "ok"
+    assert site.urls[:4] == [
+        "https://example.ch/robots.txt", "https://example.ch/",
+        "https://www.example.ch/robots.txt", "https://www.example.ch/"]
+    # One wait before every request but the first, redirect hops included.
+    assert sleeps == [2.0] * (len(site.requests) - 1)
+
+
+def test_too_many_redirects_is_unreachable():
+    routes = {"https://example.ch/robots.txt": ROBOTS_OK}
+    for i in range(10):
+        routes[f"https://example.ch/{i if i else ''}"] = (
+            302, {"location": f"https://example.ch/{i + 1}"}, "")
+    f, _ = fetcher(Site(routes))
+    assert f.fetch_site("https://example.ch").status == "unreachable"
 
 
 def test_non_html_and_oversized_pages_are_skipped():

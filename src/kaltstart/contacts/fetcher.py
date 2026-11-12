@@ -1,20 +1,36 @@
-"""Polite download of the few pages of one company site."""
+"""Polite download of the few pages of one company site.
+
+Hard rules enforced here: a host's robots.txt is read before any other
+request to that host; only the company's own site is ever requested, also
+when a page redirects elsewhere; every request, redirect hops included, waits
+for the minimum interval.
+"""
 
 import time
 from typing import Callable
-from urllib.parse import urlsplit
+from urllib.parse import urljoin, urlsplit
 from urllib.robotparser import RobotFileParser
 
 import httpx
 
 from kaltstart.contacts.models import FetchOutcome, Page
 from kaltstart.contacts.pages import choose_links
-from kaltstart.contacts.site import same_site, site_host
+from kaltstart.contacts.site import is_social, same_site, site_host
+
+MAX_REDIRECTS = 5
+USER_AGENT_TOKEN = "python-httpx"   # the product token of the default User-Agent
+_REDIRECTS = (301, 302, 303, 307, 308)
+_FORBID_ALL = object()              # robots.txt could not be read: assume disallowed
 
 
 def default_http_client() -> httpx.Client:
     """Client used for real runs: 15-second timeout, the library's own headers."""
     return httpx.Client(timeout=15, follow_redirects=True)
+
+
+def _origin(url: str) -> str:
+    parts = urlsplit(url)
+    return f"{parts.scheme}://{parts.netloc}"
 
 
 class SiteFetcher:
@@ -27,84 +43,117 @@ class SiteFetcher:
         self._max_bytes = max_bytes
         self._sleep = sleep
         self._last_request_at: float | None = None
+        self._robots_by_origin: dict[str, object] = {}
 
     def fetch_site(self, website: str) -> FetchOutcome:
-        """Read robots.txt, the home page, then the pages chosen from its links."""
+        """Read the home page, then the pages chosen from its links."""
         self._last_request_at = None
+        self._robots_by_origin = {}
         value = website.strip()
         if "://" not in value:
             value = "https://" + value
-        parts = urlsplit(value)
-        origin = f"{parts.scheme}://{parts.netloc}"
-        home_url = value if parts.path.strip("/") else origin + "/"
+        home_url = value if urlsplit(value).path.strip("/") else _origin(value) + "/"
         hosts = [site_host(value)]
-
-        robots = self._robots(origin)
-        if not _allowed(robots, home_url):
-            return FetchOutcome("robots_forbidden", (), tuple(hosts))
-
-        home = self._page(home_url)
-        if home is None:
+        if is_social(home_url):
             return FetchOutcome("unreachable", (), tuple(hosts))
-        final_url, html = home
-        if not same_site(final_url, hosts):
-            # The company moved to another domain: that domain is its site now,
-            # and its own robots.txt applies from here on.
-            hosts.append(site_host(final_url))
-            final = urlsplit(final_url)
-            robots = self._robots(f"{final.scheme}://{final.netloc}")
-            if not _allowed(robots, final_url):
-                return FetchOutcome("robots_forbidden", (), tuple(hosts))
+
+        # A redirect of the home page may lead to the company's new domain.
+        status, final_url, html = self._fetch(home_url, hosts, may_add_host=True)
+        if status != "ok":
+            failed = "robots_forbidden" if status == "forbidden" else "unreachable"
+            return FetchOutcome(failed, (), tuple(hosts))
 
         pages = [Page(final_url, "home", html)]
         for url, kind in choose_links(html, final_url, hosts,
                                       max_links=self._max_pages - 1):
             if len(pages) >= self._max_pages:
                 break
-            if not _allowed(robots, url):
-                continue
-            fetched = self._page(url)
-            if fetched is None or not same_site(fetched[0], hosts):
-                continue
-            pages.append(Page(fetched[0], kind, fetched[1]))
+            status, page_url, body = self._fetch(url, hosts, may_add_host=False)
+            if status == "ok":
+                pages.append(Page(page_url, kind, body))
         return FetchOutcome("ok", tuple(pages), tuple(hosts))
 
+    def _fetch(self, url: str, hosts: list[str],
+               may_add_host: bool) -> tuple[str, str, str]:
+        """`(status, final_url, html)` with status `ok`, `forbidden` or `failed`.
+
+        Redirects are followed by hand, so that each hop is checked before it
+        is requested.
+        """
+        for _hop in range(MAX_REDIRECTS + 1):
+            if is_social(url):
+                return "failed", url, ""
+            new_host = not same_site(url, hosts)
+            if new_host and not may_add_host:
+                return "failed", url, ""
+            if not self._allowed(url):
+                return "forbidden", url, ""
+            if new_host:
+                hosts.append(site_host(url))
+            response = self._get(url)
+            if response is None:
+                return "failed", url, ""
+            location = response.headers.get("location")
+            if response.status_code in _REDIRECTS and location:
+                url = urljoin(url, location)
+                continue
+            if response.status_code != 200:
+                return "failed", url, ""
+            if "html" not in response.headers.get("content-type", "").lower():
+                return "failed", url, ""
+            if len(response.content) > self._max_bytes:
+                return "failed", url, ""
+            return "ok", url, _text(response)
+        return "failed", url, ""
+
     def _get(self, url: str) -> httpx.Response | None:
+        """One request, after the minimum wait. Never follows a redirect itself."""
         if self._last_request_at is not None:
             remaining = self._min_interval_s - (time.monotonic() - self._last_request_at)
             if remaining > 0:
                 self._sleep(remaining)
         self._last_request_at = time.monotonic()
         try:
-            return self._http.get(url)
+            return self._http.get(url, follow_redirects=False)
         except httpx.HTTPError:
             return None
 
-    def _robots(self, origin: str) -> RobotFileParser | None:
-        """Rules of the site, or None when there are none to obey."""
-        response = self._get(origin + "/robots.txt")
-        if response is None or response.status_code != 200:
-            return None
-        if "html" in response.headers.get("content-type", "").lower():
-            return None
-        parser = RobotFileParser()
-        parser.parse(_text(response).splitlines())
-        return parser
+    def _allowed(self, url: str) -> bool:
+        """Ask the robots.txt of the URL's own origin, reading it first if needed."""
+        origin = _origin(url)
+        if origin not in self._robots_by_origin:
+            self._robots_by_origin[origin] = self._read_robots(origin)
+        rules = self._robots_by_origin[origin]
+        if rules is _FORBID_ALL:
+            return False
+        return rules is None or rules.can_fetch(USER_AGENT_TOKEN, url)
 
-    def _page(self, url: str) -> tuple[str, str] | None:
-        """`(final_url, html)`, or None for anything that is not a readable page."""
-        response = self._get(url)
-        if response is None or response.status_code != 200:
-            return None
-        if "html" not in response.headers.get("content-type", "").lower():
-            return None
-        if len(response.content) > self._max_bytes:
-            return None
-        return str(response.url), _text(response)
+    def _read_robots(self, origin: str):
+        """A parser, None when there are no rules, or `_FORBID_ALL`.
 
-
-def _allowed(robots: RobotFileParser | None, url: str) -> bool:
-    return robots is None or robots.can_fetch("*", url)
+        As RFC 9309 asks: a missing file (4xx) means no restriction, an
+        unreachable one (network error, 5xx) means everything is disallowed.
+        """
+        url = origin + "/robots.txt"
+        host = [site_host(origin)]
+        for _hop in range(MAX_REDIRECTS + 1):
+            if is_social(url) or not same_site(url, host):
+                return None     # redirected off the site: nothing we may read
+            response = self._get(url)
+            if response is None or response.status_code >= 500:
+                return _FORBID_ALL
+            location = response.headers.get("location")
+            if response.status_code in _REDIRECTS and location:
+                url = urljoin(url, location)
+                continue
+            if response.status_code != 200:
+                return None
+            if "html" in response.headers.get("content-type", "").lower():
+                return None
+            parser = RobotFileParser()
+            parser.parse(_text(response).splitlines())
+            return parser
+        return _FORBID_ALL
 
 
 def _text(response: httpx.Response) -> str:
