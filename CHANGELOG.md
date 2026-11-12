@@ -5,6 +5,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Contact scraper (`kaltstart.contacts`): polite fetcher, page choice, address
+  and founder extraction, contact selection, and the `measure` and `summary`
+  commands. Not run nightly and not connected to the database yet.
+- `sample` command to draw companies for a measurement, and a free-text
+  `args` input on the manual workflow run.
+- First measurement on 20 Swiss companies: usable address confirmed for 65 %
+  (inconclusive against 70 %), founder name confirmed for 5 % (fails 40 %).
+
 ## Phase 1 - 2026-11-12
 
 First load run against the live database on 2026-11-11: 832 funding rounds

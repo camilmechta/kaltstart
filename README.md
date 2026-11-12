@@ -12,7 +12,7 @@ reviews and sends the mail from their own mailbox; the app never sends anything.
 |---|---|---|
 | 0. Scoping | Spec, PRD, repository, structure | Done |
 | 1. Ingestion | Tech.eu funding rounds to Supabase | Done |
-| 2. Contacts | Contact scraper | Not started |
+| 2. Contacts | Contact scraper | In progress |
 | 3. Mails | Mail generator, English and German | Not started |
 | 4. Front end | Server and web app | Not started |
 | 5. Test | Test with 20 students | Not started |
@@ -33,6 +33,22 @@ First load on 2026-11-11, covering the previous 12 months:
 
 A nightly job keeps the data up to date, and a weekly job re-reads the last
 12 months to pick up edits to known rounds.
+
+### Phase 2 first measurement
+
+The contact scraper was measured on 20 Swiss companies drawn at random
+([sample](docs/measurements/phase-2-sample.csv),
+[summary](docs/measurements/phase-2-summary.md)), with every result checked by
+hand:
+
+| | Confirmed | Threshold | Verdict |
+|---|---|---|---|
+| Company with a usable address | 13 of 20 (65 %) | 70 % | Inconclusive |
+| Company with a founder's name | 1 of 20 (5 %) | 40 % | Fail |
+
+No address reported by the scraper was wrong. Founder extraction is not
+usable yet: most lists it reported mixed real founders with job titles and
+organisation names. The nightly run is not built until this is resolved.
 
 ## Installation
 
