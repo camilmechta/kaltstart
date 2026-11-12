@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `args` input on the manual workflow run.
 - First measurement on 20 Swiss companies: usable address confirmed for 65 %
   (inconclusive against 70 %), founder name confirmed for 5 % (fails 40 %).
+- Second measurement on 20 new companies after the founder rewrite: usable
+  address 65 %, founder name 30 %. Both thresholds still missed.
 
 ### Changed
 
