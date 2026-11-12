@@ -208,10 +208,12 @@ pending mails and the reply rates. There is no reservations table.
 
 ### 7.2 Contacts
 
-- Pages visited: home, `/careers`, `/jobs`, `/about`, `/team`, `/impressum`,
-  `/imprint`, `/contact`. Eight pages at most per company.
+- Pages visited: the home page, then links found on it for the legal notice,
+  contact, team and about, and careers pages, with fixed paths as a fallback.
+  Eight pages at most per company.
 - Politeness: read robots.txt before any visit, at least two seconds between
-  two requests to the same site, a tool name that identifies the project.
+  two requests to the same site, no project name in the `User-Agent` header
+  (decision D27).
   Never LinkedIn.
 - Addresses: extracted from text and links, including the common disguised
   forms ("hello [at] startup.ch"). We keep only those on the company's

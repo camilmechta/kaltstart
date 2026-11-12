@@ -40,6 +40,12 @@ python -m kaltstart.ingestion cities
   code, comments and commit messages.
 - No secret in the repository. Supabase keys come from the environment
   variables `SUPABASE_URL` and `SUPABASE_SERVICE_KEY`.
+- Contact scraper: `robots.txt` is read first and obeyed; at least 2 seconds
+  between requests to a site; at most 8 pages per company; never LinkedIn or
+  any other site; no project name in the `User-Agent`, no browser imitation.
+- Contact test fixtures are invented pages with invented people on
+  `example.ch`, `example.de` and `example.com`. Never commit a real page, name
+  or address. Detailed measurement results stay under `local/` (git-ignored).
 - Test-driven development: write the test and see it fail before writing the
   code.
 - Commit message format: `type: description`.
@@ -57,8 +63,8 @@ docs/                       specification and plans
 .github/workflows/          CI and nightly jobs
 ```
 
-Only `ingestion/` exists so far (Phase 1 is done); the other directories are
-created in their phase.
+`ingestion/` is done (Phase 1) and `contacts/` is in progress (Phase 2); the
+other directories are created in their phase.
 
 ## Maintenance
 
