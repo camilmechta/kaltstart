@@ -29,7 +29,11 @@ def test_same_site(url, expected):
 @pytest.mark.parametrize("domain,hosts,expected", [
     ("example.ch", ["example.ch"], True),
     ("mail.example.ch", ["example.ch"], True),
-    ("example.ch", ["app.example.ch"], True),     # parent of the site host
+    ("example.ch", ["app.example.ch"], True),     # parent of a generic subdomain
+    ("example.ch", ["shop.example.ch"], True),
+    ("ethz.ch", ["startup.ethz.ch"], False),      # a host's parent may be a third party
+    ("webflow.io", ["startup.webflow.io"], False),
+    ("co.uk", ["startup.co.uk"], False),
     ("ch", ["app.example.ch"], False),            # a bare suffix is never a company domain
     ("example.com", ["example.ch", "example.com"], True),
     ("gmail.com", ["example.ch"], False),

@@ -17,7 +17,8 @@ def page(body):
     ("<p>Write to jobs@example.ch.</p>", ["jobs@example.ch"]),
     ("<p>hello [at] example.ch</p>", ["hello@example.ch"]),
     ("<p>hello(at)example.ch</p>", ["hello@example.ch"]),
-    ("<p>hello at example dot ch</p>", ["hello@example.ch"]),
+    ('<a href="mailto:%69nfo@example.ch">Mail</a>', ["info@example.ch"]),
+    ('<a href="mailto:a@example.ch,b@example.ch">Mail</a>', ["a@example.ch", "b@example.ch"]),
     ("<p>hello [at] example [dot] ch</p>", ["hello@example.ch"]),
     ("<p>info@example.ch and info@example.ch</p>", ["info@example.ch"]),
     ("<p>anna.muster@mail.example.ch</p>", ["anna.muster@mail.example.ch"]),
@@ -36,8 +37,14 @@ def test_other_domains_are_counted_not_kept():
     "<p>abc123@sentry.io</p>",
     "<p>team@wixpress.com</p>",
     "<p>id@o1234.ingest.sentry.io</p>",
-    "<p>We meet at example dot ch every week</p>",   # bare words inside a sentence
+    # Bare words are never an address: a title or heading must not become one.
+    "<p>hello at example dot ch</p>",
+    "<p>We meet at example dot ch every week</p>",
     "<p>See you at example.ch tomorrow</p>",
+    "<h1>Life at Example.ch</h1>",
+    "<p>Careers at example.ch</p>",
+    "<p>Contact (at) Example.ch office</p>",          # capitalised prose, not an address
+    "<p>Jobs [at] Example.ch</p>",
     "<script>var m='hidden@example.ch'</script>",
 ])
 def test_noise_is_discarded(body):
@@ -48,3 +55,8 @@ def test_invented_contact_page_fixture():
     html = (FIXTURES / "contact_page.html").read_text(encoding="utf-8")
     found = extract_addresses(Page("https://example.ch/kontakt", "contact", html), ["example.ch"])
     assert found == (["hello@example.ch", "jobs@example.ch"], 0)
+
+
+def test_page_title_never_becomes_an_address():
+    html = "<html><head><title>Jobs at Example.ch</title></head><body><h1>Jobs at Example.ch</h1></body></html>"
+    assert extract_addresses(Page("https://example.ch/jobs", "careers", html), ["example.ch"]) == ([], 0)

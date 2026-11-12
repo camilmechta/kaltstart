@@ -10,13 +10,18 @@ CAREERS_LOCAL_PARTS = ("careers", "career", "jobs", "talent", "hr", "karriere",
 
 
 def _owner(address: str, founders: Sequence[FoundFounder]) -> FoundFounder | None:
-    """The founder whose name the local part carries, if any."""
+    """The founder whose name the local part carries, if any.
+
+    The last name must be there (alone, or with the first name or its
+    initial). A first name counts only when it is the whole local part:
+    `anna.schmidt@` is not the address of a founder called Anna Muster.
+    """
     local = address.split("@", 1)[0].lower()
     tokens = [t for t in re.split(r"[._-]", local) if t]
     for founder in founders:
         words = founder.name.lower().split()
         first, last = words[0], words[-1]
-        if first in tokens or last in tokens or local == first[0] + last:
+        if last in tokens or local == first or local == first[0] + last:
             return founder
     return None
 

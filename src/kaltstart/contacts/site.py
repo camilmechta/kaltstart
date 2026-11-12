@@ -41,17 +41,21 @@ def same_site(url: str, hosts: Iterable[str]) -> bool:
     return bool(host) and any(_is_or_under(host, h) for h in hosts)
 
 
-def on_company_domain(email_domain: str, hosts: Iterable[str]) -> bool:
-    """True for a host, a subdomain of a host, or a parent of a host.
+# Subdomains that only name a part of a company's own site. The parent of
+# any other subdomain may belong to someone else (a university, a site
+# builder, a public suffix), so it is not trusted.
+GENERIC_SUBDOMAINS = ("app", "shop", "web", "home", "get", "go", "try", "en", "de",
+                      "fr", "it", "blog", "jobs", "careers", "about", "my", "portal")
 
-    A parent must have at least two labels, so that a bare suffix such as
-    `ch` never counts as a company domain.
-    """
+
+def on_company_domain(email_domain: str, hosts: Iterable[str]) -> bool:
+    """True for a host, a subdomain of a host, or the parent of a generic subdomain."""
     domain = email_domain.lower()
     for host in hosts:
         if _is_or_under(domain, host):
             return True
-        if domain.count(".") >= 1 and host.endswith("." + domain):
+        label, _, parent = host.partition(".")
+        if label in GENERIC_SUBDOMAINS and parent == domain and "." in domain:
             return True
     return False
 

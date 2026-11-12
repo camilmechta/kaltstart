@@ -21,6 +21,10 @@ def test_careers_local_parts():
     ("hello@example.ch", [ANNA], "generic"),
     ("info@example.ch", [], "generic"),
     ("joanna@example.ch", [ANNA], "generic"),      # contains "anna" but is another name
+    ("anna.muster@example.ch", [ANNA], "personal"),
+    ("muster@example.ch", [ANNA], "personal"),
+    ("anna.schmidt@example.ch", [ANNA], "generic"),   # same first name, another person
+    ("anna-support@example.ch", [ANNA], "generic"),
 ])
 def test_address_type(address, founders, expected):
     assert address_type(address, founders) == expected

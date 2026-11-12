@@ -2,6 +2,7 @@
 
 import re
 from typing import Iterable
+from urllib.parse import unquote
 
 from bs4 import BeautifulSoup
 
@@ -12,13 +13,15 @@ TOOLING_DOMAINS = ("sentry.io", "wixpress.com")
 _IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp")
 
 _ADDRESS = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
-_BRACKET_AT = re.compile(r"\s*[\[(]\s*at\s*[\])]\s*", re.IGNORECASE)
-_BRACKET_DOT = re.compile(r"\s*[\[(]\s*dot\s*[\])]\s*", re.IGNORECASE)
-# "hello at example dot ch": only trusted as the whole text of an element.
-_BARE_WORDS = re.compile(
-    r"^([A-Za-z0-9._%+-]+)\s+at\s+"
-    r"([A-Za-z0-9-]+(?:(?:\s+dot\s+|\.)[A-Za-z0-9-]+)+)$", re.IGNORECASE)
-_BARE_DOT = re.compile(r"\s+dot\s+", re.IGNORECASE)
+# Bracketed disguise, e.g. "hello [at] example [dot] ch". Lower case only:
+# an address is written in lower case, a capitalised "Jobs [at] Example.ch"
+# is a heading. Bare words ("hello at example.ch") are never read as an
+# address, because any title of the form "Jobs at Example.ch" would become one.
+_AT = r"\s*[\[(]\s*(?:at|AT)\s*[\])]\s*"
+_DOT = r"\s*(?:\.|[\[(]\s*(?:dot|DOT)\s*[\])])\s*"
+_DISGUISED = re.compile(
+    rf"(?<![A-Za-z0-9._%+-])([a-z0-9._%+-]+){_AT}([a-z0-9-]+(?:{_DOT}[a-z0-9-]+)+)(?![A-Za-z0-9-])")
+_DOT_ONLY = re.compile(_DOT)
 
 
 def _candidates(html: str) -> list[str]:
@@ -27,15 +30,12 @@ def _candidates(html: str) -> list[str]:
     for anchor in soup.find_all("a", href=True):
         href = anchor["href"].strip()
         if href.lower().startswith("mailto:"):
-            found.append(href[len("mailto:"):].split("?", 1)[0])
-    text = _BRACKET_DOT.sub(".", _BRACKET_AT.sub("@", visible_text(html)))
+            recipients = unquote(href[len("mailto:"):].split("?", 1)[0])
+            found += [r.strip() for r in recipients.split(",")]
+    text = visible_text(html)
     found += _ADDRESS.findall(text)
-    for tag in soup(["script", "style", "noscript"]):
-        tag.decompose()
-    for element in soup.find_all(True):
-        match = _BARE_WORDS.match(" ".join(element.get_text(" ").split()))
-        if match:
-            found.append(f"{match.group(1)}@{_BARE_DOT.sub('.', match.group(2))}")
+    found += [f"{local}@{_DOT_ONLY.sub('.', domain)}"
+              for local, domain in _DISGUISED.findall(text)]
     return found
 
 
