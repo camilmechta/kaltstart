@@ -60,3 +60,23 @@ def test_invented_contact_page_fixture():
 def test_page_title_never_becomes_an_address():
     html = "<html><head><title>Jobs at Example.ch</title></head><body><h1>Jobs at Example.ch</h1></body></html>"
     assert extract_addresses(Page("https://example.ch/jobs", "careers", html), ["example.ch"]) == ([], 0)
+
+
+def cloudflare(address, key=0x42):
+    """Encode an address the way Cloudflare's email protection does."""
+    return f"{key:02x}" + "".join(f"{ord(char) ^ key:02x}" for char in address)
+
+
+@pytest.mark.parametrize("body", [
+    '<a href="/cdn-cgi/l/email-protection#{code}">[email&#160;protected]</a>',
+    '<span class="__cf_email__" data-cfemail="{code}">[email&#160;protected]</span>',
+    '<a href="/cdn-cgi/l/email-protection#{code}"><span class="__cf_email__" data-cfemail="{code}">[email&#160;protected]</span></a>',
+])
+def test_cloudflare_protected_addresses_are_decoded(body):
+    html = body.format(code=cloudflare("support@example.ch"))
+    assert extract_addresses(page(html), ["example.ch"]) == (["support@example.ch"], 0)
+
+
+def test_broken_cloudflare_code_is_ignored():
+    html = '<span class="__cf_email__" data-cfemail="zz12">x</span><a href="/cdn-cgi/l/email-protection#4">y</a>'
+    assert extract_addresses(page(html), ["example.ch"]) == ([], 0)

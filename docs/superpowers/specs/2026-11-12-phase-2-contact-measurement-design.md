@@ -149,6 +149,8 @@ fixed paths of the parent spec (`/impressum`, `/imprint`, `/contact`, `/team`,
   `app.` or `shop.`. The parent of any other subdomain may belong to a
   university or a site builder and is not trusted. Addresses on another
   domain are counted, not kept (see 5.6).
+- Addresses hidden by Cloudflare's email protection are decoded: they are
+  published, and every browser shows them.
 - Addresses of website tooling are discarded (for example error-tracking or
   site-builder domains, and image file names that look like addresses).
 
@@ -160,7 +162,8 @@ organisations for people. A name is accepted only in one of the layouts
 sites actually use:
 
 - a card: one block holding nothing but the name, next to a short block
-  holding the role;
+  holding the role, or next to one of that block's wrappers (at most two
+  levels up); empty neighbours such as pictures are skipped;
 - a line: "Name, role" or "Name - role";
 - a label: "Geschäftsführer: Name, Name"; the label itself is never a name.
 
@@ -172,15 +175,19 @@ Geschäftsführer, Geschäftsführerin, Geschäftsleitung. "Former CEO", "Head o
 CEO Office" and "Founder Associate" are not founder roles.
 
 The role must be held at this company: when it is followed by the name of
-another organisation ("CEO at Other Works", "Founder Other Expo"), the person
-is dropped; when it is followed by this company's name or by nothing, the
+another organisation ("CEO at Other Works", "Founder Other Expo"), preceded
+by one ("Otherix CEO"), or followed by one alone after a comma ("CEO,
+Othergem"), the person is dropped; when it is followed by this company's name or by nothing, the
 person is kept. The scraper therefore receives the company's name.
 
 A name is two to four capitalised words, after academic titles and
 credentials are removed. It is rejected if it contains a word of a job title
 or of an organisation (Officer, Manager, Capital, Institute, Group), a
-company suffix, or the company's own name. Navigation, page headers and
-quotations are not read. When in doubt nothing is returned, because a wrong
+company suffix, or the company's own name. Navigation and page headers are not read.
+A card that sits with a quotation is a customer testimonial and is skipped:
+a quotation mark or a quotation element within the same small block of the
+page (120 words at most), or a block named after testimonials. Somebody's
+assistant is not a founder. When in doubt nothing is returned, because a wrong
 name ends up in a mail.
 
 ### 5.5 Classify and choose (`selection.py`)

@@ -151,3 +151,49 @@ def test_without_a_company_name_any_organisation_after_the_role_rejects():
     assert names(body, company=None) == []
     assert names(card("Anna Muster", "Co-Founder &amp; CEO"), company=None) == [
         ("Anna Muster", "Co-Founder")]
+
+
+# Second measurement: names one level up from the role, and customer testimonials.
+@pytest.mark.parametrize("body,expected", [
+    # The name is the neighbour of the role's parent, not of the role itself.
+    ('<div class="member"><div>Leo Muster</div><div><p>Founder &amp; CEO​</p></div></div>',
+     [("Leo Muster", "Founder")]),
+    ("<div><h3>Dr. Donato Probe</h3><div><span>CEO &amp; Co-founder</span></div></div>",
+     [("Donato Probe", "Co-Founder")]),
+    # An empty neighbour (a picture) is skipped.
+    ("<div><div>Anna Muster</div><div><div></div><p>Co-founder</p></div></div>",
+     [("Anna Muster", "Co-Founder")]),
+    (card("Anna Muster", "CEO, Example Robotics"), [("Anna Muster", "CEO")]),
+])
+def test_names_one_level_up(body, expected):
+    assert names(body) == expected
+
+
+QUOTE = "“They cut our planning time in half and we would not go back to the old way.”"
+
+
+@pytest.mark.parametrize("body", [
+    # Four testimonial layouts seen on real home pages.
+    f'<figure class="slide"><p>{QUOTE}</p><div><p><span>Marc Probe</span><span>, CEO, Other Fuels</span></p></div></figure>',
+    f"<div><div>{QUOTE}</div><div><div>Dr. Toby Probe , Otherix CEO</div></div></div>",
+    f"<div><div>{QUOTE}</div><div><div><div>Raphael Probe</div><div>CEO, Othergem</div></div></div></div>",
+    "<figure><blockquote>A quote without marks about the savings they made last year.</blockquote>"
+    "<figcaption><div><span>Phil Probe</span><span>Founder</span></div></figcaption></figure>",
+    f'<div class="testimonial-item"><div>{QUOTE}</div><div>Phil Probe</div><div>Founder</div></div>',
+    # The same people without any quotation nearby: the other company gives them away.
+    card("Raphael Probe", "CEO, Othergem"),
+    card("Margot Probe", "Co-Founder &amp; COO, OTHERLUX"),
+    "<p>Dr. Toby Probe , Otherix CEO</p>",
+    card("Marc Probe", ", CEO, Other Fuels", "span", "span"),
+    # Somebody who works for the founder is not the founder.
+    card("Anika Probe", "Personal Assistant to the Founder &amp; CEO"),
+])
+def test_testimonials_and_other_companies_are_rejected(body):
+    assert names(body) == []
+
+
+def test_a_quote_elsewhere_on_the_page_does_not_hide_the_team():
+    filler = "<p>" + "We build inspection robots for warehouses and factories. " * 20 + "</p>"
+    body = (f"<section><div>{QUOTE}</div><div>Phil Probe</div><div>Founder, Otherco</div></section>"
+            f"<section>{filler}<h2>Our team</h2>" + card("Anna Muster", "Co-Founder &amp; CEO") + "</section>")
+    assert names(body) == [("Anna Muster", "Co-Founder")]

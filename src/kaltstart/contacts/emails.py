@@ -24,9 +24,31 @@ _DISGUISED = re.compile(
 _DOT_ONLY = re.compile(_DOT)
 
 
+_CLOUDFLARE_LINK = "/cdn-cgi/l/email-protection#"
+
+
+def _decode_cloudflare(code: str) -> str | None:
+    """Decode an address hidden by Cloudflare's email protection.
+
+    The address is published: every browser decodes it. The first byte is a
+    key, each following byte is one character XOR that key.
+    """
+    try:
+        data = bytes.fromhex(code)
+    except ValueError:
+        return None
+    if len(data) < 4:
+        return None
+    return bytes(byte ^ data[0] for byte in data[1:]).decode("utf-8", errors="ignore")
+
+
 def _candidates(html: str) -> list[str]:
     soup = BeautifulSoup(html, "html.parser")
     found = []
+    codes = [tag["data-cfemail"] for tag in soup.find_all(attrs={"data-cfemail": True})]
+    codes += [a["href"].split(_CLOUDFLARE_LINK, 1)[1]
+              for a in soup.find_all("a", href=True) if _CLOUDFLARE_LINK in a["href"]]
+    found += [address for address in map(_decode_cloudflare, codes) if address]
     for anchor in soup.find_all("a", href=True):
         href = anchor["href"].strip()
         if href.lower().startswith("mailto:"):

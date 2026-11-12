@@ -11,7 +11,8 @@ company:
 - a line: "Name, role" or "Name - role";
 - a label: "Geschäftsführer: Name, Name".
 
-Running prose is never read. When in doubt nothing is returned, because a
+Running prose is never read, and neither is a card that sits with a quotation
+(a customer testimonial). When in doubt nothing is returned, because a
 wrong name ends up in a mail.
 """
 
@@ -30,9 +31,16 @@ ROLE_WORDS: tuple[str, ...] = (
 _PAGE_KINDS = ("home", "legal", "team")
 _BLOCKS = ("p", "li", "td", "th", "div", "span", "dd", "dt",
            "h1", "h2", "h3", "h4", "h5", "h6")
-_SKIPPED = ("script", "style", "noscript", "nav", "header", "blockquote")
+_SKIPPED = ("script", "style", "noscript", "nav", "header")
 MAX_ROLE_BLOCK_WORDS = 14     # longer blocks are prose
 MAX_NAME_BLOCK_WORDS = 8
+MAX_LEVELS_UP = 2             # how far above the role a name block may sit
+# A customer testimonial looks like a team card: a name, then "CEO". What
+# gives it away is the quotation it sits with.
+MAX_TESTIMONIAL_WORDS = 120
+_QUOTE_MARKS = "“”„«»"
+_TESTIMONIAL_CLASS = re.compile(r"testimonial|quote|review|kundenstimme|referenz", re.IGNORECASE)
+_WORKS_FOR_THE_FOUNDER = re.compile(r"\b(?:assistant|assistenz|assistentin)\b", re.IGNORECASE)
 
 _ROLE = re.compile(
     r"(?<![\w-])(?:" + "|".join(re.escape(r) for r in ROLE_WORDS) + r")(?![\w-])",
@@ -63,7 +71,8 @@ _VOCABULARY = frozenset((
     "marketing", "sales", "business", "operations", "research", "development",
     "innovation", "strategy", "people", "talent", "management", "manager",
     "owner", "lead", "leader", "head", "director", "president", "vp", "svp",
-    "senior", "sr", "junior", "jr", "former", "engineer", "engineering",
+    "senior", "sr", "junior", "jr", "former", "interim", "deputy", "acting",
+    "engineer", "engineering",
     "professor", "advisor", "adviser", "investor", "angel", "partner", "board",
     "member", "chairman", "chairwoman", "chair", "entrepreneur", "associate",
     "ceo", "cto", "cfo", "coo", "cco", "cso", "cio", "cmo", "cpo", "cro", "mba",
@@ -106,25 +115,54 @@ _ROLE_THEN_NAME = frozenset(r.lower() for r in ROLE_WORDS
                             if r[0] in "GM" and r != "Managing Director")
 
 
+def _organisation(words: list[str]) -> list[str]:
+    return [w for w in words if w.lower().strip(".") not in _VOCABULARY]
+
+
+def _is_this_company(words: list[str], company_key: str) -> bool:
+    named = _squash(" ".join(_organisation(words)))
+    return bool(company_key) and (
+        company_key in _squash(" ".join(words)) or (len(named) >= 3 and named in company_key))
+
+
+def _capitalised(text: str) -> list[str]:
+    return [w for w in _CAPITALISED.findall(_ROLE.sub(" ", text))
+            if w.lower() not in _COMPANY_SUFFIXES]
+
+
 def _held_here(text: str, role: re.Match, company_key: str) -> bool:
-    """False when the role is followed by the name of another organisation."""
-    clause = re.split(r"[,;|()]", text[role.end():], maxsplit=1)[0]
+    """False when the role is tied to the name of another organisation.
+
+    Three places are looked at: right after the role ("CEO at Other Works"),
+    right before it ("Otherix CEO"), and alone after a comma ("CEO, Othergem").
+    """
+    after = text[role.end():]
+    split = re.search(r"[,;|()]", after)
+    clause = after[:split.start()] if split else after
     if role.group(0).lower() in _ROLE_THEN_NAME and _whole_names(clause, company_key):
         return True
-    capitalised = [w for w in _CAPITALISED.findall(_ROLE.sub(" ", clause))
-                   if w.lower() not in _COMPANY_SUFFIXES]
-    organisation = [w for w in capitalised if w.lower().strip(".") not in _VOCABULARY]
-    if not organisation:
-        return True
-    if not company_key:
-        return False
-    named = _squash(" ".join(organisation))
-    return company_key in _squash(" ".join(capitalised)) or (
-        len(named) >= 3 and named in company_key)
+    words = _capitalised(clause)
+    if _organisation(words):
+        return _is_this_company(words, company_key)
+
+    before = re.split(r"[,;|()&/:-]", text[:role.start()])[-1].split()
+    if before and _CAPITALISED.fullmatch(before[-1]) and _organisation(before[-1:]):
+        return _is_this_company(before[-1:], company_key)
+
+    if split and split.group(0) == ",":
+        following = re.split(r"[,;|()]", after[split.end():], maxsplit=1)[0]
+        words = _capitalised(following)
+        only_a_name = words and len(following.split()) <= 4 and len(_organisation(words)) == len(
+            [w for w in following.split() if w not in ("&", "-")])
+        if only_a_name and not _ROLE.search(following):
+            return _is_this_company(words, company_key)
+    return True
 
 
 def _own_role(text: str, company_key: str) -> str | None:
     """The founder role this text gives someone at this company, if any."""
+    if _WORKS_FOR_THE_FOUNDER.search(text):
+        return None
     held = set()
     for match in _ROLE.finditer(text):
         if _NOT_A_ROLE_BEFORE.search(text[:match.start()]):
@@ -214,18 +252,51 @@ def _labelled(text: str, company_key: str) -> list[tuple[str, str]]:
     return pairs
 
 
+def _nearest_filled(node: Tag, direction: str) -> Tag | None:
+    """The closest sibling that has text; empty ones (pictures) are skipped."""
+    siblings = (node.find_previous_siblings(True) if direction == "previous"
+                else node.find_next_siblings(True))
+    return next((sibling for sibling in siblings[:3] if _text(sibling)), None)
+
+
 def _neighbour_names(block: Tag, company_key: str) -> list[str]:
-    """Names in the block right before, else right after: the team-card layout."""
-    for sibling in (block.find_previous_sibling(True), block.find_next_sibling(True)):
-        if sibling is None:
-            continue
-        text = _text(sibling)
-        if not text or len(text.split()) > MAX_NAME_BLOCK_WORDS or _ROLE.search(text):
-            continue
-        names = _whole_names(text, company_key)
-        if names:
-            return names
+    """Names in the block next to the role: the team-card layout.
+
+    The name block is the role's own neighbour, or the neighbour of one of
+    the role's wrappers, before it first and then after it.
+    """
+    node = block
+    for _level in range(MAX_LEVELS_UP + 1):
+        for direction in ("previous", "next"):
+            sibling = _nearest_filled(node, direction)
+            if sibling is None:
+                continue
+            text = _text(sibling)
+            if len(text.split()) > MAX_NAME_BLOCK_WORDS or _ROLE.search(text):
+                continue
+            names = _whole_names(text, company_key)
+            if names:
+                return names
+        if node.parent is None:
+            break
+        node = node.parent
     return []
+
+
+def _in_testimonial(block: Tag) -> bool:
+    """True when the block sits with a quotation: a customer speaking, not the team."""
+    for ancestor in list(block.parents)[:5]:
+        if ancestor.name in ("blockquote", "q"):
+            return True
+        marked = " ".join([*ancestor.get("class", []), ancestor.get("id") or ""])
+        if _TESTIMONIAL_CLASS.search(marked):
+            return True
+        text = _text(ancestor)
+        if len(text.split()) > MAX_TESTIMONIAL_WORDS:
+            return False
+        if ancestor.find(["blockquote", "q"]) or any(mark in text for mark in _QUOTE_MARKS):
+            return True
+    return False
 
 
 def extract_founders(page: Page, company_name: str | None = None) -> list[FoundFounder]:
@@ -242,6 +313,8 @@ def extract_founders(page: Page, company_name: str | None = None) -> list[FoundF
             continue
         text = _text(block)
         if not _ROLE.search(text) or len(text.split()) > MAX_ROLE_BLOCK_WORDS:
+            continue
+        if _in_testimonial(block):
             continue
         pairs = _names_in_block(text, company_key)
         if not pairs and ":" not in text:

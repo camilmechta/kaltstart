@@ -22,6 +22,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Founder extraction rewritten from the failures of the first measurement:
   names are read only from team cards, "Name, role" lines and legal-notice
   labels, and only when the role is held at the company itself.
+- After the second measurement: names one or two levels above the role are
+  read, customer testimonials are skipped, Cloudflare-protected addresses are
+  decoded. The usable-contact threshold is lowered from 70 % to 65 %.
 
 ## Phase 1 - 2026-11-12
 
