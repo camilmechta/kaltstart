@@ -146,16 +146,16 @@ compute a category with three values, stored next to the original stage:
 
 | Category | If the stage is known | Otherwise, by amount |
 |---|---|---|
-| Small | Pre-seed, Seed | Less than 3 million euros |
-| Medium | Series A | From 3 to 15 million euros |
-| Large | Series B and beyond | More than 15 million euros |
+| Small | Pre-seed, Seed | Less than 7 million euros |
+| Medium | Series A | From 7 to 20 million euros |
+| Large | Series B and beyond | More than 20 million euros |
 
 The stages `Grant` and `Debt` are treated like `Other`: the category comes
 from the amount. `Series C`, `Series D+` and `Growth/Late` are "large".
 
-The bounds of 3 and 15 million are starting values. They are recalibrated in
-Phase 1 on the rounds for which both the stage and the amount are known, and
-the value retained is recorded in DECISIONS.md. A round with neither a known
+The bounds of 7 and 20 million were calibrated in Phase 1 on the rounds for
+which both the stage and the amount are known (decision D22 in DECISIONS.md);
+the starting values were 3 and 15 million. A round with neither a known
 stage nor an amount is classified "small" by default, and its mail uses an
 opening without an amount.
 

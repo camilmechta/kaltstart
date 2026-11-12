@@ -5,8 +5,8 @@ import re
 from pathlib import Path
 from urllib.parse import urlsplit
 
-SMALL_MAX_EUR = 3_000_000
-MEDIUM_MAX_EUR = 15_000_000
+SMALL_MAX_EUR = 7_000_000
+MEDIUM_MAX_EUR = 20_000_000
 
 _ALIASES_PATH = Path(__file__).with_name("city_aliases.csv")
 

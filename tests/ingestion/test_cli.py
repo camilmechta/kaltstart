@@ -226,3 +226,16 @@ def test_missing_supabase_env_returns_1(monkeypatch, capsys):
 ])
 def test_months_back(today, months, expected):
     assert months_back(today, months) == expected
+
+
+def test_report_prints_share_of_companies_with_a_website(capsys):
+    store = report_store()
+    ids = sorted({i["company"]["id"] for i in store.all_rounds_with_company()})
+    store.set_company_details(
+        ids[0], {"website": "https://example.ch", "description": None, "founded": None})
+    store.set_company_details(
+        ids[1], {"website": None, "description": None, "founded": None})
+    assert main(["report"], store=store) == 0
+    out = capsys.readouterr().out
+    assert "companies_with_details: 2 of 4 (50%)" in out
+    assert "companies_with_website: 1 of 4 (25%)" in out

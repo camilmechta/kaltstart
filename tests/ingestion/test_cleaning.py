@@ -29,15 +29,15 @@ def test_clean_investors_strips_and_dedupes_keeping_order():
     ("Series C", None, "large"),
     ("Series D+", None, "large"),
     ("Growth/Late", None, "large"),
-    ("Other", 2_999_999, "small"),
-    ("Other", 3_000_000, "medium"),
-    ("Other", 15_000_000, "medium"),
-    ("Other", 15_000_001, "large"),
+    ("Other", 6_999_999, "small"),
+    ("Other", 7_000_000, "medium"),
+    ("Other", 20_000_000, "medium"),
+    ("Other", 20_000_001, "large"),
     ("Grant", 150_000, "small"),            # Grant and Debt: by amount
-    ("Debt", 20_000_000, "large"),
+    ("Debt", 25_000_000, "large"),
     ("Other", None, "small"),               # neither stage nor amount
     (None, None, "small"),
-    ("Brand New Stage", 5_000_000, "medium"),
+    ("Brand New Stage", 10_000_000, "medium"),
 ])
 def test_size_category(stage, amount, expected):
     assert size_category(stage, amount) == expected

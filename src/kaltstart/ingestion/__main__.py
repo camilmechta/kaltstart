@@ -78,6 +78,14 @@ def _report(store: Store) -> None:
         print(f"{key}: {value}")
     items = store.all_rounds_with_company()
 
+    companies = {i["company"]["id"]: i["company"] for i in items}
+    total = len(companies)
+    for label, key in (("companies_with_details", "details_fetched_at"),
+                       ("companies_with_website", "website")):
+        n = sum(1 for c in companies.values() if c.get(key))
+        share = f" ({n / total:.0%})" if total else ""
+        print(f"{label}: {n} of {total}{share}")
+
     print("\nRounds per country")
     per_country = Counter(_label(i["company"]["country"]) for i in items)
     _table(["country", "rounds"],
