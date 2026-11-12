@@ -34,7 +34,7 @@ def scrape_company(company: dict, fetcher) -> CompanyResult:
         other_domain += others
         for address in kept:
             addresses.setdefault(address, page.url)
-        for founder in extract_founders(page):
+        for founder in extract_founders(page, company["name"]):
             founders.setdefault(founder.name, founder)
 
     founder_list = tuple(founders.values())

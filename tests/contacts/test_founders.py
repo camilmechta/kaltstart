@@ -8,9 +8,16 @@ from kaltstart.contacts.models import Page
 FIXTURES = Path(__file__).parent.parent / "fixtures" / "sites"
 
 
-def names(body, kind="team"):
+COMPANY = "Example Robotics"
+
+
+def names(body, kind="team", company=COMPANY):
     page = Page("https://example.ch/team", kind, f"<html><body>{body}</body></html>")
-    return [(f.name, f.role) for f in extract_founders(page)]
+    return [(f.name, f.role) for f in extract_founders(page, company)]
+
+
+def card(name, role, name_tag="div", role_tag="div"):
+    return f"<div><{name_tag}>{name}</{name_tag}><{role_tag}>{role}</{role_tag}></div>"
 
 
 @pytest.mark.parametrize("body,expected", [
@@ -27,7 +34,6 @@ def names(body, kind="team"):
     # Each role binds to its own name: only founder roles are returned.
     ("<p>CEO: Anna Muster, CTO: Peter Beispiel, CFO: Clara Vorlage</p>", [("Anna Muster", "CEO")]),
     ("<p>Anna Muster (CEO) and Peter Beispiel (CTO)</p>", [("Anna Muster", "CEO")]),
-    ("<p>Our CEO Anna Muster previously worked at Example Labs</p>", [("Anna Muster", "CEO")]),
     ("<p>ANNA MUSTER, Founder</p>", [("Anna Muster", "Founder")]),
 ])
 def test_names_next_to_a_role(body, expected):
@@ -51,6 +57,10 @@ def test_names_next_to_a_role(body, expected):
     "<p>Former CEO: Mia Probe</p>",
     "<blockquote><p>A great product, says Hans Probe, CEO of Example Bank</p></blockquote>",
     "<nav><span>Founder</span><span>Anna Muster</span></nav>",
+    # Running prose is never read: it is where job titles and organisations
+    # were mistaken for people on real sites.
+    "<p>Our CEO Anna Muster previously worked at Other Labs</p>",
+    "<p>The core mechanism emerged from doctoral research at a university (Dr. Anna Muster, CEO).</p>",
 ])
 def test_rejections(body):
     assert names(body) == []
@@ -87,3 +97,57 @@ def test_invented_team_page_keeps_founders_only():
     page = Page("https://example.ch/team", "team", html)
     assert [(f.name, f.role) for f in extract_founders(page)] == [
         ("Anna Muster", "Co-Founder"), ("Jonas Beispiel", "Co-Founder")]
+
+
+# Layouts seen on real team pages (first measurement), rebuilt with invented people.
+@pytest.mark.parametrize("body,expected", [
+    (card("Anna Muster", "Chief Executive Officer"), [("Anna Muster", "Chief Executive Officer")]),
+    (card("Dr Jonas Beispiel", "Chief Technology Officer &amp; Co-Founder"),
+     [("Jonas Beispiel", "Co-Founder")]),
+    (card("Nico Vorlage, MRICS", "Co-Founder &amp; CCO", "h3", "p"), [("Nico Vorlage", "Co-Founder")]),
+    (card("Prof Clara Stark", "Co-Founder, Advisor &amp; ETH Professor"), [("Clara Stark", "Co-Founder")]),
+    (card("Nikita Probe", "Product Owner und Co-Founder"), [("Nikita Probe", "Co-Founder")]),
+    (card("Gregor Entwurf", "Founder - CEO/CTO", "h3", "p"), [("Gregor Entwurf", "Founder")]),
+    # The role names this very company.
+    (card("Mia Vorlage", "Co-Founder Example Robotics, Sr. Investment Manager, Other Ventures"),
+     [("Mia Vorlage", "Co-Founder")]),
+    (card("Jean Probe", "CEO @Example Robotics", "div", "p"), [("Jean Probe", "CEO")]),
+    (card("Lukas Muster und Daniel Beispiel", "Gründer der Example Robotics AG", "b", "div"),
+     [("Lukas Muster", "Gründer"), ("Daniel Beispiel", "Gründer")]),
+    # Name and role on one line.
+    ("<h2>Esmeralda Muster, MBA - CEO &amp; Co-Founder</h2>", [("Esmeralda Muster", "Co-Founder")]),
+    ("<h2>ESMERALDA MUSTER, MBA CEO and Co-Founder</h2>", [("Esmeralda Muster", "Co-Founder")]),
+])
+def test_real_layouts(body, expected):
+    assert names(body) == expected
+
+
+@pytest.mark.parametrize("body", [
+    # The role is held at another organisation.
+    card("Petra Probe", "CEO at Other Works"),
+    card("Petra Probe", "Board Member at Example Robotics, founder and former CEO of Other Fiber Company"),
+    card("Petra Probe", "Board Member at Example Robotics, CEO at Other One, Ex-CEO at Third Co"),
+    card("Nina Entwurf", "Textile Advisor &amp; Founder Other Fabrics Expo"),
+    card("Hans Probe", "CEO Other Group (Family Office), Business Angel"),
+    # The neighbouring block is not a person's name.
+    card("Chief Technology Officer", "Co-Founder"),
+    card("Example Robotics", "CEO", "h2", "p"),
+    card("Other Capital Partners", "Founder"),
+    "<ul><li>25+ years in micro-optics and photonics</li><li>Co-founder &amp; CTO, Other Optics (acquired)</li></ul>",
+    "<ul><li>Technical Project Lead &amp; Co-founder, Other Light Labs (acquired by a group)</li></ul>",
+])
+def test_real_false_positives_are_rejected(body):
+    assert names(body) == []
+
+
+def test_home_page_team_section_is_read():
+    body = card("Gregor Entwurf", "Founder - CEO/CTO", "h3", "p")
+    assert names(body, kind="home") == [("Gregor Entwurf", "Founder")]
+    assert names(body, kind="contact") == []
+
+
+def test_without_a_company_name_any_organisation_after_the_role_rejects():
+    body = card("Jean Probe", "CEO @Example Robotics")
+    assert names(body, company=None) == []
+    assert names(card("Anna Muster", "Co-Founder &amp; CEO"), company=None) == [
+        ("Anna Muster", "Co-Founder")]

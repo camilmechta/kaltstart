@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - First measurement on 20 Swiss companies: usable address confirmed for 65 %
   (inconclusive against 70 %), founder name confirmed for 5 % (fails 40 %).
 
+### Changed
+
+- Founder extraction rewritten from the failures of the first measurement:
+  names are read only from team cards, "Name, role" lines and legal-notice
+  labels, and only when the role is held at the company itself.
+
 ## Phase 1 - 2026-11-12
 
 First load run against the live database on 2026-11-11: 832 funding rounds

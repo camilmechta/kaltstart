@@ -154,23 +154,34 @@ fixed paths of the parent spec (`/impressum`, `/imprint`, `/contact`, `/team`,
 
 ### 5.4 Extract founder names (`founders.py`)
 
-On legal-notice, team and about pages only. The scraper looks for a role word
-and takes the person's name next to it, in the same line or the same block of
-the page.
+On home, legal-notice, team and about pages only. Rewritten after the first
+measurement (decision D37), where a looser reading took job titles and
+organisations for people. A name is accepted only in one of the layouts
+sites actually use:
+
+- a card: one block holding nothing but the name, next to a short block
+  holding the role;
+- a line: "Name, role" or "Name - role";
+- a label: "Geschäftsführer: Name, Name"; the label itself is never a name.
+
+Running prose (a block of more than 14 words) is never read.
 
 Role words: Founder, Co-Founder, Cofounder, CEO, Chief Executive Officer,
 Managing Director, Gründer, Gründerin, Mitgründer, Mitgründerin,
-Geschäftsführer, Geschäftsführerin, Geschäftsleitung.
+Geschäftsführer, Geschäftsführerin, Geschäftsleitung. "Former CEO", "Head of
+CEO Office" and "Founder Associate" are not founder roles.
 
-A name is two to four capitalised words. In a "label: content" line the
-label is never the name, and each role binds to the name nearest to it, so
-that "CEO: A, CTO: B" returns A only. A candidate is rejected if it contains
-a role word, a company suffix (AG, GmbH, SA, Sàrl, Ltd), a digit or a common
-non-name word, or if it follows "of", "at" or "bei", which introduce an
-organisation. "Former CEO", "Head of CEO Office" and "Founder Associate" are
-not founder roles. Navigation, page headers and quotations are not read.
-This step is the least reliable of the five, which the 40 % threshold
-reflects; when in doubt it returns nothing.
+The role must be held at this company: when it is followed by the name of
+another organisation ("CEO at Other Works", "Founder Other Expo"), the person
+is dropped; when it is followed by this company's name or by nothing, the
+person is kept. The scraper therefore receives the company's name.
+
+A name is two to four capitalised words, after academic titles and
+credentials are removed. It is rejected if it contains a word of a job title
+or of an organisation (Officer, Manager, Capital, Institute, Group), a
+company suffix, or the company's own name. Navigation, page headers and
+quotations are not read. When in doubt nothing is returned, because a wrong
+name ends up in a mail.
 
 ### 5.5 Classify and choose (`selection.py`)
 
