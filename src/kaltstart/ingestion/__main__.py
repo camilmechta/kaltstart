@@ -2,6 +2,8 @@
 
 import argparse
 import calendar
+import csv
+import random
 import statistics
 import sys
 from collections import Counter, defaultdict
@@ -54,6 +56,12 @@ def _build_parser() -> argparse.ArgumentParser:
     sub.add_parser("reclean", help="rebuild companies and rounds from stored raw rounds")
     sub.add_parser("report", help="print counts and breakdowns (no API calls)")
     sub.add_parser("cities", help="print distinct cities and raw city spellings")
+    p = sub.add_parser("sample", help="draw companies with a website, as CSV")
+    p.add_argument("--country", default="Switzerland")
+    p.add_argument("--n", type=int, default=20)
+    p.add_argument("--seed", type=int, default=2026)
+    p.add_argument("--exclude-seed", type=int, action="append", default=[],
+                   help="leave out the companies drawn with this seed")
     return parser
 
 
@@ -134,12 +142,42 @@ def _cities(store: Store) -> None:
                 pairs.items(), key=lambda kv: tuple(map(str, kv[0])))])
 
 
+def _draw(candidates: list[dict], n: int, seed: int) -> list[dict]:
+    return random.Random(seed).sample(candidates, min(n, len(candidates)))
+
+
+def _sample(store: Store, country: str, n: int, seed: int,
+            exclude_seeds: list[int]) -> None:
+    """Print a reproducible random draw of companies that have a website."""
+    latest: dict[str, dict] = {}
+    for item in store.all_rounds_with_company():
+        company = item["company"]
+        if company["country"] != country or not company.get("website"):
+            continue
+        current = latest.get(company["id"])
+        if current is None or item["date"] > current["date"]:
+            latest[company["id"]] = item
+    # Sorted, so the draw does not depend on the order the store returns rows.
+    candidates = [latest[company_id] for company_id in sorted(latest)]
+    for excluded_seed in exclude_seeds:
+        excluded = {i["company"]["id"] for i in _draw(candidates, n, excluded_seed)}
+        candidates = [i for i in candidates if i["company"]["id"] not in excluded]
+    writer = csv.writer(sys.stdout, lineterminator="\n")
+    writer.writerow(["company_id", "name", "website", "size_category"])
+    for item in _draw(candidates, n, seed):
+        company = item["company"]
+        writer.writerow([company["id"], company["name"], company["website"],
+                         item["size_category"]])
+
+
 def _run_command(args: argparse.Namespace, client, store) -> None:
     command = args.command
     if store is None:
         store = _default_store()
-    if command in ("report", "cities", "reclean"):
-        if command == "report":
+    if command in ("report", "cities", "reclean", "sample"):
+        if command == "sample":
+            _sample(store, args.country, args.n, args.seed, args.exclude_seed)
+        elif command == "report":
             _report(store)
         elif command == "cities":
             _cities(store)

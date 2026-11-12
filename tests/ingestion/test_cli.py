@@ -239,3 +239,92 @@ def test_report_prints_share_of_companies_with_a_website(capsys):
     out = capsys.readouterr().out
     assert "companies_with_details: 2 of 4 (50%)" in out
     assert "companies_with_website: 1 of 4 (25%)" in out
+
+
+def sample_store():
+    store = InMemoryStore()
+    companies, rounds = [], []
+    for i in range(35):
+        companies.append(company(f"ch-{i:02d}"))
+        rounds.append(round_row(f"r-ch-{i:02d}", f"ch-{i:02d}", "Seed", "small", 1_000_000))
+    for i in range(10):
+        companies.append(company(f"de-{i:02d}", country="Germany", city="Berlin"))
+        rounds.append(round_row(f"r-de-{i:02d}", f"de-{i:02d}", "Seed", "small", 1_000_000))
+    store.upsert_companies(companies)
+    store.upsert_rounds(rounds)
+    for c in companies:
+        number = int(c["id"].split("-")[1])
+        has_site = not (c["id"].startswith("ch-") and number >= 30)   # 5 Swiss without a site
+        store.set_company_details(c["id"], {
+            "website": f"https://{c['id']}.example.ch" if has_site else None,
+            "description": None, "founded": None})
+    return store
+
+
+def sample_rows(capsys, *argv, store=None):
+    assert main(["sample", *argv], store=store or sample_store()) == 0
+    lines = capsys.readouterr().out.strip().splitlines()
+    assert lines[0] == "company_id,name,website,size_category"
+    return [line.split(",") for line in lines[1:]]
+
+
+def test_sample_prints_20_swiss_companies_with_a_website(capsys):
+    rows = sample_rows(capsys)
+    assert len(rows) == 20
+    assert len({r[0] for r in rows}) == 20
+    assert all(r[0].startswith("ch-") and int(r[0][3:]) < 30 for r in rows)
+    assert all(r[2].startswith("https://") for r in rows)
+
+
+def test_sample_is_reproducible(capsys):
+    first = sample_rows(capsys)
+    assert sample_rows(capsys) == first
+    assert sample_rows(capsys, "--seed", "2027") != first
+
+
+def test_sample_does_not_depend_on_row_order(capsys):
+    store = sample_store()
+    reordered = InMemoryStore()
+    items = store.all_rounds_with_company()
+    reordered.upsert_companies([{k: v for k, v in i["company"].items()
+                                 if k in company("x")} for i in reversed(items)])
+    reordered.upsert_rounds([{k: v for k, v in i.items() if k != "company"}
+                             for i in reversed(items)])
+    for i in items:
+        reordered.set_company_details(i["company"]["id"], {
+            "website": i["company"]["website"], "description": None, "founded": None})
+    assert sample_rows(capsys, store=reordered) == sample_rows(capsys, store=store)
+
+
+def test_sample_size_category_is_that_of_the_latest_round(capsys):
+    store = sample_store()
+    later = round_row("r-late", "ch-00", "Series B", "large", 30_000_000)
+    later["date"] = "2026-06-01"
+    store.upsert_rounds([later])
+    rows = sample_rows(capsys, "--n", "30", store=store)
+    assert next(r for r in rows if r[0] == "ch-00")[3] == "large"
+    assert next(r for r in rows if r[0] == "ch-01")[3] == "small"
+
+
+def test_sample_exclude_seed(capsys):
+    first = {r[0] for r in sample_rows(capsys, "--n", "10")}
+    second = {r[0] for r in sample_rows(capsys, "--n", "10", "--seed", "2027",
+                                        "--exclude-seed", "2026")}
+    assert len(second) == 10
+    assert not first & second
+
+
+def test_sample_with_fewer_companies_than_n_prints_them_all(capsys):
+    assert len(sample_rows(capsys, "--n", "50")) == 30
+
+
+def test_sample_other_country(capsys):
+    rows = sample_rows(capsys, "--country", "Germany")
+    assert len(rows) == 10 and all(r[0].startswith("de-") for r in rows)
+
+
+def test_sample_never_builds_a_client(monkeypatch):
+    def boom(*a, **k):
+        raise AssertionError("client constructed")
+    monkeypatch.setattr(cli, "_default_client", boom)
+    assert main(["sample"], store=sample_store()) == 0
