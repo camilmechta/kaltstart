@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   (inconclusive against 70 %), founder name confirmed for 5 % (fails 40 %).
 - Second measurement on 20 new companies after the founder rewrite: usable
   address 65 %, founder name 30 %. Both thresholds still missed.
+- Third measurement on 20 new companies: usable address 70 %, founder name
+  45 %, both above their thresholds by one company (inconclusive).
 
 ### Changed
 
