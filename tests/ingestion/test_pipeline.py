@@ -329,3 +329,35 @@ def test_sync_changes_removed_wins_over_added():
     assert ids == ["kept"]
     assert store.counts()["raw_rounds"] == 1
     assert run["rounds_upserted"] == 1
+
+
+def test_sync_changes_skips_rounds_without_a_date():
+    # Seen live on 2026-11-12: /changes returned a freshly created round with
+    # "date": null, which /rounds (filtered by dates) never returns.
+    store = InMemoryStore()
+    store.record_run(run_row("success", "2026-11-10T03:00:00+00:00"))
+    client = FakeClient(changes=(
+        [make_raw("dated", company_id="co-1"),
+         make_raw("undated", company_id="co-2", date=None)], []))
+
+    run = sync_changes(client, store)
+
+    assert run["status"] == "success"
+    assert run["rounds_upserted"] == 1
+    assert run["error"] == "skipped 1 rounds without a date"
+    assert store.counts() == {"raw_rounds": 1, "companies": 1, "rounds": 1}
+
+
+def test_backfill_skips_rounds_without_a_date():
+    store = InMemoryStore()
+    client = FakeClient(rounds={
+        "Switzerland": [make_raw("a"), make_raw("b", date="")],
+        "Germany": [make_raw("c", company_id="co-2", country="Germany", date=None)],
+    })
+
+    run = backfill(client, store, "2025-11-11", "2026-11-11")
+
+    assert run["status"] == "success"
+    assert run["rounds_upserted"] == 1
+    assert run["error"] == "skipped 2 rounds without a date"
+    assert store.counts() == {"raw_rounds": 1, "companies": 1, "rounds": 1}

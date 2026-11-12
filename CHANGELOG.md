@@ -17,6 +17,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Weekly backfill schedule (Sundays) to pick up edits to known rounds, which
   the `/changes` endpoint does not report.
 
+### Fixed
+
+- The nightly sync no longer crashes on a round without a date; such rounds
+  are skipped and counted in the run summary.
+
 ### Changed
 
 - Design spec and Phase 1 plan translated to English; the spec file is now
