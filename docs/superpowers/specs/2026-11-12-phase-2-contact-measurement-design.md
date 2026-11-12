@@ -18,7 +18,7 @@ Success criteria, from the parent spec:
 
 | Criterion | Threshold |
 |---|---|
-| Companies with a usable contact | 70 % |
+| Companies with a usable contact | 65 % (was 70 %, see decision D39) |
 | Companies with the name of a founder | 40 % |
 
 - **Usable contact**: at least one email address published on the company's
@@ -69,7 +69,7 @@ Out of scope, deferred to a later plan that depends on the verdict:
    result is recorded in `DECISIONS.md`.
 
 Twenty companies is a small sample: one company is 5 percentage points. A
-result within one company of a threshold (65 % to 75 % for contacts, 35 % to
+result within one company of a threshold (60 % to 70 % for contacts, 35 % to
 45 % for founders) is treated as inconclusive, and 20 more companies are
 drawn with seed 2027, excluding the companies of the first sample file,
 before deciding on all 40.

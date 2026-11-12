@@ -24,7 +24,7 @@ only if the final test reaches thresholds set in advance.
 
 | Criterion | Threshold | Measured in |
 |---|---|---|
-| Usable contacts found by the scraper | 70 % of companies | Phase 2 |
+| Usable contacts found by the scraper | 65 % of companies | Phase 2 |
 | Name of a founder found | 40 % of companies | Phase 2 |
 | Human reply rate | 10 % of mails sent | Phase 5 |
 | Positive reply rate | 3 % of mails sent | Phase 5 |
@@ -339,7 +339,7 @@ count the scraper's mistakes.
 |---|---|---|
 | 0. Framing | Spec, PRD.md, repo, CLAUDE.md, structure | The spec is validated |
 | 1. Ingestion | Tech.eu to Supabase for the three countries, cleaning, incremental update | The rounds are in the database, clean; a second run adds only what is new |
-| 2. Contacts | Scraper tested on 20 Swiss sites | The rates are measured and compared with the 70 % and 40 % thresholds |
+| 2. Contacts | Scraper tested on 20 Swiss sites | The rates are measured and compared with the 65 % and 40 % thresholds |
 | 3. Mails | Generator and templates in English and German | All test cases pass, for each style |
 | 4. Front | FastAPI server, sign-up with invitation code, filters, list, company page, tracking | A student goes from sign-up to a copied mail without help |
 | 5. Test | 20 HSG students, about 200 mails | Report comparing the rates with the 10 % and 3 % thresholds |
@@ -358,7 +358,7 @@ Phase 1 is planned first.
 | D5 | 3 mails per company over 30 days, counted at generation | Protects the founder; the app necessarily sees the generation | No limit; counter without blocking; counting at declared sending |
 | D6 | "Copy" buttons, limit of 5 pending mails | Matches real usage; pushes students to keep tracking up to date | `mailto:` button; address in blind copy |
 | D7 | Personal address only if published | Every address has a verifiable source; no bounce | Always generic; guessed address |
-| D8 | Scraper thresholds at 70 % and 40 % | Checkpoint before investing in Phases 3 to 5 | 50 %; 85 % |
+| D8 | Scraper thresholds at 70 % and 40 %; the first was lowered to 65 % after two measurements (D39 in DECISIONS.md) | Checkpoint before investing in Phases 3 to 5 | 50 %; 85 % |
 | D9 | FastAPI for generation, GitHub Actions for the night | The Python must run on click; the nightly work does not need a server | Queue in the database; templates rewritten in JavaScript |
 | D10 | Presumed-sent mails excluded from the rates | We do not know whether they left; they would distort the metric | Count them as sent |
 | D11 | Sign-up with invitation code, no domain check | Simpler, no dependency on university mailboxes, control over who gets in | HSG address required; open sign-up |

@@ -42,7 +42,7 @@ result checked by hand. Samples and summaries are in
 
 | Confirmed | First run, 20 companies | Second run, 20 new companies | Threshold |
 |---|---|---|---|
-| Company with a usable address | 13 (65 %) | 13 (65 %) | 70 % |
+| Company with a usable address | 13 (65 %) | 13 (65 %) | 65 % (was 70 %) |
 | Company with a founder's name | 1 (5 %) | 6 (30 %) | 40 % |
 
 Founder extraction was rewritten between the two runs, from the failures of

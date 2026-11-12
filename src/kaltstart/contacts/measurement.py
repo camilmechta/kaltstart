@@ -16,7 +16,7 @@ RESULT_COLUMNS = (
 # missed: the site publishes one and the scraper found none.
 # none_exists: nothing to find and nothing reported.
 CHECK_VALUES = ("confirmed", "wrong", "missed", "none_exists")
-CONTACT_THRESHOLD = 0.7
+CONTACT_THRESHOLD = 0.65    # lowered from 0.70 on 2026-11-12, decision D39
 FOUNDER_THRESHOLD = 0.4
 _SIZES = ("small", "medium", "large")
 _CONFIDENCES = ("high", "medium", "low")

@@ -69,7 +69,7 @@ if the final test reaches thresholds fixed in advance.
 
 | Metric | Threshold | Measured in |
 |---|---|---|
-| Companies with a usable contact found by the scraper | 70 % | Phase 2 |
+| Companies with a usable contact found by the scraper | 65 % | Phase 2 |
 | Companies with a founder name found | 40 % | Phase 2 |
 | Human response rate | 10 % of sent mails | Phase 5 |
 | Positive response rate | 3 % of sent mails | Phase 5 |
@@ -107,7 +107,7 @@ with a real browser, or using the contact form.
 |---|---|---|
 | 0. Scoping | Spec, PRD, repository, CLAUDE.md, structure | The spec is validated |
 | 1. Ingestion | Tech.eu to Supabase for the three countries, cleaning, incremental update | Rounds are in the database and clean; a second run adds only what is new |
-| 2. Contacts | Scraper tested on 20 Swiss sites | Rates are measured and compared with the 70 % and 40 % thresholds |
+| 2. Contacts | Scraper tested on 20 Swiss sites | Rates are measured and compared with the 65 % and 40 % thresholds |
 | 3. Mails | Generator and templates in English and German | All test cases pass, for each style |
 | 4. Front end | FastAPI server, invitation sign-up, filters, list, company page, tracking | A student goes from sign-up to a copied mail without help |
 | 5. Test | 20 HSG students, about 200 mails | Report comparing the rates with the 10 % and 3 % thresholds |

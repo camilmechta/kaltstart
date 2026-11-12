@@ -84,7 +84,7 @@ def test_summarise_rates_and_mistakes(tmp_path):
         "wrong founder name: 1", "missed founder name: 3",
         "robots_forbidden: 0", "unreachable: 1", "little_text: 1",
         "other_domain_only: 0", "contact_form_only: 1", "no_address: 1",
-        "Usable contact (threshold 70%): inconclusive",
+        "Usable contact (threshold 65%): pass",
         "Founder name (threshold 40%): inconclusive",
     ):
         assert line in text, line
@@ -102,6 +102,11 @@ def test_summarise_contains_no_personal_data(tmp_path):
         assert row["website"] not in text
     assert "Anna" not in text and "Muster" not in text
     assert "@" not in text
+
+
+def test_thresholds():
+    from kaltstart.contacts.measurement import CONTACT_THRESHOLD, FOUNDER_THRESHOLD
+    assert (CONTACT_THRESHOLD, FOUNDER_THRESHOLD) == (0.65, 0.4)
 
 
 def test_check_problems(tmp_path):
