@@ -16,6 +16,8 @@ on:
           - sync
           - backfill
           - reclean
+          - report
+          - cities
         default: sync
 
 permissions:
