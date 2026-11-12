@@ -10,6 +10,14 @@ from kaltstart.ingestion.cleaning import (
     ("Obwalden", (None, "Obwalden")),
     ("St.  Gallen", ("St. Gallen", None)),
     ("Eggersriet", ("Eggersriet", None)),   # unknown: kept as is
+    ("Düsseldorf", ("Dusseldorf", None)),
+    ("Frankfurt am Main", ("Frankfurt", None)),
+    ("Garching Bei München", ("Garching", None)),
+    ("T√ºbingen", ("Tübingen", None)),      # mojibake seen in the live data
+    ("Saint-sulpice", ("Saint-Sulpice", None)),
+    ("Ge", (None, "Geneva")),                # canton code used as a city
+    ("Vorarlberg", (None, "Vorarlberg")),
+    ("Aargau", (None, "Aargau")),
     ("", (None, None)),
     (None, (None, None)),
 ])

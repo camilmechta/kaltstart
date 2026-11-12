@@ -24,6 +24,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- City aliases completed from the first load: spelling variants, one
+  encoding glitch, and regions that Tech.eu stores in the city field.
 - Size bounds for rounds without a known stage calibrated on real data:
   7 and 20 million euros (were 3 and 15).
 - `report` now prints the share of companies with fetched details and with a
