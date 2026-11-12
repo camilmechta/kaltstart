@@ -1,0 +1,21 @@
+company_id,name,website,size_category
+71ABCA30-D8D6-422C-BB4E-FF82006E09DB,YQuantum,https://www.venturekick.ch/yquantum,small
+3F84A4D6-3962-483D-B645-DBAD45D331DC,SCALE Lasers,https://www.scalelasers.com,small
+E646DC4C-1B9F-4A03-A55C-808E48501FC5,Milan Aircraft,https://www.milan-aircraft.com,small
+0DBF9A71-01B6-455F-8722-3B94A38B2CFE,Ferm Labs,https://fermlabs.com/index.html,small
+7ABF97B1-B98D-4ABC-B7D1-873CFFEB268C,NUCLIDIUM,http://www.nuclidium.com,large
+7410EC95-B9DA-4459-89C5-0EB4C6B92690,ETFbook,https://www.etfbook.com,medium
+54AA05CB-181B-4CBB-8184-86D304133B2D,vyzn,https://www.vyzn.tech,small
+3ADD1050-29E5-4547-A0FF-6FCCE7A24437,RheoCarti,https://rheocarti.com/Home,small
+D9A2B55A-B49A-4F9F-9D7E-367CAB65D2C0,Polares Medical,https://www.polaresmedical.com,large
+055CBAEC-6DF6-48F1-B7C6-E8539D9E7EC5,Cosaic,https://www.cosaic.bio,small
+40FC1C92-2E2C-443E-8592-224107D70BE0,Maus Robotics,https://www.mausrobotics.com/de,small
+63E8961A-A386-457A-B324-D8238039FCD1,Backbone,https://www.bkbn.com,small
+CC54939F-FC59-4F47-83BC-737BDFC4AB2D,Relai,https://relai.ch,small
+C6FE67EA-E80F-4029-BB76-A265EA323891,Solar Manager,https://www.solarmanager.ch,small
+71F71035-F99B-4DEF-A934-401DBCBE834F,Winduction,https://www.winduction.com,small
+AEE1DC14-EBEC-453F-A99C-B104D0D76F94,Swissto12,http://swissto12.com,large
+01BA48CD-08A1-475A-8EB8-0A81973862DA,Porters,http://www.withporters.com,small
+BDD93221-EDA6-455A-A0A2-EBDEB7E47EBB,Sparkli,http://sparkli.ai,small
+AED1CE49-D39F-4701-929A-F8517D7B2C13,Cohaga,https://cohaga.ch,small
+BA15AA62-1A74-4DEB-A738-62CF48D28261,Arrhenius,https://arrhenius.com/de,small
