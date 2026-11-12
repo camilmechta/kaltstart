@@ -57,8 +57,8 @@ docs/                       specification and plans
 .github/workflows/          CI and nightly jobs
 ```
 
-Only `ingestion/` exists so far (Phase 1 is done); the other directories are created in their
-phase.
+Only `ingestion/` exists so far (Phase 1 is done); the other directories are
+created in their phase.
 
 ## Maintenance
 

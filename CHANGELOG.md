@@ -35,8 +35,9 @@ website.
 
 ### Fixed
 
-- The nightly sync no longer crashes on a round without a date; such rounds
-  are skipped and counted in the run summary.
+- The nightly sync no longer crashes on a round that Tech.eu has not completed
+  yet (missing date, identifier, company or page link); such rounds are
+  skipped and listed in the run summary.
 
 ## Phase 0 - 2026-11-11
 

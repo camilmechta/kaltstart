@@ -23,6 +23,9 @@ on:
 permissions:
   contents: read
 
+# One run at a time, to stay under the Tech.eu quotas. GitHub keeps a single
+# pending run per group: if two more arrive while one is running, the older
+# pending one is cancelled. Cron times are UTC and can start late.
 concurrency:
   group: ingestion
   cancel-in-progress: false

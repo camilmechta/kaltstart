@@ -344,7 +344,7 @@ def test_sync_changes_skips_rounds_without_a_date():
 
     assert run["status"] == "success"
     assert run["rounds_upserted"] == 1
-    assert run["error"] == "skipped 1 rounds without a date"
+    assert run["error"] == "skipped unusable rounds (1): undated: missing date"
     assert store.counts() == {"raw_rounds": 1, "companies": 1, "rounds": 1}
 
 
@@ -359,5 +359,58 @@ def test_backfill_skips_rounds_without_a_date():
 
     assert run["status"] == "success"
     assert run["rounds_upserted"] == 1
-    assert run["error"] == "skipped 2 rounds without a date"
+    assert run["error"] == (
+        "skipped unusable rounds (2): b: missing date; c: missing date")
     assert store.counts() == {"raw_rounds": 1, "companies": 1, "rounds": 1}
+
+
+def _broken(round_id, **changes):
+    raw = make_raw(round_id, company_id=f"co-{round_id}")
+    for path, value in changes.items():
+        if path.startswith("company_"):
+            raw["company"][path.removeprefix("company_")] = value
+        else:
+            raw[path] = value
+    return raw
+
+
+def test_sync_changes_skips_rounds_missing_any_required_field():
+    # Every field the transform or the schema requires can be null in /changes.
+    store = InMemoryStore()
+    store.record_run(run_row("success", "2026-11-10T03:00:00+00:00"))
+    no_company = make_raw("no-company")
+    no_company["company"] = None
+    broken = [
+        no_company,
+        _broken("no-url", pageUrl=None),
+        _broken("no-co-id", company_id=None),
+        _broken("no-co-name", company_name=""),
+        _broken("no-co-country", company_country=None),
+        _broken("no-co-url", company_pageUrl=None),
+        _broken(None),
+    ]
+    client = FakeClient(changes=([make_raw("good")] + broken, []))
+
+    run = sync_changes(client, store)
+
+    assert run["status"] == "success"
+    assert run["rounds_upserted"] == 1
+    assert store.counts() == {"raw_rounds": 1, "companies": 1, "rounds": 1}
+    assert run["error"].startswith("skipped unusable rounds (7): ")
+    for reason in ("no-company: missing company", "no-url: missing pageUrl",
+                   "no-co-id: missing company.id"):
+        assert reason in run["error"]
+    # Only the first five are listed, so the summary stays short.
+    assert run["error"].endswith("; ...")
+
+
+def test_sync_changes_ignores_broken_rounds_of_other_countries():
+    store = InMemoryStore()
+    store.record_run(run_row("success", "2026-11-10T03:00:00+00:00"))
+    foreign = make_raw("uk", company_id="co-uk", country="UK", date=None)
+    client = FakeClient(changes=([foreign], []))
+
+    run = sync_changes(client, store)
+
+    assert run["error"] is None
+    assert store.counts() == {"raw_rounds": 0, "companies": 0, "rounds": 0}
