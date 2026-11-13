@@ -40,16 +40,17 @@ The contact scraper is measured on Swiss companies drawn at random, with every
 result checked by hand. Samples and summaries are in
 [docs/measurements](docs/measurements); they contain no name and no address.
 
-| Confirmed, on companies never seen before | Run 1 | Run 2 | Run 3 | Threshold |
-|---|---|---|---|---|
-| Company with a usable address | 65 % | 65 % | 70 % | 65 % (was 70 %) |
-| Company with a founder's name | 5 % | 30 % | 45 % | 40 % |
+| Confirmed, on companies never seen before | Run 1 | Run 2 | Runs 3 and 4 | Threshold | Verdict |
+|---|---|---|---|---|---|
+| Company with a usable address | 65 % | 65 % | 70 % | 65 % (was 70 %) | Pass |
+| Company with a founder's name | 5 % | 30 % | 35 % | 40 % | Fail |
 
-Each run covers 20 companies. Founder extraction was rewritten after run 1
-and refined after run 2, each time from the failures read on the real pages.
-No address reported by the scraper was wrong in any run. Run 3 is above both
-thresholds by a single company, which is too close to conclude on 20: the
-nightly run is not built until a further sample confirms it.
+Runs 1 and 2 cover 20 companies each; runs 3 and 4 use the same code and
+cover 40 together. Founder extraction was rewritten after run 1 and refined
+after run 2, each time from the failures read on the real pages. No address
+reported by the scraper was found wrong in any run. Finding addresses is
+accepted; finding founders is not, and the way people are read from team
+pages is being reconsidered before the nightly run is built.
 
 ## Installation
 

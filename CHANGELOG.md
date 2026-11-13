@@ -18,6 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   address 65 %, founder name 30 %. Both thresholds still missed.
 - Third measurement on 20 new companies: usable address 70 %, founder name
   45 %, both above their thresholds by one company (inconclusive).
+- Fourth measurement with the same code, and verdict on 40 companies: usable
+  address 70 % (pass), founder name 35 % (fail).
 
 ### Changed
 
