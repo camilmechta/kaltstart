@@ -1,70 +1,55 @@
-"""Founder names on home, legal-notice and team pages.
+"""People a company presents with their job title, on home, legal and team pages.
 
-The first measurement on real sites showed where a looser reading goes wrong:
-job titles and organisations taken for people, and founders of other
-companies taken for this company's. A name is therefore accepted only in one
-of the layouts sites actually use, and only when the role is held at this
-company:
+Four measurements on real sites shaped these rules. A person is accepted only
+in one of the layouts sites actually use:
 
 - a card: one block holding nothing but the name, next to a short block
-  holding the role;
-- a line: "Name, role" or "Name - role";
+  holding the title, or next to one of that block's wrappers;
+- a line: "Name, title" or "Name - title";
 - a label: "Geschäftsführer: Name, Name".
 
 Running prose is never read, and neither is a card that sits with a quotation
-(a customer testimonial). When in doubt nothing is returned, because a
-wrong name ends up in a mail.
+(a customer testimonial). A title tied to another organisation is not this
+company's. When in doubt nothing is returned: a wrong name ends up in a mail.
 """
 
 import re
 
 from bs4 import BeautifulSoup, Tag
 
-from kaltstart.contacts.models import FoundFounder, Page
+from kaltstart.contacts.models import FoundPerson, Page
+from kaltstart.contacts.titles import (
+    LEADERSHIP, ROLE_THEN_NAME, TITLE_WORD, Title, classify_title)
 
-# In priority order: a founder role is preferred to "CEO" when a block has both.
-ROLE_WORDS: tuple[str, ...] = (
-    "Co-Founder", "Cofounder", "Founder", "Chief Executive Officer", "CEO",
-    "Managing Director", "Mitgründerin", "Mitgründer", "Gründerin", "Gründer",
-    "Geschäftsführerin", "Geschäftsführer", "Geschäftsleitung",
-)
 _PAGE_KINDS = ("home", "legal", "team")
 _BLOCKS = ("p", "li", "td", "th", "div", "span", "dd", "dt",
            "h1", "h2", "h3", "h4", "h5", "h6")
 _SKIPPED = ("script", "style", "noscript", "nav", "header")
-MAX_ROLE_BLOCK_WORDS = 14     # longer blocks are prose
+MAX_TITLE_BLOCK_WORDS = 14    # longer blocks are prose
 MAX_NAME_BLOCK_WORDS = 8
-MAX_LEVELS_UP = 2             # how far above the role a name block may sit
+MAX_LEVELS_UP = 2             # how far above the title a name block may sit
 # A customer testimonial looks like a team card: a name, then "CEO". What
 # gives it away is the quotation it sits with.
 MAX_TESTIMONIAL_WORDS = 120
 _QUOTE_MARKS = "“”„«»"
 _TESTIMONIAL_CLASS = re.compile(r"testimonial|quote|review|kundenstimme|referenz", re.IGNORECASE)
-_WORKS_FOR_THE_FOUNDER = re.compile(r"\b(?:assistant|assistenz|assistentin)\b", re.IGNORECASE)
 
-_ROLE = re.compile(
-    r"(?<![\w-])(?:" + "|".join(re.escape(r) for r in ROLE_WORDS) + r")(?![\w-])",
-    re.IGNORECASE)
-# "Former CEO", "Head of CEO Office", "Founder Associate" are not the role.
-_NOT_A_ROLE_BEFORE = re.compile(
-    r"(?:former|ex|ehemaliger|ehemalige|head of|assistant to(?: the)?)[\s-]*$",
-    re.IGNORECASE)
-_NOT_A_ROLE_AFTER = re.compile(
-    r"^\s*(?:associate|office|assistant|in residence)\b", re.IGNORECASE)
-
-_TITLES = re.compile(r"\b(?:Dr|Prof|Mag|Ing|Dipl\.-Ing)\b\.?", re.IGNORECASE)
-_CREDENTIALS = re.compile(r"(?:,\s*(?:[A-Z]{2,6}|Ph\.?D\.?|M\.?Sc\.?))+\s*$")
+_ACADEMIC = re.compile(r"\b(?:Dr|Prof|Mag|Ing|Dipl\.-Ing)\b\.?", re.IGNORECASE)
+_CREDENTIAL = r"(?:E?MBA|Ph\.?D\.?|M\.?Sc\.?|B\.?Sc\.?|MRICS|CFA)"
+_TRAILING_CREDENTIALS = re.compile(rf"(?:,\s*(?:{_CREDENTIAL}|[A-Z]{{2,6}}))+\s*$")
+_LEADING_CREDENTIALS = re.compile(rf"^(?:[\s,|–—-]*{_CREDENTIAL}(?![\w.]))+")
 _WORD = r"[A-ZÀ-ÖØ-Þ][^\W\d_]*(?:[-'’][^\W\d_]+)*"
 _PARTICLE = r"(?:von|van|de|del|di|der|den)"
 _NAME = rf"{_WORD}(?:\s+(?:{_PARTICLE}\s+)*{_WORD}){{1,3}}"
 _WHOLE_NAME = re.compile(rf"^{_NAME}$")
-_LEADING_NAME = re.compile(rf"^({_NAME})\s*(?:,|-|–|—|\||\()")
+_LEADING_NAME = re.compile(rf"^({_NAME})\s*(,|-|–|—|\||\()")
 _NAME_SEPARATORS = re.compile(r"\s+(?:und|and|&)\s+|\s*[,/]\s*")
 _CAPITALISED = re.compile(r"[A-ZÀ-ÖØ-Þ][\w'’.-]*")
+_ELSEWHERE = re.compile(r"(?:\bat\b|@|\bbei\b|\bchez\b)\s*((?:[A-ZÀ-ÖØ-Þ][\w'’.-]*\s*){1,4})")
 _COMPANY_SUFFIXES = frozenset(("ag", "gmbh", "sa", "sàrl", "sarl", "ltd", "inc", "kg",
                                "ug", "se", "llc"))
 # Words of job titles and of organisations: never part of a person's name,
-# and not an organisation when they follow a role ("CEO & CTO").
+# and not an organisation's name when they stand in a title ("CEO & CTO").
 _VOCABULARY = frozenset((
     "chief", "officer", "executive", "technology", "technical", "operating",
     "financial", "finance", "commercial", "scientific", "science", "product",
@@ -72,7 +57,7 @@ _VOCABULARY = frozenset((
     "innovation", "strategy", "people", "talent", "management", "manager",
     "owner", "lead", "leader", "head", "director", "president", "vp", "svp",
     "senior", "sr", "junior", "jr", "former", "interim", "deputy", "acting",
-    "engineer", "engineering",
+    "engineer", "engineering", "investment", "culture", "growth", "data",
     "professor", "advisor", "adviser", "investor", "angel", "partner", "board",
     "member", "chairman", "chairwoman", "chair", "entrepreneur", "associate",
     "ceo", "cto", "cfo", "coo", "cco", "cso", "cio", "cmo", "cpo", "cro", "mba",
@@ -91,7 +76,7 @@ _VOCABULARY = frozenset((
 
 
 def _text(element: Tag) -> str:
-    return " ".join(element.get_text(" ").split())
+    return " ".join(element.get_text(" ").replace("​", "").split())
 
 
 def _is_leaf(element: Tag) -> bool:
@@ -108,13 +93,6 @@ def _company_key(company_name: str | None) -> str:
     return "".join(words)
 
 
-# In German the name may follow the role directly ("Geschäftsführer Anna
-# Muster"). In English it does not, so capitalised words after an English
-# role name an organisation ("CEO Other Group").
-_ROLE_THEN_NAME = frozenset(r.lower() for r in ROLE_WORDS
-                            if r[0] in "GM" and r != "Managing Director")
-
-
 def _organisation(words: list[str]) -> list[str]:
     return [w for w in words if w.lower().strip(".") not in _VOCABULARY]
 
@@ -126,52 +104,64 @@ def _is_this_company(words: list[str], company_key: str) -> bool:
 
 
 def _capitalised(text: str) -> list[str]:
-    return [w for w in _CAPITALISED.findall(_ROLE.sub(" ", text))
+    return [w for w in _CAPITALISED.findall(TITLE_WORD.sub(" ", text))
             if w.lower() not in _COMPANY_SUFFIXES]
 
 
-def _held_here(text: str, role: re.Match, company_key: str) -> bool:
-    """False when the role is tied to the name of another organisation.
+def _only_an_organisation(clause: str) -> list[str]:
+    """The words of `clause` when it is nothing but an organisation's name."""
+    words = [w for w in clause.split() if w not in ("&", "-")]
+    names = _capitalised(clause)
+    if names and len(words) <= 4 and len(_organisation(names)) == len(words) \
+            and not TITLE_WORD.search(clause):
+        return names
+    return []
 
-    Three places are looked at: right after the role ("CEO at Other Works"),
-    right before it ("Otherix CEO"), and alone after a comma ("CEO, Othergem").
-    """
+
+def _leader_elsewhere(text: str, role: re.Match, company_key: str) -> bool:
+    """True when a leadership word is tied to another organisation's name:
+    right after it ("CEO Other Group"), right before it ("Otherix CEO"), or
+    alone after a comma ("CEO, Othergem")."""
     after = text[role.end():]
     split = re.search(r"[,;|()]", after)
     clause = after[:split.start()] if split else after
-    if role.group(0).lower() in _ROLE_THEN_NAME and _whole_names(clause, company_key):
-        return True
+    if ROLE_THEN_NAME.fullmatch(role.group(0)) and _whole_names(clause, company_key):
+        return False
     words = _capitalised(clause)
     if _organisation(words):
-        return _is_this_company(words, company_key)
-
+        return not _is_this_company(words, company_key)
     before = re.split(r"[,;|()&/:-]", text[:role.start()])[-1].split()
     if before and _CAPITALISED.fullmatch(before[-1]) and _organisation(before[-1:]):
-        return _is_this_company(before[-1:], company_key)
-
+        return not _is_this_company(before[-1:], company_key)
     if split and split.group(0) == ",":
         following = re.split(r"[,;|()]", after[split.end():], maxsplit=1)[0]
-        words = _capitalised(following)
-        only_a_name = words and len(following.split()) <= 4 and len(_organisation(words)) == len(
-            [w for w in following.split() if w not in ("&", "-")])
-        if only_a_name and not _ROLE.search(following):
-            return _is_this_company(words, company_key)
-    return True
+        names = _only_an_organisation(following)
+        if names:
+            return not _is_this_company(names, company_key)
+    return False
 
 
-def _own_role(text: str, company_key: str) -> str | None:
-    """The founder role this text gives someone at this company, if any."""
-    if _WORKS_FOR_THE_FOUNDER.search(text):
+def _held_elsewhere(text: str, company_key: str) -> bool:
+    """True when the title belongs to another organisation than this company."""
+    if any(_leader_elsewhere(text, role, company_key) for role in LEADERSHIP.finditer(text)):
+        return True
+    for match in _ELSEWHERE.finditer(text):          # "Head of Product at Other Works"
+        names = _capitalised(match.group(1))
+        if _organisation(names) and not _is_this_company(names, company_key):
+            return True
+    for clause in text.split(",")[1:]:               # "Head of Product, Other Works"
+        names = _only_an_organisation(clause)
+        if names and not _is_this_company(names, company_key):
+            return True
+    return False
+
+
+def _own_title(text: str, company_key: str) -> Title | None:
+    """The classified title, when it is a kept one held at this company."""
+    title = classify_title(text)
+    if title is None or _held_elsewhere(text, company_key):
         return None
-    held = set()
-    for match in _ROLE.finditer(text):
-        if _NOT_A_ROLE_BEFORE.search(text[:match.start()]):
-            continue
-        if _NOT_A_ROLE_AFTER.match(text[match.end():]):
-            continue
-        if _held_here(text, match, company_key):
-            held.add(match.group(0).lower())
-    return next((r for r in ROLE_WORDS if r.lower() in held), None)
+    return title
 
 
 def _display(word: str) -> str:
@@ -181,6 +171,8 @@ def _display(word: str) -> str:
 def _person(candidate: str, company_key: str) -> str | None:
     """`candidate` as a displayable name, or None when it is not a person's."""
     words = candidate.split()
+    if TITLE_WORD.search(candidate):
+        return None
     if any(w.lower().strip(".") in _VOCABULARY or w.lower() in _COMPANY_SUFFIXES
            for w in words):
         return None
@@ -190,15 +182,15 @@ def _person(candidate: str, company_key: str) -> str | None:
     return " ".join(_display(w) for w in words)
 
 
-def _clean(text: str) -> str:
-    """Drop academic titles and credentials: "Dr Anna Muster, MBA" -> "Anna Muster"."""
-    return _CREDENTIALS.sub("", " ".join(_TITLES.sub(" ", text).split())).strip()
+def _without_academic_titles(text: str) -> str:
+    return " ".join(_ACADEMIC.sub(" ", text).split())
 
 
 def _whole_names(text: str, company_key: str) -> list[str]:
     """The names, when `text` holds nothing but one or several names."""
+    cleaned = _TRAILING_CREDENTIALS.sub("", _without_academic_titles(text)).strip()
     names = []
-    for piece in _NAME_SEPARATORS.split(_clean(text)):
+    for piece in _NAME_SEPARATORS.split(cleaned):
         if not _WHOLE_NAME.match(piece):
             return []
         name = _person(piece, company_key)
@@ -208,48 +200,60 @@ def _whole_names(text: str, company_key: str) -> list[str]:
     return names
 
 
-def _leading_name(text: str, company_key: str) -> list[str]:
-    """The name a line starts with: "Name, role" or "Name - role"."""
-    match = _LEADING_NAME.match(_clean(_ROLE.sub("|", text)))
-    name = _person(match.group(1), company_key) if match else None
-    return [name] if name else []
+Found = tuple[str, str, Title]    # name, title text, classified title
 
 
-def _names_in_block(text: str, company_key: str) -> list[tuple[str, str]]:
-    """`(name, role)` pairs a short block states by itself."""
-    if ":" in text:
-        return _labelled(text, company_key)
-    role = _own_role(text, company_key)
-    if role is None:
+def _line(text: str, company_key: str) -> list[Found]:
+    """ "Name, title" or "Name - title": the name a line starts with."""
+    cleaned = _without_academic_titles(text)
+    match = _LEADING_NAME.match(cleaned)
+    if not match:
         return []
-    names = _leading_name(text, company_key)
-    if not names:
-        # "Gründerin Anna Muster": the role, then nothing but the name.
-        first = _ROLE.match(text)
-        if first:
-            names = _whole_names(text[first.end():], company_key)
-    return [(name, role) for name in names]
+    name = _person(match.group(1), company_key)
+    rest = cleaned[match.end():]
+    if match.group(2) == "(":
+        rest = rest.split(")", 1)[0]
+    rest = _LEADING_CREDENTIALS.sub("", rest).strip(" ,|–—-")
+    title = _own_title(rest, company_key)
+    return [(name, rest, title)] if name and title else []
 
 
-def _labelled(text: str, company_key: str) -> list[tuple[str, str]]:
+def _title_then_name(text: str, company_key: str) -> list[Found]:
+    """ "Gründerin Anna Muster": a German title, then nothing but the name."""
+    first = ROLE_THEN_NAME.match(text)
+    title = _own_title(first.group(0), company_key) if first else None
+    if not title:
+        return []
+    return [(name, first.group(0), title)
+            for name in _whole_names(text[first.end():], company_key)]
+
+
+def _labelled(text: str, company_key: str) -> list[Found]:
     """Read "label: content" segments, e.g. "Geschäftsführer: A, B" or "CEO: A, CTO: B".
 
-    A role in the label applies to every name of its content. A label without
-    a role is only a label: its content is read as a line of its own.
+    A title in the label applies to every name of its content. A label without
+    a title is only a label: its content is read as a line of its own.
     """
     colons = [i for i, char in enumerate(text) if char == ":"]
     starts = [max(text.rfind(sep, 0, colon) for sep in ",;|:") + 1 for colon in colons]
-    pairs = []
+    found: list[Found] = []
     for index, colon in enumerate(colons):
-        label = text[starts[index]:colon]
+        label = text[starts[index]:colon].split("/")[-1].strip()
         end = starts[index + 1] - 1 if index + 1 < len(colons) else len(text)
         content = text[colon + 1:end].strip()
-        role = _own_role(label, company_key)
-        if role:
-            pairs += [(name, role) for name in _whole_names(content, company_key)]
-        else:
-            pairs += _names_in_block(content, company_key) if ":" not in content else []
-    return pairs
+        title = _own_title(label, company_key)
+        if title:
+            found += [(name, label, title) for name in _whole_names(content, company_key)]
+        elif ":" not in content:
+            found += _in_block(content, company_key)
+    return found
+
+
+def _in_block(text: str, company_key: str) -> list[Found]:
+    """People a short block states by itself."""
+    if ":" in text:
+        return _labelled(text, company_key)
+    return _line(text, company_key) or _title_then_name(text, company_key)
 
 
 def _nearest_filled(node: Tag, direction: str) -> Tag | None:
@@ -260,10 +264,10 @@ def _nearest_filled(node: Tag, direction: str) -> Tag | None:
 
 
 def _neighbour_names(block: Tag, company_key: str) -> list[str]:
-    """Names in the block next to the role: the team-card layout.
+    """Names in the block next to the title: the team-card layout.
 
-    The name block is the role's own neighbour, or the neighbour of one of
-    the role's wrappers, before it first and then after it.
+    The name block is the title's own neighbour, or the neighbour of one of
+    the title's wrappers, before it first and then after it.
     """
     node = block
     for _level in range(MAX_LEVELS_UP + 1):
@@ -272,7 +276,7 @@ def _neighbour_names(block: Tag, company_key: str) -> list[str]:
             if sibling is None:
                 continue
             text = _text(sibling)
-            if len(text.split()) > MAX_NAME_BLOCK_WORDS or _ROLE.search(text):
+            if len(text.split()) > MAX_NAME_BLOCK_WORDS or TITLE_WORD.search(text):
                 continue
             names = _whole_names(text, company_key)
             if names:
@@ -299,28 +303,30 @@ def _in_testimonial(block: Tag) -> bool:
     return False
 
 
-def extract_founders(page: Page, company_name: str | None = None) -> list[FoundFounder]:
-    """One entry per distinct name stated with a founder role at this company."""
+def extract_people(page: Page, company_name: str | None = None) -> list[FoundPerson]:
+    """One entry per distinct name stated with a kept title at this company."""
     if page.kind not in _PAGE_KINDS:
         return []
     company_key = _company_key(company_name)
     soup = BeautifulSoup(page.html, "html.parser")
     for tag in soup(_SKIPPED):
         tag.decompose()
-    found: dict[str, FoundFounder] = {}
+    people: dict[str, FoundPerson] = {}
     for block in soup.find_all(_BLOCKS):
         if not _is_leaf(block):
             continue
         text = _text(block)
-        if not _ROLE.search(text) or len(text.split()) > MAX_ROLE_BLOCK_WORDS:
+        if not TITLE_WORD.search(text) or len(text.split()) > MAX_TITLE_BLOCK_WORDS:
             continue
         if _in_testimonial(block):
             continue
-        pairs = _names_in_block(text, company_key)
-        if not pairs and ":" not in text:
-            role = _own_role(text, company_key)
-            if role:
-                pairs = [(name, role) for name in _neighbour_names(block, company_key)]
-        for name, role in pairs:
-            found.setdefault(name, FoundFounder(name, role, page.url))
-    return list(found.values())
+        found = _in_block(text, company_key)
+        if not found and ":" not in text:
+            title = _own_title(text, company_key)
+            if title:
+                found = [(name, text, title)
+                         for name in _neighbour_names(block, company_key)]
+        for name, title_text, title in found:
+            people.setdefault(name, FoundPerson(
+                name, title_text, title.categories, title.level, page.url))
+    return list(people.values())

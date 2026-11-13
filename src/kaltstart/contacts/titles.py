@@ -77,6 +77,13 @@ def _manager_of(function: str) -> re.Pattern:
         re.IGNORECASE)
 
 
+LEADERSHIP = _LEADERSHIP
+# Any word a job title is made of: used to tell a title from a name.
+TITLE_WORD = _words(_LEADERSHIP.pattern, _HEAD.pattern, r"manager(?:in)?", _ANY_FUNCTION,
+                    *(pattern.pattern for pattern in _CHIEFS.values()))
+# German leadership words may be followed directly by the name ("Gründerin Anna Muster").
+ROLE_THEN_NAME = _words(r"mitgründer(?:in)?", r"gründer(?:in)?", r"geschäftsführer(?:in)?")
+
 _MANAGERS = {category: _manager_of(function) for category, function in _FUNCTIONS.items()}
 _FUNCTION_WORDS = {category: _words(function) for category, function in _FUNCTIONS.items()}
 
