@@ -25,7 +25,8 @@ only if the final test reaches thresholds set in advance.
 | Criterion | Threshold | Measured in |
 |---|---|---|
 | Usable contacts found by the scraper | 65 % of companies | Phase 2 |
-| Name of a founder found | 40 % of companies | Phase 2 |
+| People read by the scraper, accuracy: lists where every person is right | 90 % of the lists reported, blocking | Phase 2 |
+| People read by the scraper, coverage: companies with a right list | 40 % of companies, a goal | Phase 2 |
 | Human reply rate | 10 % of mails sent | Phase 5 |
 | Positive reply rate | 3 % of mails sent | Phase 5 |
 
@@ -125,7 +126,7 @@ each nightly run.
 | `raw_rounds` | A funding round as Tech.eu returned it | Tech.eu identifier, raw response, retrieval date |
 | `companies` | A company | Tech.eu identifier, name, website, description, country, cleaned city, canton or region, sectors |
 | `rounds` | A cleaned funding round | company, amount in euros, original stage, size category, date, investors, source link |
-| `contacts` | An address or a name found on the website | company, type (personal, careers, generic), address, founder's name and role, source page, confidence, verification date |
+| `contacts` | An address or a name found on the website | company, type (personal, careers, generic), address, a person's name, job title, categories and level, source page, confidence, verification date |
 
 The `companies` table also carries the scraping state of each company: never
 visited, succeeded, or failed with its reason, the number of attempts and the
@@ -182,6 +183,12 @@ pending mails and the reply rates. There is no reservations table.
   the address.
 - A student can delete their account and all their data.
 - Company contacts come only from public pages and keep their source page.
+- People read on company sites: only the name, job title, categories, level,
+  source page and date read are kept. A person no longer on the site at the
+  next reading is removed. A person or a company can ask not to be listed,
+  and an exclusion list keeps the scraper from adding them again. This data
+  is never public and never in the repository. These are rules of caution,
+  not legal advice.
 
 ## 7. Business rules
 
@@ -218,26 +225,42 @@ pending mails and the reply rates. There is no reservations table.
 - Addresses: extracted from text and links, including the common disguised
   forms ("hello [at] startup.ch"). We keep only those on the company's
   domain.
-- Founder names: spotted through role words (Founder, Co-Founder, CEO,
-  Gründer, Mitgründer, Geschäftsführer) close to a name, on the team and
-  Impressum pages.
-- Address types: personal (carries the last name of a founder found, or is exactly
-  the first name), careers (careers@, jobs@, talent@, hr@), generic (hello@, info@,
-  contact@ and equivalents).
+- People: the scraper reads the people a company presents with their job
+  title, on its home, legal-notice, team and about pages, and keeps those who
+  lead the company, lead one of five functions (product, growth, data,
+  operations, sales) or recruit. Board members, advisors, investors,
+  individual contributors, people of other organisations and customers quoted
+  in testimonials are not kept. Details in
+  `2026-11-13-phase-2-people-design.md`.
+- Address types: personal (carries the last name of a person kept, or is
+  exactly their first name), careers (careers@, jobs@, talent@, hr@), generic
+  (hello@, info@, contact@ and equivalents).
 
-Choice of the contact offered to the student:
+Person proposed to the student, who can always choose another one from the
+list:
 
-| Size category | 1st choice | 2nd choice | 3rd choice |
-|---|---|---|---|
-| Small | Published personal address of a founder | Generic or careers, mail addressed to the founder by first name | Generic or careers alone |
-| Medium, large | Careers address | Generic | None |
+| Order | Condition | Person proposed |
+|---|---|---|
+| 1 | Someone is in the category of the student's target role | That person; a head before a manager |
+| 2 | Otherwise, small company | A leader; a founder before another leader |
+| 3 | Otherwise, medium or large company | A recruiter |
+| 4 | Otherwise | Nobody: neutral greeting |
+
+When the scraper found nobody, the student can enter a name themselves,
+helped by a link to the company's team page and a search they run in their
+own browser. A name entered by a student is used for that student's mail
+only.
+
+Address proposed, in order: the published address of the person proposed;
+else the careers address; else the generic address. An address is never
+guessed.
 
 Confidence level:
 
 | Level | Case |
 |---|---|
-| High | Published personal address |
-| Medium | Careers address, or generic with a founder's name found |
+| High | Published address of the person proposed |
+| Medium | Careers address, or generic with a person proposed |
 | Low | Generic alone |
 
 A company without any address is hidden from the student list.
@@ -285,7 +308,8 @@ Generating a mail reserves a slot. Generation is refused if:
 - the company already has 3 non-abandoned mails created in the last 30 days,
   all students combined;
 - the student already has 5 mails with status generated or copied;
-- the student already has a non-abandoned mail for this company.
+- the student already has a non-abandoned mail for this company;
+- the student already has a non-abandoned mail for this person.
 
 The refusal states the reason and, for the company cap, the date on which a
 slot becomes free.
@@ -329,7 +353,7 @@ real network call.
 | Server | The three refusals of 7.4, the move to presumed sent | Test database with fictitious data |
 
 Phase 2 measurement: 20 Swiss companies drawn at random from the rounds in
-the database. Result as a table per site (generic address, founder's name,
+the database. Result as a table per site (generic address, people found,
 personal address, cause of failure). Each row is checked by hand to also
 count the scraper's mistakes.
 

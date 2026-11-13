@@ -156,6 +156,9 @@ fixed paths of the parent spec (`/impressum`, `/imprint`, `/contact`, `/team`,
 
 ### 5.4 Extract founder names (`founders.py`)
 
+> Superseded on 2026-11-13 by `2026-11-13-phase-2-people-design.md`: the scraper
+> now reads people with their job title. The text below is kept as history.
+
 On home, legal-notice, team and about pages only. Rewritten after the first
 measurement (decision D37), where a looser reading took job titles and
 organisations for people. A name is accepted only in one of the layouts
@@ -192,6 +195,9 @@ name ends up in a mail.
 
 ### 5.5 Classify and choose (`selection.py`)
 
+> Superseded on 2026-11-13 by `2026-11-13-phase-2-people-design.md`: the scraper
+> now reads people with their job title. The text below is kept as history.
+
 The rules of the parent spec, section 7.2, unchanged:
 
 - Address types: personal (the local part carries the last name of a founder
@@ -226,6 +232,9 @@ An error on one company never stops the run: it is recorded as that
 company's outcome and the scraper moves to the next one.
 
 ## 6. The summary
+
+> Superseded on 2026-11-13 by `2026-11-13-phase-2-people-design.md`: the scraper
+> now reads people with their job title. The text below is kept as history.
 
 `docs/measurements/phase-2-summary.md` contains, for the 20 companies:
 

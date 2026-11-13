@@ -23,6 +23,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- The contact scraper reads people with their job title instead of founders
+  only, keeps leaders, function heads and managers, and recruiters, and
+  proposes the person matching the student's target role. Two criteria
+  replace the founder threshold: accuracy (90 %, blocking) and coverage
+  (40 %, a goal).
 - Founder extraction rewritten from the failures of the first measurement:
   names are read only from team cards, "Name, role" lines and legal-notice
   labels, and only when the role is held at the company itself.

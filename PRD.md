@@ -43,7 +43,9 @@ In scope:
 
 - Funding rounds for Switzerland, Germany and Austria, from the Tech.eu Funding
   Explorer API.
-- Contact addresses and founder names found on public company web pages.
+- Contact addresses, and the people a company presents with their job title
+  (leaders, function heads and managers, recruiters), found on public company
+  web pages.
 - Mail generation in English and German, from rules and templates.
 - Booking rules: at most 3 non-abandoned mails per company over 30 days, at most
   5 mails per student in generated or copied status, one mail per student and
@@ -70,7 +72,8 @@ if the final test reaches thresholds fixed in advance.
 | Metric | Threshold | Measured in |
 |---|---|---|
 | Companies with a usable contact found by the scraper | 65 % | Phase 2 |
-| Companies with a founder name found | 40 % | Phase 2 |
+| People read by the scraper: lists where every person is right | 90 % of lists, blocking | Phase 2 |
+| People read by the scraper: companies with a right list | 40 %, a goal | Phase 2 |
 | Human response rate | 10 % of sent mails | Phase 5 |
 | Positive response rate | 3 % of sent mails | Phase 5 |
 

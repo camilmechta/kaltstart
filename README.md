@@ -49,8 +49,10 @@ Runs 1 and 2 cover 20 companies each; runs 3 and 4 use the same code and
 cover 40 together. Founder extraction was rewritten after run 1 and refined
 after run 2, each time from the failures read on the real pages. No address
 reported by the scraper was found wrong in any run. Finding addresses is
-accepted; finding founders is not, and the way people are read from team
-pages is being reconsidered before the nightly run is built.
+accepted; finding founders is not. The scraper has since been changed to
+read the people a company presents with their job title (leaders, function
+heads and managers, recruiters) and is to be measured again, on accuracy and
+coverage, before the nightly run is built.
 
 ## Installation
 
