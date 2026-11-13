@@ -13,9 +13,9 @@ from kaltstart.contacts.site import site_host
 
 
 VERIFICATION_GUIDE = """
-To verify, fill email_check and founder_check on every row with one of:
-  confirmed    every reported address (or name) is right
-  wrong        at least one reported address (or name) is false
+To verify, fill email_check and people_check on every row with one of:
+  confirmed    every reported address (or person, with their title) is right
+  wrong        at least one reported address (or person) is false
   missed       nothing was reported, but the site publishes one
   none_exists  nothing was reported and there is nothing to find
 Then run: python -m kaltstart.contacts summary <results file>"""
@@ -46,9 +46,9 @@ def _measure(sample: Path, out: Path, fetcher) -> None:
         print(f"{number}/{len(companies)} {site_host(company['website'])}: "
               f"{result.failure or 'ok'}", flush=True)
     write_results(results, out)
-    contacts, founders = reported_rates(read_results(out))
+    contacts, people = reported_rates(read_results(out))
     print(f"Usable contact (reported): {contacts}")
-    print(f"Founder name (reported): {founders}")
+    print(f"People (reported): {people}")
     print(f"Results written to {out}")
     print(VERIFICATION_GUIDE)
 
