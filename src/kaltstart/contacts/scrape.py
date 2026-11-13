@@ -3,10 +3,10 @@
 from bs4 import BeautifulSoup
 
 from kaltstart.contacts.emails import extract_addresses
-from kaltstart.contacts.founders import extract_founders
 from kaltstart.contacts.models import (
-    CompanyResult, FetchOutcome, FoundEmail, FoundFounder)
-from kaltstart.contacts.selection import address_type, choose_contact
+    CompanyResult, FetchOutcome, FoundEmail, FoundPerson)
+from kaltstart.contacts.people import extract_people
+from kaltstart.contacts.selection import address_type, choose_contact, choose_person
 from kaltstart.contacts.site import site_host, visible_text
 
 FAILURES = ("robots_forbidden", "unreachable", "little_text", "other_domain_only",
@@ -19,26 +19,30 @@ def _has_contact_form(html: str) -> bool:
     return any(form.find("textarea") for form in soup.find_all("form"))
 
 
-def scrape_company(company: dict, fetcher) -> CompanyResult:
-    """Scrape one company. Never raises: any error becomes its outcome."""
+def scrape_company(company: dict, fetcher,
+                   target_role: str | None = None) -> CompanyResult:
+    """Scrape one company. Never raises: any error becomes its outcome.
+
+    `target_role` is the role a student asks for; it decides who is proposed.
+    """
     try:
         outcome = fetcher.fetch_site(company["website"])
     except Exception:
         outcome = FetchOutcome("unreachable", (), (site_host(company["website"]),))
 
     addresses: dict[str, str] = {}      # address -> first source page
-    founders: dict[str, FoundFounder] = {}
+    people: dict[str, FoundPerson] = {}
     other_domain = 0
     for page in outcome.pages:
         kept, others = extract_addresses(page, outcome.hosts)
         other_domain += others
         for address in kept:
             addresses.setdefault(address, page.url)
-        for founder in extract_founders(page, company["name"]):
-            founders.setdefault(founder.name, founder)
+        for person in extract_people(page, company["name"]):
+            people.setdefault(person.name, person)
 
-    founder_list = tuple(founders.values())
-    emails = tuple(FoundEmail(address, address_type(address, founder_list), source)
+    people_list = tuple(people.values())
+    emails = tuple(FoundEmail(address, address_type(address, people_list), source)
                    for address, source in addresses.items())
 
     failure = None
@@ -58,6 +62,7 @@ def scrape_company(company: dict, fetcher) -> CompanyResult:
         company_id=company["company_id"], name=company["name"],
         website=company["website"], size_category=company["size_category"],
         pages_fetched=tuple(p.url for p in outcome.pages),
-        emails=emails, founders=founder_list,
-        contact=choose_contact(emails, founder_list, company["size_category"]),
+        emails=emails, people=people_list,
+        contact=choose_contact(emails, choose_person(
+            people_list, target_role, company["size_category"])),
         failure=failure)

@@ -47,12 +47,14 @@ def test_result_with_contact():
     assert result.pages_fetched == ("https://example.ch/", "https://example.ch/team")
     assert [(e.address, e.type, e.source_url) for e in result.emails] == [
         ("anna@example.ch", "personal", "https://example.ch/team")]
-    assert [f.name for f in result.founders] == ["Anna Muster"]
+    assert [(p.name, p.title, p.categories) for p in result.people] == [
+        ("Anna Muster", "Founder", ("leadership",))]
     assert result.contact.address == "anna@example.ch"
+    assert result.contact.person_name == "Anna Muster"
     assert result.contact.confidence == "high"
 
 
-def test_address_is_typed_with_founders_from_any_page():
+def test_address_is_typed_with_people_from_any_page():
     result = scrape(ok(
         page("/", "home", "<p>anna@example.ch</p>"),
         page("/impressum", "legal", "<p>Geschäftsführerin: Anna Muster</p>")))
@@ -67,11 +69,11 @@ def test_address_seen_on_two_pages_is_kept_once():
         ("info@example.ch", "https://example.ch/")]
 
 
-def test_founder_seen_on_two_pages_is_kept_once():
+def test_person_seen_on_two_pages_is_kept_once():
     result = scrape(ok(
         page("/team", "team", "<p>Anna Muster, Founder</p>"),
         page("/impressum", "legal", "<p>Geschäftsführerin: Anna Muster</p>")))
-    assert [(f.name, f.source_url) for f in result.founders] == [
+    assert [(p.name, p.source_url) for p in result.people] == [
         ("Anna Muster", "https://example.ch/team")]
 
 
@@ -105,9 +107,9 @@ def test_little_text_does_not_hide_a_found_address():
     assert result.emails[0].address == "info@example.ch"
 
 
-def test_founder_without_address_is_kept_and_still_a_failure():
+def test_person_without_address_is_kept_and_still_a_failure():
     result = scrape(ok(page("/team", "team", "<p>Anna Muster, Founder</p>")))
-    assert [f.name for f in result.founders] == ["Anna Muster"]
+    assert [p.name for p in result.people] == ["Anna Muster"]
     assert result.contact is None
     assert result.failure == "no_address"
 
@@ -116,3 +118,22 @@ def test_exception_in_fetcher_becomes_unreachable():
     result = scrape(error=RuntimeError("boom"))
     assert result.failure == "unreachable"
     assert result.pages_fetched == ()
+
+
+def test_target_role_changes_the_person_proposed():
+    outcome = ok(page("/team", "team",
+                      "<div><div>Anna Muster</div><div>Co-Founder &amp; CEO</div></div>"
+                      "<div><div>Clara Vorlage</div><div>Head of Product</div></div>"
+                      "<p>info@example.ch</p>"))
+    fetcher = FakeFetcher(outcome)
+    assert scrape_company(COMPANY, fetcher).contact.person_name == "Anna Muster"
+    proposed = scrape_company(COMPANY, fetcher, target_role="product").contact
+    assert (proposed.person_name, proposed.address, proposed.confidence) == (
+        "Clara Vorlage", "info@example.ch", "medium")
+
+
+def test_address_without_anybody_kept_is_still_proposed():
+    result = scrape(ok(page("/", "home", "<p>info@example.ch</p>")))
+    assert result.people == ()
+    assert (result.contact.address, result.contact.person_name, result.contact.confidence) == (
+        "info@example.ch", None, "low")

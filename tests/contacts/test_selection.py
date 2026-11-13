@@ -1,9 +1,21 @@
 import pytest
 
-from kaltstart.contacts.models import FoundEmail, FoundFounder, ProposedContact
-from kaltstart.contacts.selection import CAREERS_LOCAL_PARTS, address_type, choose_contact
+from kaltstart.contacts.models import FoundEmail, FoundPerson, ProposedContact
+from kaltstart.contacts.selection import (
+    CAREERS_LOCAL_PARTS, address_type, choose_contact, choose_person)
 
-ANNA = FoundFounder("Anna Muster", "Founder", "https://example.ch/team")
+
+def person(name, title, categories, level="head"):
+    return FoundPerson(name, title, categories, level, "https://example.ch/team")
+
+
+FOUNDER = person("Anna Muster", "Co-Founder & CEO", ("leadership",))
+CTO = person("Jonas Beispiel", "CTO", ("leadership",))
+HEAD_PRODUCT = person("Clara Vorlage", "Head of Product", ("product",))
+PM = person("Mia Probe", "Product Manager", ("product",), "manager")
+HR = person("Noah Entwurf", "HR Manager", ("recruiting",), "manager")
+HEAD_PEOPLE = person("Lea Stark", "Head of People", ("recruiting",))
+FOUNDER_PRODUCT = person("Leo Probe", "Co-Founder & Head of Product", ("leadership", "product"))
 
 
 def test_careers_local_parts():
@@ -11,52 +23,68 @@ def test_careers_local_parts():
         "careers", "career", "jobs", "talent", "hr", "karriere", "recruiting")
 
 
-@pytest.mark.parametrize("address,founders,expected", [
-    ("anna@example.ch", [ANNA], "personal"),
-    ("a.muster@example.ch", [ANNA], "personal"),
-    ("amuster@example.ch", [ANNA], "personal"),
-    ("anna.muster@example.ch", [], "generic"),     # no founder found: never guessed as personal
-    ("jobs@example.ch", [ANNA], "careers"),
+@pytest.mark.parametrize("address,people,expected", [
+    ("anna@example.ch", [FOUNDER], "personal"),
+    ("a.muster@example.ch", [FOUNDER], "personal"),
+    ("amuster@example.ch", [FOUNDER], "personal"),
+    ("anna.muster@example.ch", [FOUNDER], "personal"),
+    ("muster@example.ch", [FOUNDER], "personal"),
+    ("clara.vorlage@example.ch", [FOUNDER, HEAD_PRODUCT], "personal"),
+    ("anna.muster@example.ch", [], "generic"),      # nobody kept: never guessed as personal
+    ("anna.schmidt@example.ch", [FOUNDER], "generic"),
+    ("anna-support@example.ch", [FOUNDER], "generic"),
+    ("joanna@example.ch", [FOUNDER], "generic"),
+    ("jobs@example.ch", [FOUNDER], "careers"),
     ("karriere@example.ch", [], "careers"),
-    ("hello@example.ch", [ANNA], "generic"),
+    ("hello@example.ch", [FOUNDER], "generic"),
     ("info@example.ch", [], "generic"),
-    ("joanna@example.ch", [ANNA], "generic"),      # contains "anna" but is another name
-    ("anna.muster@example.ch", [ANNA], "personal"),
-    ("muster@example.ch", [ANNA], "personal"),
-    ("anna.schmidt@example.ch", [ANNA], "generic"),   # same first name, another person
-    ("anna-support@example.ch", [ANNA], "generic"),
 ])
-def test_address_type(address, founders, expected):
-    assert address_type(address, founders) == expected
+def test_address_type(address, people, expected):
+    assert address_type(address, people) == expected
 
 
-def mail(address, type_):
-    return FoundEmail(address, type_, "https://example.ch/kontakt")
-
-
-PERSONAL, CAREERS, GENERIC = (mail("anna@example.ch", "personal"),
-                              mail("jobs@example.ch", "careers"),
-                              mail("info@example.ch", "generic"))
-
-
-@pytest.mark.parametrize("emails,founders,size,expected", [
-    ([GENERIC, CAREERS, PERSONAL], [ANNA], "small", ProposedContact("anna@example.ch", "Anna Muster", "high")),
-    ([GENERIC, CAREERS], [ANNA], "small", ProposedContact("info@example.ch", "Anna Muster", "medium")),
-    ([CAREERS], [ANNA], "small", ProposedContact("jobs@example.ch", "Anna Muster", "medium")),
-    ([GENERIC], [], "small", ProposedContact("info@example.ch", None, "low")),
-    ([GENERIC, CAREERS], [], "small", ProposedContact("info@example.ch", None, "low")),
-    ([CAREERS], [], "small", ProposedContact("jobs@example.ch", None, "medium")),
-    ([GENERIC, CAREERS, PERSONAL], [ANNA], "medium", ProposedContact("jobs@example.ch", None, "medium")),
-    ([GENERIC, PERSONAL], [ANNA], "large", ProposedContact("info@example.ch", None, "low")),
-    ([PERSONAL], [ANNA], "large", None),
-    ([], [ANNA], "small", None),
+@pytest.mark.parametrize("people,role,size,expected", [
+    # 1. Someone in the category of the target role; head before manager; page order.
+    ([FOUNDER, PM, HEAD_PRODUCT], "product", "small", HEAD_PRODUCT),
+    ([FOUNDER, PM], "product", "large", PM),
+    ([FOUNDER, FOUNDER_PRODUCT], "product", "small", FOUNDER_PRODUCT),
+    ([FOUNDER, HEAD_PRODUCT, FOUNDER_PRODUCT], "product", "small", HEAD_PRODUCT),
+    # 2. Otherwise, small company: leadership; a founder before another leader.
+    ([CTO, FOUNDER, HR], "growth", "small", FOUNDER),
+    ([CTO, HR], "growth", "small", CTO),
+    ([FOUNDER, HEAD_PRODUCT], None, "small", FOUNDER),
+    # 3. Otherwise, medium or large: recruiting; head before manager.
+    ([FOUNDER, HR, HEAD_PEOPLE], "data", "medium", HEAD_PEOPLE),
+    ([FOUNDER, HR], "data", "large", HR),
+    ([FOUNDER, HR], None, "large", HR),
+    # 4. Otherwise nobody.
+    ([FOUNDER], "data", "large", None),
+    ([HR], "growth", "small", None),
+    ([], "product", "small", None),
 ])
-def test_choose_contact(emails, founders, size, expected):
-    assert choose_contact(emails, founders, size) == expected
+def test_choose_person(people, role, size, expected):
+    assert choose_person(people, role, size) == expected
 
 
-def test_personal_contact_names_the_founder_the_address_belongs_to():
-    jonas = FoundFounder("Jonas Beispiel", "Co-Founder", "https://example.ch/team")
-    emails = [mail("jonas@example.ch", "personal")]
-    assert choose_contact(emails, [ANNA, jonas], "small") == ProposedContact(
-        "jonas@example.ch", "Jonas Beispiel", "high")
+def test_unknown_target_role_is_treated_as_none():
+    assert choose_person([FOUNDER, HEAD_PRODUCT], "astronaut", "small") == FOUNDER
+
+
+OWN = FoundEmail("clara.vorlage@example.ch", "personal", "https://example.ch/team")
+OTHER_PERSONAL = FoundEmail("anna@example.ch", "personal", "https://example.ch/team")
+CAREERS = FoundEmail("jobs@example.ch", "careers", "https://example.ch/jobs")
+GENERIC = FoundEmail("info@example.ch", "generic", "https://example.ch/")
+
+
+@pytest.mark.parametrize("emails,chosen,expected", [
+    ([GENERIC, CAREERS, OWN], HEAD_PRODUCT, ProposedContact("clara.vorlage@example.ch", "Clara Vorlage", "high")),
+    ([GENERIC, CAREERS, OTHER_PERSONAL], HEAD_PRODUCT, ProposedContact("jobs@example.ch", "Clara Vorlage", "medium")),
+    ([GENERIC], HEAD_PRODUCT, ProposedContact("info@example.ch", "Clara Vorlage", "medium")),
+    ([GENERIC, CAREERS], None, ProposedContact("jobs@example.ch", None, "medium")),
+    ([GENERIC], None, ProposedContact("info@example.ch", None, "low")),
+    ([OTHER_PERSONAL], HEAD_PRODUCT, None),     # somebody else's address is never proposed
+    ([OTHER_PERSONAL], None, None),
+    ([], HEAD_PRODUCT, None),
+])
+def test_choose_contact(emails, chosen, expected):
+    assert choose_contact(emails, chosen) == expected
