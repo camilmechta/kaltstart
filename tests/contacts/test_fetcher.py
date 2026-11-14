@@ -94,10 +94,20 @@ def test_missing_or_unusable_robots_means_no_restriction(robots):
     assert outcome.pages[0].url == "https://example.ch/"
 
 
+def test_network_failure_on_robots_is_unreachable_not_forbidden():
+    # Seen on a real run: the machine lost its network and every site was
+    # reported as forbidding robots. No page is fetched either way, but the
+    # cause must say whose fault it is.
+    site = simple_site(**{"https://example.ch/robots.txt": httpx.ConnectError("boom")})
+    f, _ = fetcher(site)
+    outcome = f.fetch_site("https://example.ch")
+    assert outcome.status == "unreachable"
+    assert site.urls == ["https://example.ch/robots.txt"]
+
+
 @pytest.mark.parametrize("robots", [
     (500, {}, "error"),
     (503, {}, "busy"),
-    httpx.ConnectError("boom"),
 ])
 def test_robots_that_cannot_be_read_forbids_the_site(robots):
     # RFC 9309: when robots.txt is unreachable, assume everything is disallowed.

@@ -20,7 +20,8 @@ from kaltstart.contacts.site import is_social, same_site, site_host
 MAX_REDIRECTS = 5
 USER_AGENT_TOKEN = "python-httpx"   # the product token of the default User-Agent
 _REDIRECTS = (301, 302, 303, 307, 308)
-_FORBID_ALL = object()              # robots.txt could not be read: assume disallowed
+_FORBID_ALL = object()              # robots.txt answered with a server error: assume disallowed
+_NO_ANSWER = object()               # robots.txt could not be reached at all
 
 
 def default_http_client() -> httpx.Client:
@@ -86,6 +87,8 @@ class SiteFetcher:
             new_host = not same_site(url, hosts)
             if new_host and not may_add_host:
                 return "failed", url, ""
+            if self._rules(url) is _NO_ANSWER:
+                return "failed", url, ""    # nothing is fetched without its robots.txt
             if not self._allowed(url):
                 return "forbidden", url, ""
             if new_host:
@@ -118,21 +121,26 @@ class SiteFetcher:
         except httpx.HTTPError:
             return None
 
-    def _allowed(self, url: str) -> bool:
-        """Ask the robots.txt of the URL's own origin, reading it first if needed."""
+    def _rules(self, url: str):
+        """The robots.txt of the URL's own origin, read first if needed."""
         origin = _origin(url)
         if origin not in self._robots_by_origin:
             self._robots_by_origin[origin] = self._read_robots(origin)
-        rules = self._robots_by_origin[origin]
-        if rules is _FORBID_ALL:
+        return self._robots_by_origin[origin]
+
+    def _allowed(self, url: str) -> bool:
+        rules = self._rules(url)
+        if rules is _FORBID_ALL or rules is _NO_ANSWER:
             return False
         return rules is None or rules.can_fetch(USER_AGENT_TOKEN, url)
 
     def _read_robots(self, origin: str):
-        """A parser, None when there are no rules, or `_FORBID_ALL`.
+        """A parser, None when there are no rules, `_FORBID_ALL` or `_NO_ANSWER`.
 
-        As RFC 9309 asks: a missing file (4xx) means no restriction, an
-        unreachable one (network error, 5xx) means everything is disallowed.
+        As RFC 9309 asks: a missing file (4xx) means no restriction, and a
+        file that cannot be read means nothing is fetched. A server error is
+        the site's doing and is reported as forbidden; no answer at all (a
+        network failure, maybe our own) is reported as unreachable.
         """
         url = origin + "/robots.txt"
         host = [site_host(origin)]
@@ -140,7 +148,9 @@ class SiteFetcher:
             if is_social(url) or not same_site(url, host):
                 return None     # redirected off the site: nothing we may read
             response = self._get(url)
-            if response is None or response.status_code >= 500:
+            if response is None:
+                return _NO_ANSWER
+            if response.status_code >= 500:
                 return _FORBID_ALL
             location = response.headers.get("location")
             if response.status_code in _REDIRECTS and location:
