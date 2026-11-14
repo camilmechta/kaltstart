@@ -25,16 +25,18 @@ class FoundEmail:
 
 
 @dataclass(frozen=True)
-class FoundFounder:
+class FoundPerson:
     name: str
-    role: str
+    title: str                    # as the site writes it, whitespace collapsed
+    categories: tuple[str, ...]   # in the order of titles.CATEGORIES
+    level: str                    # "head" | "manager"
     source_url: str
 
 
 @dataclass(frozen=True)
 class ProposedContact:
     address: str
-    founder_name: str | None
+    person_name: str | None
     confidence: str      # "high" | "medium" | "low"
 
 
@@ -46,6 +48,6 @@ class CompanyResult:
     size_category: str   # "small" | "medium" | "large"
     pages_fetched: tuple[str, ...]
     emails: tuple[FoundEmail, ...]
-    founders: tuple[FoundFounder, ...]
+    people: tuple[FoundPerson, ...]
     contact: ProposedContact | None
     failure: str | None  # None, or one of scrape.FAILURES

@@ -1,5 +1,6 @@
 """Host and domain rules, and the text and links of an HTML page."""
 
+import re
 from typing import Iterable
 from urllib.parse import urldefrag, urljoin, urlsplit
 
@@ -21,6 +22,35 @@ def site_host(website: str) -> str:
     if "://" not in value:
         value = "https://" + value
     return _bare(urlsplit(value).hostname or "")
+
+
+_LEGAL_FORMS = frozenset(("ag", "gmbh", "sa", "sàrl", "sarl", "ltd", "inc", "kg", "ug",
+                          "se", "llc"))
+MIN_NAME_KEY_CHARS = 4
+
+
+def profile_on_another_site(website: str, company_name: str) -> bool:
+    """True when the website is a page about the company on somebody else's
+    site (an accelerator, a directory): the company's name is in the path of
+    the address and not in its host. Nothing there belongs to the company."""
+    key = "".join(word for word in re.findall(r"[^\W_]+", company_name.lower())
+                  if word not in _LEGAL_FORMS)
+    if len(key) < MIN_NAME_KEY_CHARS:
+        return False
+    value = website.strip()
+    if "://" not in value:
+        value = "https://" + value
+    parts = urlsplit(value)
+
+    def squash(text: str) -> str:
+        return re.sub(r"[\W_]+", "", text.lower())
+
+    host = squash(parts.hostname or "")
+    path = squash(parts.path)
+    in_host = key in host or any(
+        len(word) >= MIN_NAME_KEY_CHARS and word in host
+        for word in re.findall(r"[^\W_]+", company_name.lower()))
+    return key in path and not in_host
 
 
 # Never fetched, whatever links or redirects point to them.

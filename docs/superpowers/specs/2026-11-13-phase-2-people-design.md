@@ -75,13 +75,42 @@ On home, legal-notice, team and about pages. A person is a name and the job
 title written next to it, in one of the layouts already in use (D37, D40):
 
 - a card: one block holding nothing but the name, next to a short block
-  holding the title, or next to one of that block's wrappers, at most two
+  holding the title, or next to one of that block's wrappers, at most three
   levels up;
 - a line: "Name, title" or "Name - title";
 - a label: "Geschäftsführer: Name, Name".
 
 Running prose is never read. What marks a block as worth reading is no longer
 a founder word but a recognised job title (4.2).
+
+Because any job title now triggers the reading, four more things are told
+apart from a team card (decision D51):
+
+- a job opening: the name always comes before the title, never after it; a
+  title with "(m/w/d)" or a workload in per cent, or inside a block named
+  after jobs, careers or vacancies, is an opening;
+- a sentence: a title block with a lower-case word other than a small
+  connector ("Built for every Head of Sales") is not a title;
+- another section: a card whose nearest section heading announces advisors,
+  a board, investors, job openings, customers, speakers or press is skipped;
+- a label or a place: words such as "Full Time", "Apply Now" or a city are
+  never a person's name.
+
+One tuning round on the 80 companies already seen added these rules
+(decision D52):
+
+- a title written above its name is read, when the name is the very next
+  block and the title is not a heading;
+- a block with line breaks ("Co-Founder & CEO", then a biography) is read
+  for its first line;
+- a name may sit up to three levels above its title;
+- a few quoted words in a biography are not a testimonial; eight or more are;
+- a card with a logo and a statement is a customer speaking, with or without
+  quotation marks;
+- text the page builder never shows is not read; people behind a tab or a
+  filter are;
+- a website that is a profile of the company on another organisation's site
+  (the company's name in the path, not in the host) is not read at all.
 
 For each person the scraper keeps: the name, the title exactly as the site
 writes it, its categories, its level, and the page it was read on. Nothing
@@ -109,7 +138,15 @@ Two levels:
   title is at this level.
 - `manager`: Manager, as in "Product Manager". Kept because it is often the
   person in charge at a small company, and ranked after a `head` of the same
-  category.
+  category. A recruiter ("Recruiter", "Recruitment Manager") is at this level.
+
+A head word and a function word must stand side by side ("Head of Product",
+"Product Lead", "Marketingleiter"), with one qualifier at most in between
+("Head of Global Sales"). A title that names an individual contributor's job
+(engineer, scientist, designer, developer, analyst, specialist) carries no
+function category, whatever else it says: "Lead Data Scientist" is not a head
+of data. "Produktion" is manufacturing, not product. A president is not kept
+when the title names a board.
 
 ### 4.3 People not kept
 
@@ -122,7 +159,9 @@ Two levels:
 - Anyone whose title is tied to another organisation, and anyone in a
   customer testimonial (D37, D40, unchanged).
 - "Former CEO", "Ex-CEO", "Assistant to the CEO": a title someone no longer
-  holds, or that belongs to someone else, is not theirs.
+  holds, or that belongs to someone else, is not theirs. A past job named
+  after the present one does not cancel it: "Founder, ex-McKinsey" is a
+  founder.
 
 ## 5. Who is proposed
 
@@ -141,8 +180,10 @@ another person.
 
 The address, in order: the published address of the person proposed (its
 local part carries their last name, or is exactly their first name: D35);
-else the careers address; else the general address; else none, and the
-company is hidden from the student list as today.
+else the careers address; else the general address. When the site publishes
+nothing but the address of another person kept, that person is proposed with
+their address, so that the company does not disappear from the list. With no
+address at all, the company is hidden from the student list as today.
 
 Confidence: high for the person's own published address; medium for a careers
 address, or a general address with a person proposed; low for a general

@@ -7,17 +7,20 @@ from typing import Sequence
 
 from kaltstart.contacts.models import CompanyResult
 from kaltstart.contacts.scrape import FAILURES
+from kaltstart.contacts.titles import CATEGORIES
 
 RESULT_COLUMNS = (
     "company_id", "name", "website", "size_category", "pages_fetched", "emails",
-    "founders", "contact_address", "contact_founder", "confidence", "failure",
-    "email_check", "founder_check", "notes")
-# confirmed: the scraper's find is right. wrong: it reported something false.
+    "people", "contact_address", "contact_person", "confidence", "failure",
+    "email_check", "people_check", "notes")
+# For both checks. confirmed: everything the scraper reported is right.
+# wrong: at least one thing it reported is false.
 # missed: the site publishes one and the scraper found none.
 # none_exists: nothing to find and nothing reported.
 CHECK_VALUES = ("confirmed", "wrong", "missed", "none_exists")
-CONTACT_THRESHOLD = 0.65    # lowered from 0.70 on 2026-11-12, decision D39
-FOUNDER_THRESHOLD = 0.4
+CONTACT_THRESHOLD = 0.65     # lowered from 0.70 on 2026-11-12, decision D39
+ACCURACY_THRESHOLD = 0.9     # share of reported people lists that are right; blocking
+COVERAGE_THRESHOLD = 0.4     # share of companies with a right list; a goal
 _SIZES = ("small", "medium", "large")
 _CONFIDENCES = ("high", "medium", "low")
 
@@ -29,12 +32,14 @@ def _row(result: CompanyResult) -> dict:
         "website": result.website, "size_category": result.size_category,
         "pages_fetched": len(result.pages_fetched),
         "emails": " ; ".join(f"{e.address}|{e.type}|{e.source_url}" for e in result.emails),
-        "founders": " ; ".join(f"{f.name}|{f.role}|{f.source_url}" for f in result.founders),
+        "people": " ; ".join(
+            f"{p.name}|{p.title}|{'+'.join(p.categories)}|{p.level}|{p.source_url}"
+            for p in result.people),
         "contact_address": contact.address if contact else "",
-        "contact_founder": (contact.founder_name or "") if contact else "",
+        "contact_person": (contact.person_name or "") if contact else "",
         "confidence": contact.confidence if contact else "",
         "failure": result.failure or "",
-        "email_check": "", "founder_check": "", "notes": "",
+        "email_check": "", "people_check": "", "notes": "",
     }
 
 
@@ -61,10 +66,15 @@ def verdict(count: int, n: int, threshold: float) -> str:
 
 def check_problems(rows: Sequence[dict]) -> list[str]:
     """One message per row whose verification is missing or inconsistent."""
+    missing = [column for column in ("people", "people_check")
+               if rows and column not in rows[0]]
+    if missing:
+        return [f"this results file has no {' or '.join(missing)} column: it was "
+                f"written before the scraper read people; run measure again"]
     problems = []
     for row in rows:
         for column, reported in (("email_check", bool(row["emails"])),
-                                 ("founder_check", bool(row["founders"]))):
+                                 ("people_check", bool(row["people"]))):
             value = row[column]
             allowed = ("confirmed", "wrong") if reported else ("missed", "none_exists")
             if value not in CHECK_VALUES:
@@ -85,32 +95,46 @@ def _rate(count: int, n: int) -> str:
 def reported_rates(rows: Sequence[dict]) -> tuple[str, str]:
     n = len(rows)
     return (_rate(sum(1 for r in rows if r["emails"]), n),
-            _rate(sum(1 for r in rows if r["founders"]), n))
+            _rate(sum(1 for r in rows if r["people"]), n))
+
+
+def _categories(row: dict) -> set[str]:
+    return {category for entry in row["people"].split(" ; ") if entry
+            for category in entry.split("|")[2].split("+")}
 
 
 def summarise(rows: Sequence[dict]) -> str:
     """Markdown summary. Contains no company, website, address or person."""
     n = len(rows)
-    contacts, founders = reported_rates(rows)
+    contacts, _people = reported_rates(rows)
     checks = {column: Counter(r[column] for r in rows)
-              for column in ("email_check", "founder_check")}
+              for column in ("email_check", "people_check")}
     confirmed_contacts = checks["email_check"]["confirmed"]
-    confirmed_founders = checks["founder_check"]["confirmed"]
+    right = checks["people_check"]["confirmed"]
+    wrong = checks["people_check"]["wrong"]
+    lists = right + wrong
+    accuracy = (f"{right}/{lists} lists right ({right / lists:.0%})" if lists
+                else "0/0 lists right")
+    accuracy_verdict = verdict(right, lists, ACCURACY_THRESHOLD) if lists else "fail"
     causes = Counter(r["failure"] for r in rows if r["failure"])
+    with_category = Counter(category for r in rows for category in _categories(r))
     lines = [
         "# Phase 2 measurement", "",
         f"Companies: {n}", "",
         "## Rates", "",
         f"- Usable contact: reported {contacts}, confirmed {_rate(confirmed_contacts, n)}",
-        f"- Founder name: reported {founders}, confirmed {_rate(confirmed_founders, n)}",
+        f"- People, accuracy: {accuracy}",
+        f"- People, coverage: {_rate(right, n)}",
         "", "## Scraper mistakes found by the verification", "",
         f"- wrong address: {checks['email_check']['wrong']}",
         f"- missed address: {checks['email_check']['missed']}",
-        f"- wrong founder name: {checks['founder_check']['wrong']}",
-        f"- missed founder name: {checks['founder_check']['missed']}",
+        f"- wrong people list: {wrong}",
+        f"- missed people: {checks['people_check']['missed']}",
         "", "## Failure causes (companies without a usable contact)", "",
     ]
     lines += [f"- {cause}: {causes[cause]}" for cause in FAILURES]
+    lines += ["", "## Companies with a person reported, by category", ""]
+    lines += [f"- {category}: {with_category[category]}" for category in CATEGORIES]
     lines += ["", "## Proposed contacts by confidence and size category", "",
               "| size | high | medium | low | none |", "|---|---|---|---|---|"]
     for size in _SIZES:
@@ -120,12 +144,14 @@ def summarise(rows: Sequence[dict]) -> str:
         lines.append(f"| {size} | " + " | ".join(str(c) for c in cells) + " |")
     lines += [
         "", "## Verdict", "",
-        "Counted on confirmed results. Within one company of a threshold, the "
-        "result is inconclusive.", "",
+        "Counted on confirmed results. Within one company (or one list, for "
+        "accuracy) of a threshold, the result is inconclusive.", "",
         f"- Usable contact (threshold {CONTACT_THRESHOLD:.0%}): "
         f"{verdict(confirmed_contacts, n, CONTACT_THRESHOLD)}",
-        f"- Founder name (threshold {FOUNDER_THRESHOLD:.0%}): "
-        f"{verdict(confirmed_founders, n, FOUNDER_THRESHOLD)}",
+        f"- People accuracy (threshold {ACCURACY_THRESHOLD:.0%}, blocking): "
+        f"{accuracy_verdict}",
+        f"- People coverage (threshold {COVERAGE_THRESHOLD:.0%}, goal): "
+        f"{verdict(right, n, COVERAGE_THRESHOLD)}",
         "",
     ]
     return "\n".join(lines)

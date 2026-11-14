@@ -47,10 +47,10 @@ def test_measure_writes_results_and_prints_reported_rates(tmp_path, capsys):
     assert "1/2 example.ch: ok" in printed
     assert "2/2 example.de: no_address" in printed
     assert "Usable contact (reported): 1/2 (50%)" in printed
-    assert "Founder name (reported): 1/2 (50%)" in printed
+    assert "People (reported): 1/2 (50%)" in printed
     assert str(out) in printed
     # The verifier is told what each check value means.
-    for word in ("email_check", "founder_check", "confirmed", "wrong", "missed", "none_exists"):
+    for word in ("email_check", "people_check", "confirmed", "wrong", "missed", "none_exists"):
         assert word in printed
     assert "every reported" in printed
 
@@ -87,7 +87,7 @@ def test_summary_refuses_unverified_results(tmp_path, capsys):
 def test_summary_writes_file(tmp_path):
     out = measured(tmp_path)
     rows = read_results(out)
-    rows[0]["email_check"], rows[0]["founder_check"] = "confirmed", "none_exists"
+    rows[0]["email_check"], rows[0]["people_check"] = "confirmed", "none_exists"
     with out.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(rows[0].keys()))
         writer.writeheader()
@@ -104,3 +104,11 @@ def test_no_command_returns_2():
 def test_missing_sample_file_returns_1(tmp_path, capsys):
     assert main(["measure", str(tmp_path / "nope.csv")]) == 1
     assert "nope.csv" in capsys.readouterr().err
+
+
+def test_summary_refuses_an_old_results_file(tmp_path, capsys):
+    old = tmp_path / "old.csv"
+    old.write_text("company_id,emails,founders,email_check,founder_check\n"
+                   "c1,,,none_exists,none_exists\n", encoding="utf-8")
+    assert main(["summary", str(old), "--out", str(tmp_path / "summary.md")]) == 1
+    assert "people" in capsys.readouterr().err

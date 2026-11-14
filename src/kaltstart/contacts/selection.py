@@ -1,64 +1,88 @@
-"""Type of an address, and the contact to propose for a company."""
+"""Type of an address, the person proposed to a student, and the contact."""
 
 import re
 from typing import Sequence
 
-from kaltstart.contacts.models import FoundEmail, FoundFounder, ProposedContact
+from kaltstart.contacts.models import FoundEmail, FoundPerson, ProposedContact
+from kaltstart.contacts.titles import FOUNDER, ROLE_TO_CATEGORY
 
 CAREERS_LOCAL_PARTS = ("careers", "career", "jobs", "talent", "hr", "karriere",
                        "recruiting")
 
 
-def _owner(address: str, founders: Sequence[FoundFounder]) -> FoundFounder | None:
-    """The founder whose name the local part carries, if any.
+def _owner(address: str, people: Sequence[FoundPerson]) -> FoundPerson | None:
+    """The person whose name the local part carries, if any.
 
     The last name must be there (alone, or with the first name or its
     initial). A first name counts only when it is the whole local part:
-    `anna.schmidt@` is not the address of a founder called Anna Muster.
+    `anna.schmidt@` is not the address of somebody called Anna Muster.
     """
     local = address.split("@", 1)[0].lower()
     tokens = [t for t in re.split(r"[._-]", local) if t]
-    for founder in founders:
-        words = founder.name.lower().split()
+    for person in people:
+        words = person.name.lower().split()
         first, last = words[0], words[-1]
         if last in tokens or local == first or local == first[0] + last:
-            return founder
+            return person
     return None
 
 
-def address_type(address: str, founders: Sequence[FoundFounder]) -> str:
-    """`personal`, `careers` or `generic`. Personal needs a founder found."""
-    if _owner(address, founders):
+def address_type(address: str, people: Sequence[FoundPerson]) -> str:
+    """`personal`, `careers` or `generic`. Personal needs a person kept."""
+    if _owner(address, people):
         return "personal"
     if address.split("@", 1)[0].lower() in CAREERS_LOCAL_PARTS:
         return "careers"
     return "generic"
 
 
-def _first(emails: Sequence[FoundEmail], type_: str) -> FoundEmail | None:
-    return next((e for e in emails if e.type == type_), None)
+def _heads_first(people: list[FoundPerson]) -> FoundPerson | None:
+    # sorted() is stable: among equals, page order is kept.
+    return sorted(people, key=lambda p: p.level != "head")[0] if people else None
 
 
-def choose_contact(emails: Sequence[FoundEmail], founders: Sequence[FoundFounder],
-                   size_category: str) -> ProposedContact | None:
-    """Contact and confidence, following section 7.2 of the design spec."""
-    personal = _first(emails, "personal")
-    careers = _first(emails, "careers")
-    generic = _first(emails, "generic")
+def choose_person(people: Sequence[FoundPerson], target_role: str | None,
+                  size_category: str) -> FoundPerson | None:
+    """The person to write to, following section 5 of the people design.
+
+    1. somebody in the category of the student's target role, a head before a
+       manager; 2. otherwise, at a small company, a leader, a founder first;
+    3. otherwise, at a medium or large one, a recruiter; 4. otherwise nobody.
+    """
+    category = ROLE_TO_CATEGORY.get(target_role or "")
+    if category:
+        chosen = _heads_first([p for p in people if category in p.categories])
+        if chosen:
+            return chosen
     if size_category == "small":
-        if personal:
-            owner = _owner(personal.address, founders)
-            return ProposedContact(personal.address, owner.name if owner else None, "high")
-        # At a small company the general inbox is the one founders read.
-        chosen = generic or careers
-        if chosen is None:
-            return None
-        founder_name = founders[0].name if founders else None
-        confident = chosen.type == "careers" or founder_name is not None
-        return ProposedContact(chosen.address, founder_name,
+        leaders = [p for p in people if "leadership" in p.categories]
+        return sorted(leaders, key=lambda p: not FOUNDER.search(p.title))[0] if leaders else None
+    return _heads_first([p for p in people if "recruiting" in p.categories])
+
+
+def choose_contact(emails: Sequence[FoundEmail], person: FoundPerson | None,
+                   people: Sequence[FoundPerson] = ()) -> ProposedContact | None:
+    """The address to write to: the person's own if the site publishes it,
+    else the careers address, else the general one.
+
+    When the site publishes nothing but the address of another person kept,
+    that person is proposed with their address, so that the company does not
+    disappear. An address is never proposed to greet somebody it is not.
+    """
+    if person:
+        own = next((e for e in emails if e.type == "personal"
+                    and _owner(e.address, [person])), None)
+        if own:
+            return ProposedContact(own.address, person.name, "high")
+    careers = next((e for e in emails if e.type == "careers"), None)
+    generic = next((e for e in emails if e.type == "generic"), None)
+    chosen = careers or generic
+    if chosen is not None:
+        confident = chosen.type == "careers" or person is not None
+        return ProposedContact(chosen.address, person.name if person else None,
                                "medium" if confident else "low")
-    if careers:
-        return ProposedContact(careers.address, None, "medium")
-    if generic:
-        return ProposedContact(generic.address, None, "low")
+    for email in emails:
+        owner = _owner(email.address, people) if email.type == "personal" else None
+        if owner:
+            return ProposedContact(email.address, owner.name, "high")
     return None
