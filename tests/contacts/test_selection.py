@@ -88,3 +88,15 @@ GENERIC = FoundEmail("info@example.ch", "generic", "https://example.ch/")
 ])
 def test_choose_contact(emails, chosen, expected):
     assert choose_contact(emails, chosen) == expected
+
+
+def test_the_only_address_belongs_to_another_person_kept():
+    # Found by the review: the company must not vanish from the student list.
+    lena = person("Lena Beispiel", "Head of Marketing", ("growth",))
+    own = FoundEmail("lena@example.ch", "personal", "https://example.ch/team")
+    assert choose_contact([own], None, [lena]) == ProposedContact(
+        "lena@example.ch", "Lena Beispiel", "high")
+    assert choose_contact([own], FOUNDER, [FOUNDER, lena]) == ProposedContact(
+        "lena@example.ch", "Lena Beispiel", "high")
+    # Without knowing whose address it is, nothing is proposed.
+    assert choose_contact([own], None) is None

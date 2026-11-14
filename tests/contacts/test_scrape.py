@@ -137,3 +137,12 @@ def test_address_without_anybody_kept_is_still_proposed():
     assert result.people == ()
     assert (result.contact.address, result.contact.person_name, result.contact.confidence) == (
         "info@example.ch", None, "low")
+
+
+def test_company_with_only_a_kept_persons_address_keeps_a_contact():
+    result = scrape(ok(page("/team", "team",
+                            "<div><div>Lena Beispiel</div><div>Head of Marketing</div></div>"
+                            "<p>lena@example.ch</p>")))
+    assert result.failure is None
+    assert (result.contact.address, result.contact.person_name) == (
+        "lena@example.ch", "Lena Beispiel")

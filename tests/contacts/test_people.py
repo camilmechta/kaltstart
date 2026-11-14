@@ -23,7 +23,6 @@ def card(name, title, name_tag="div", title_tag="div"):
     ("<p>Geschäftsführung / Geschäftsführer: Dr. Anna Muster, Jonas Beispiel</p>",
      [("Anna Muster", "Geschäftsführer"), ("Jonas Beispiel", "Geschäftsführer")]),
     ("<div><h3>Anna Muster</h3><p>Co-Founder &amp; CEO</p></div>", [("Anna Muster", "Co-Founder & CEO")]),
-    ("<div><p>CEO</p><h3>Jonas von Beispiel</h3></div>", [("Jonas von Beispiel", "CEO")]),
     ("<p>Anna Muster, Founder</p>", [("Anna Muster", "Founder")]),
     ("<p>Gründerin Anna Maria Muster</p>", [("Anna Maria Muster", "Gründerin")]),
     # The label before a colon is never the name.
@@ -200,3 +199,62 @@ def test_people_with_function_titles(body, expected):
     page = Page("https://example.ch/team", "team", f"<html><body>{body}</body></html>")
     assert [(p.name, p.title, p.categories, p.level)
             for p in extract_people(page, COMPANY)] == expected
+
+
+# Found by the review: a job opening has the shape of a team card.
+@pytest.mark.parametrize("body", [
+    '<a class="job"><div>Head of Sales</div><div>Full Time</div></a>',
+    '<div class="job"><h4>Product Manager</h4><p>Apply Now</p></div>',
+    "<li><h4>Head of Product</h4><p>Hybrid Remote</p></li>",
+    "<div><div>Head of Marketing</div><div>Vollzeit Zürich</div></div>",
+    "<div><div>Zurich Switzerland</div><div>Product Manager</div></div>",
+    "<div><div>Permanent Position</div><div>Head of Data</div></div>",
+    "<div><div>Festanstellung Vollzeit</div><div>Vertriebsleiter (m/w/d)</div></div>",
+    "<div><div>Basel Stadt</div><div>Head of Sales</div></div>",
+    "<div><div>New York</div><div>Sales Director</div></div>",
+    "<div><div>Open Positions</div><div>Head of Product 80-100%</div></div>",
+    # A product feature, a section heading, a customer page.
+    "<div><h3>Smart Reporting</h3><p>Built for every Head of Sales</p></div>",
+    "<div><div>Customer Stories</div><div>Sales Manager</div></div>",
+    # The name comes before the title; a title above a name is a heading for something else.
+    "<div><p>CEO</p><h3>Jonas von Beispiel</h3></div>",
+    # A whole neighbouring card is not a name.
+    '<div><div class="card"><h4>Anna Muster</h4><p>Developer</p></div>'
+    '<div class="card"><p>Head of Sales</p></div></div>',
+])
+def test_job_openings_and_headings_are_not_people(body):
+    for kind in ("home", "team"):
+        assert names(body, kind=kind) == []
+
+
+@pytest.mark.parametrize("heading", [
+    "Advisors", "Advisory Board", "Board of Directors", "Verwaltungsrat", "Our Investors",
+    "Open positions", "Offene Stellen", "What our customers say", "Speakers",
+])
+def test_cards_under_a_section_that_is_not_the_team_are_skipped(heading):
+    body = f"<section><h2>{heading}</h2>" + card("Ben Probe", "Chief Marketing Officer") + "</section>"
+    assert names(body) == []
+
+
+def test_cards_under_a_team_heading_are_read():
+    body = ("<section><h2>Advisors</h2>" + card("Ben Probe", "Chief Marketing Officer") + "</section>"
+            "<section><h2>Leadership team</h2>" + card("Anna Muster", "Co-Founder &amp; CEO", "h3", "p")
+            + card("Clara Vorlage", "Head of Product", "h3", "p") + "</section>")
+    assert names(body) == [("Anna Muster", "Co-Founder & CEO"), ("Clara Vorlage", "Head of Product")]
+
+
+def test_a_team_card_whose_classes_say_position_or_job_title_is_read():
+    # Seen on a real site: the title block of a team card is classed "team__position".
+    body = ('<div class="card"><h3>Gregor Entwurf</h3>'
+            '<p class="cl-team__position">Founder - CEO/CTO</p></div>'
+            '<div class="card"><div><h3>Jean Probe</h3></div>'
+            '<p class="job-title">CEO @Example Robotics</p></div>')
+    assert names(body) == [("Gregor Entwurf", "Founder - CEO/CTO"),
+                           ("Jean Probe", "CEO @Example Robotics")]
+
+
+@pytest.mark.parametrize("wrapper", ["jobs-list", "career-teaser", "open-positions offene-stellen",
+                                     "job-listing", "vacancies"])
+def test_cards_inside_a_job_listing_are_skipped(wrapper):
+    body = f'<div class="{wrapper}">' + card("Ben Probe", "Head of Sales") + "</div>"
+    assert names(body) == []

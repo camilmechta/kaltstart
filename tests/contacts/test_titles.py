@@ -75,3 +75,57 @@ def test_constants():
                           "sales", "recruiting")
     assert ROLE_TO_CATEGORY == {"product": "product", "growth": "growth", "data": "data",
                                 "ops": "operations", "bd": "sales"}
+
+
+# Found by the review before the first run on real sites.
+@pytest.mark.parametrize("text,categories,level", [
+    # German compounds and the usual legal-notice label.
+    ("Marketingleiter", ("growth",), "head"),
+    ("Personalleiterin", ("recruiting",), "head"),
+    ("Betriebsleiter", ("operations",), "head"),
+    ("Vertriebsleiter", ("sales",), "head"),
+    ("Geschäftsführung", ("leadership",), "head"),
+    ("Geschäftsführender Gesellschafter", ("leadership",), "head"),
+    # Recruiters are the people to write to at a larger company.
+    ("Head of Recruitment", ("recruiting",), "head"),
+    ("Recruitment Manager", ("recruiting",), "manager"),
+    ("Recruiter", ("recruiting",), "manager"),
+    ("Responsable RH", ("recruiting",), "head"),
+    ("Partnership Manager", ("sales",), "manager"),
+    # A past job mentioned after the present one does not cancel it.
+    ("Founder, ex-McKinsey", ("leadership",), "head"),
+    ("Founder (ex Google)", ("leadership",), "head"),
+    ("Co-founder and former CEO", ("leadership",), "head"),
+    ("Head of Sales, formerly Otherco", ("sales",), "head"),
+    # A qualifier does not hide the function.
+    ("VP Sales EMEA", ("sales",), "head"),
+    ("Head of Marketing & Communications", ("growth",), "head"),
+    ("Head of Global Sales", ("sales",), "head"),
+    ("Director of Product Management", ("product",), "head"),
+    # A leader who also does an individual contributor's job stays a leader.
+    ("Co-Founder & Lead Engineer", ("leadership",), "head"),
+])
+def test_more_titles_kept(text, categories, level):
+    assert classify_title(text) == Title(categories, level)
+
+
+@pytest.mark.parametrize("text", [
+    # "Lead" or "Head" next to a function word does not make an individual contributor a head.
+    "Lead Data Scientist", "Lead Product Designer", "Senior Lead Data Engineer",
+    "Lead Sales Engineer", "Lead Software Engineer, Data Platform", "Lead UX Designer Product",
+    "Marketing Lead Generation Specialist", "Data Analyst", "People Operations Specialist",
+    # Manufacturing is not product.
+    "Produktionsleiter", "Leiter Produktion", "Produktionsmanager",
+    # The board is not the management.
+    "President of the Board", "Board President", "Präsident des Verwaltungsrats",
+    "Verwaltungsratspräsident", "Member of the Advisory Board",
+    # Project and team leads are not heads of a function.
+    "Projektleiter Marketing", "Teamleiter Vertrieb",
+    # Not the function it looks like.
+    "Head of Data Protection", "Data Protection Lead", "Datenschutzbeauftragter",
+    "Head of Personal Training",
+    # Not held any more, or not a job.
+    "CEO (until 2023)", "Founder in Residence", "Formerly Head of Product",
+])
+def test_more_titles_not_kept(text):
+    assert classify_title(text) is None

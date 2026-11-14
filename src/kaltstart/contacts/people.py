@@ -33,6 +33,26 @@ MAX_LEVELS_UP = 2             # how far above the title a name block may sit
 MAX_TESTIMONIAL_WORDS = 120
 _QUOTE_MARKS = "“”„«»"
 _TESTIMONIAL_CLASS = re.compile(r"testimonial|quote|review|kundenstimme|referenz", re.IGNORECASE)
+# A job opening also looks like a team card: a title, then "Full Time".
+_JOB_AD_TITLE = re.compile(r"\((?:[mwfdx]\s*/\s*){1,3}[mwfdx]\)|\d\s*%", re.IGNORECASE)
+# Matched against each class or id, whole or between hyphens and underscores.
+# "position" and "job-title" are left out on purpose: team cards use them for
+# a person's own title.
+_JOB_AD_CLASS = re.compile(
+    r"(?:^|[-_])(?:jobs|vacanc\w*|openings?|careers?|karriere|stellen\w*|offres?|hiring|"
+    r"job[-_]?(?:listing|offer|posting|opening|ad|card|item|list|board)s?)(?:$|[-_])|^job$",
+    re.IGNORECASE)
+# Sections of a page that show people or titles who are not the team.
+_NOT_THE_TEAM = re.compile(
+    r"(?<!\w)(?:advisor\w*|advisory|board|investor\w*|backers?|verwaltungsrat|beirat|"
+    r"aufsichtsrat|positions?|jobs|careers?|karriere|stellen|vacanc\w*|hiring|"
+    r"customers?|kunden|testimonials?|stories|speakers?|webinar\w*|press|news)(?!\w)",
+    re.IGNORECASE)
+_HEADINGS = ("h1", "h2", "h3", "h4")
+# Small words a title may contain in lower case; any other lower-case word
+# means the block is a sentence ("Built for every Head of Sales").
+_CONNECTORS = frozenset(("of", "and", "und", "der", "die", "das", "des", "de", "du", "la",
+                         "le", "et", "für", "for", "the", "at", "bei", "von", "in", "co"))
 
 _ACADEMIC = re.compile(r"\b(?:Dr|Prof|Mag|Ing|Dipl\.-Ing)\b\.?", re.IGNORECASE)
 _CREDENTIAL = r"(?:E?MBA|Ph\.?D\.?|M\.?Sc\.?|B\.?Sc\.?|MRICS|CFA)"
@@ -72,6 +92,19 @@ _VOCABULARY = frozenset((
     "team", "award", "collective", "office", "year", "contact", "home", "meet",
     "welcome", "read", "more", "person", "stelle", "unser", "unsere", "über",
     "uns", "mehr", "kontakt", "impressum",
+    # job openings, places and page labels that sit where a name would
+    "full", "part", "time", "remote", "hybrid", "apply", "now", "permanent",
+    "position", "positions", "open", "vollzeit", "teilzeit", "festanstellung",
+    "praktikum", "new", "smart", "customer", "customers", "stories", "case",
+    "study", "studies", "learn", "get", "started", "book", "demo", "request",
+    "sign", "press", "news", "blog", "products", "services", "features",
+    "pricing", "privacy", "policy", "terms", "jobs", "careers", "job",
+    "switzerland", "schweiz", "suisse", "germany", "deutschland", "austria",
+    "österreich", "europe", "europa", "zurich", "zürich", "basel", "bern",
+    "geneva", "genf", "genève", "lausanne", "lugano", "zug", "berlin",
+    "munich", "münchen", "vienna", "wien", "hamburg", "london", "paris",
+    "york", "stadt", "region", "developer", "designer", "analyst", "scientist",
+    "specialist", "consultant", "student",
 ))
 
 
@@ -264,27 +297,57 @@ def _nearest_filled(node: Tag, direction: str) -> Tag | None:
 
 
 def _neighbour_names(block: Tag, company_key: str) -> list[str]:
-    """Names in the block next to the title: the team-card layout.
+    """Names in the block right before the title: the team-card layout.
 
     The name block is the title's own neighbour, or the neighbour of one of
-    the title's wrappers, before it first and then after it.
+    the title's wrappers. It comes before the title: a title above a block of
+    text is a job opening or a heading, not a person. Its text is nothing
+    but the name: a neighbouring card with a name and a job is not a name.
     """
     node = block
     for _level in range(MAX_LEVELS_UP + 1):
-        for direction in ("previous", "next"):
-            sibling = _nearest_filled(node, direction)
-            if sibling is None:
-                continue
+        sibling = _nearest_filled(node, "previous")
+        if sibling is not None:
             text = _text(sibling)
-            if len(text.split()) > MAX_NAME_BLOCK_WORDS or TITLE_WORD.search(text):
-                continue
-            names = _whole_names(text, company_key)
-            if names:
-                return names
+            if len(text.split()) <= MAX_NAME_BLOCK_WORDS and not TITLE_WORD.search(text):
+                names = _whole_names(text, company_key)
+                if names:
+                    return names
         if node.parent is None:
             break
         node = node.parent
     return []
+
+
+def _is_job_opening(block: Tag, text: str) -> bool:
+    if _JOB_AD_TITLE.search(text):
+        return True
+    return any(_JOB_AD_CLASS.search(token)
+               for node in [block, *list(block.parents)[:5]]
+               for token in [*node.get("class", []), node.get("id") or ""])
+
+
+def _reads_like_a_title(text: str, company_key: str) -> bool:
+    """False for a sentence: a title has no lower-case word but small connectors."""
+    for word in re.findall(r"[^\W\d_]+", text):
+        if word[0].islower() and word not in _CONNECTORS \
+                and word not in _VOCABULARY and not TITLE_WORD.fullmatch(word) \
+                and not (company_key and word in company_key):
+            return False
+    return True
+
+
+def _outside_the_team(block: Tag, company_key: str) -> bool:
+    """True when the nearest section heading announces advisors, a board,
+    investors, job openings or customers. A heading that is itself somebody's
+    name (a team card's own heading) is passed over."""
+    for heading in block.find_all_previous(_HEADINGS, limit=6):
+        text = _text(heading)
+        if _NOT_THE_TEAM.search(text):
+            return True
+        if text and not _whole_names(text, company_key):
+            return False
+    return False
 
 
 def _in_testimonial(block: Tag) -> bool:
@@ -318,14 +381,16 @@ def extract_people(page: Page, company_name: str | None = None) -> list[FoundPer
         text = _text(block)
         if not TITLE_WORD.search(text) or len(text.split()) > MAX_TITLE_BLOCK_WORDS:
             continue
-        if _in_testimonial(block):
+        if _in_testimonial(block) or _is_job_opening(block, text):
             continue
         found = _in_block(text, company_key)
-        if not found and ":" not in text:
+        if not found and ":" not in text and _reads_like_a_title(text, company_key):
             title = _own_title(text, company_key)
             if title:
                 found = [(name, text, title)
                          for name in _neighbour_names(block, company_key)]
+        if found and _outside_the_team(block, company_key):
+            continue
         for name, title_text, title in found:
             people.setdefault(name, FoundPerson(
                 name, title_text, title.categories, title.level, page.url))

@@ -60,10 +60,15 @@ def choose_person(people: Sequence[FoundPerson], target_role: str | None,
     return _heads_first([p for p in people if "recruiting" in p.categories])
 
 
-def choose_contact(emails: Sequence[FoundEmail],
-                   person: FoundPerson | None) -> ProposedContact | None:
+def choose_contact(emails: Sequence[FoundEmail], person: FoundPerson | None,
+                   people: Sequence[FoundPerson] = ()) -> ProposedContact | None:
     """The address to write to: the person's own if the site publishes it,
-    else the careers address, else the general one. Never somebody else's."""
+    else the careers address, else the general one.
+
+    When the site publishes nothing but the address of another person kept,
+    that person is proposed with their address, so that the company does not
+    disappear. An address is never proposed to greet somebody it is not.
+    """
     if person:
         own = next((e for e in emails if e.type == "personal"
                     and _owner(e.address, [person])), None)
@@ -72,8 +77,12 @@ def choose_contact(emails: Sequence[FoundEmail],
     careers = next((e for e in emails if e.type == "careers"), None)
     generic = next((e for e in emails if e.type == "generic"), None)
     chosen = careers or generic
-    if chosen is None:
-        return None
-    confident = chosen.type == "careers" or person is not None
-    return ProposedContact(chosen.address, person.name if person else None,
-                           "medium" if confident else "low")
+    if chosen is not None:
+        confident = chosen.type == "careers" or person is not None
+        return ProposedContact(chosen.address, person.name if person else None,
+                               "medium" if confident else "low")
+    for email in emails:
+        owner = _owner(email.address, people) if email.type == "personal" else None
+        if owner:
+            return ProposedContact(email.address, owner.name, "high")
+    return None

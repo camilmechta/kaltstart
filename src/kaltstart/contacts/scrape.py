@@ -64,5 +64,5 @@ def scrape_company(company: dict, fetcher,
         pages_fetched=tuple(p.url for p in outcome.pages),
         emails=emails, people=people_list,
         contact=choose_contact(emails, choose_person(
-            people_list, target_role, company["size_category"])),
+            people_list, target_role, company["size_category"]), people_list),
         failure=failure)
