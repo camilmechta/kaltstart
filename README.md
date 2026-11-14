@@ -51,8 +51,24 @@ after run 2, each time from the failures read on the real pages. No address
 reported by the scraper was found wrong in any run. Finding addresses is
 accepted; finding founders is not. The scraper has since been changed to
 read the people a company presents with their job title (leaders, function
-heads and managers, recruiters) and is to be measured again, on accuracy and
-coverage, before the nightly run is built.
+heads and managers, recruiters).
+
+That people scraper was measured on 40 more companies (runs 5 and 6, same
+code):
+
+| Confirmed, on 40 companies never seen before | Runs 5 and 6 | Threshold | Verdict |
+|---|---|---|---|
+| Company with a usable address | 55 % | 65 % | Fail |
+| People accuracy: lists reported that are entirely right | 14 of 16 (88 %) | 90 %, blocking | Inconclusive |
+| People coverage: companies with a right list | 35 % | 40 %, a goal | Below the goal |
+
+No address reported was wrong. Four of the 40 companies have no site of
+their own in the source data (a profile on an accelerator's site, a social
+network page), three sites that load in a browser did not answer the
+scraper, and two publish their address on a second domain. The two wrong
+lists are a degree read as part of a name, and advisors kept as co-founders.
+Accuracy is one list away from its threshold, so 20 more companies are to be
+measured before deciding whether the people read are shown to students.
 
 ## Installation
 

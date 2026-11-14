@@ -20,6 +20,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   45 %, both above their thresholds by one company (inconclusive).
 - Fourth measurement with the same code, and verdict on 40 companies: usable
   address 70 % (pass), founder name 35 % (fail).
+- Fifth and sixth measurements, on 40 new companies with the people scraper:
+  usable address 55 % (fail), people accuracy 14 lists of 16 (inconclusive
+  against 90 %), people coverage 35 % (below the goal of 40 %).
 
 ### Changed
 
