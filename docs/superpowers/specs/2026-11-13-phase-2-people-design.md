@@ -75,7 +75,7 @@ On home, legal-notice, team and about pages. A person is a name and the job
 title written next to it, in one of the layouts already in use (D37, D40):
 
 - a card: one block holding nothing but the name, next to a short block
-  holding the title, or next to one of that block's wrappers, at most two
+  holding the title, or next to one of that block's wrappers, at most three
   levels up;
 - a line: "Name, title" or "Name - title";
 - a label: "Geschäftsführer: Name, Name".
@@ -95,6 +95,22 @@ apart from a team card (decision D51):
   a board, investors, job openings, customers, speakers or press is skipped;
 - a label or a place: words such as "Full Time", "Apply Now" or a city are
   never a person's name.
+
+One tuning round on the 80 companies already seen added these rules
+(decision D52):
+
+- a title written above its name is read, when the name is the very next
+  block and the title is not a heading;
+- a block with line breaks ("Co-Founder & CEO", then a biography) is read
+  for its first line;
+- a name may sit up to three levels above its title;
+- a few quoted words in a biography are not a testimonial; eight or more are;
+- a card with a logo and a statement is a customer speaking, with or without
+  quotation marks;
+- text the page builder never shows is not read; people behind a tab or a
+  filter are;
+- a website that is a profile of the company on another organisation's site
+  (the company's name in the path, not in the host) is not read at all.
 
 For each person the scraper keeps: the name, the title exactly as the site
 writes it, its categories, its level, and the page it was read on. Nothing

@@ -7,10 +7,10 @@ from kaltstart.contacts.models import (
     CompanyResult, FetchOutcome, FoundEmail, FoundPerson)
 from kaltstart.contacts.people import extract_people
 from kaltstart.contacts.selection import address_type, choose_contact, choose_person
-from kaltstart.contacts.site import site_host, visible_text
+from kaltstart.contacts.site import profile_on_another_site, site_host, visible_text
 
 FAILURES = ("robots_forbidden", "unreachable", "little_text", "other_domain_only",
-            "contact_form_only", "no_address")
+            "contact_form_only", "no_address", "not_own_site")
 LITTLE_TEXT_CHARS = 200
 
 
@@ -25,6 +25,11 @@ def scrape_company(company: dict, fetcher,
 
     `target_role` is the role a student asks for; it decides who is proposed.
     """
+    if profile_on_another_site(company["website"], company["name"]):
+        return CompanyResult(
+            company_id=company["company_id"], name=company["name"],
+            website=company["website"], size_category=company["size_category"],
+            pages_fetched=(), emails=(), people=(), contact=None, failure="not_own_site")
     try:
         outcome = fetcher.fetch_site(company["website"])
     except Exception:

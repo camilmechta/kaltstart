@@ -33,7 +33,8 @@ def scrape(outcome=None, error=None):
 
 def test_constants():
     assert FAILURES == ("robots_forbidden", "unreachable", "little_text",
-                        "other_domain_only", "contact_form_only", "no_address")
+                        "other_domain_only", "contact_form_only", "no_address",
+                        "not_own_site")
     assert LITTLE_TEXT_CHARS == 200
 
 
@@ -146,3 +147,15 @@ def test_company_with_only_a_kept_persons_address_keeps_a_contact():
     assert result.failure is None
     assert (result.contact.address, result.contact.person_name) == (
         "lena@example.ch", "Lena Beispiel")
+
+
+def test_a_profile_page_on_another_organisation_s_site_is_not_read():
+    class Unused:
+        def fetch_site(self, website):
+            raise AssertionError("must not be fetched")
+
+    company = dict(COMPANY, name="Qubit Robotics",
+                   website="https://www.example.com/qubit-robotics-systems")
+    result = scrape_company(company, Unused())
+    assert result.failure == "not_own_site"
+    assert result.contact is None and result.people == () and result.pages_fetched == ()

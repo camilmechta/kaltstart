@@ -216,8 +216,8 @@ def test_people_with_function_titles(body, expected):
     # A product feature, a section heading, a customer page.
     "<div><h3>Smart Reporting</h3><p>Built for every Head of Sales</p></div>",
     "<div><div>Customer Stories</div><div>Sales Manager</div></div>",
-    # The name comes before the title; a title above a name is a heading for something else.
-    "<div><p>CEO</p><h3>Jonas von Beispiel</h3></div>",
+    # A heading that is a title, above a name, announces something else.
+    "<div><h3>CEO</h3><p>Jonas von Beispiel</p></div>",
     # A whole neighbouring card is not a name.
     '<div><div class="card"><h4>Anna Muster</h4><p>Developer</p></div>'
     '<div class="card"><p>Head of Sales</p></div></div>',
@@ -258,3 +258,99 @@ def test_a_team_card_whose_classes_say_position_or_job_title_is_read():
 def test_cards_inside_a_job_listing_are_skipped(wrapper):
     body = f'<div class="{wrapper}">' + card("Ben Probe", "Head of Sales") + "</div>"
     assert names(body) == []
+
+
+def test_a_title_written_above_the_name_in_the_same_card_is_read():
+    # Seen on two real sites: the title first, the name as a heading right after.
+    body = ('<article><div><img alt=""></div><div><p>Co-founder and CEO</p><h3>Anna Muster</h3>'
+            '<span>Two exits. On a mission to make robots count.</span></div></article>'
+            '<article><div><img alt=""></div><div><p>Co-founder and CTO</p><h3>Peter Beispiel</h3>'
+            '<span>Tech lover and tinkerer.</span></div></article>')
+    assert names(body) == [("Anna Muster", "Co-founder and CEO"),
+                           ("Peter Beispiel", "Co-founder and CTO")]
+
+
+def test_a_name_before_the_title_wins_over_the_name_after_it():
+    body = "<div><h3>Anna Muster</h3><p>CEO</p><h3>Peter Beispiel</h3><p>CTO</p></div>"
+    assert names(body) == [("Anna Muster", "CEO"), ("Peter Beispiel", "CTO")]
+
+
+def test_a_few_quoted_words_in_a_biography_are_not_a_testimonial():
+    body = ('<div><h3>Anna Muster, PhD</h3><p>CEO &amp; Co-Founder</p>'
+            '<div><p>Teaches at a summer school, named “Rising Star in Robotics,” and '
+            'a former engineer.</p></div></div>')
+    assert names(body) == [("Anna Muster", "CEO & Co-Founder")]
+
+
+def test_the_title_is_the_first_line_of_a_block_with_line_breaks():
+    body = ('<div><h3><a href="/a">Anna Muster, PhD</a></h3>'
+            '<div>Co-Founder &amp; CEO<br>economist, entrepreneur and expert in innovation<br>'
+            'and technology development.<br><a href="/x">Profile</a></div></div>')
+    assert names(body) == [("Anna Muster", "Co-Founder & CEO")]
+
+
+def test_a_name_three_wrappers_above_the_title_is_read():
+    body = ('<div><div><div><h6>Anna Muster</h6></div></div>'
+            '<div><div class="variant"><div><p>Co-Founder &amp; CEO</p></div></div>'
+            '<div class="variant"><div><p>Co-Founder &amp; CEO</p></div></div></div></div>')
+    assert names(body) == [("Anna Muster", "Co-Founder & CEO")]
+
+
+@pytest.mark.parametrize("hidden", [
+    'class="w-condition-invisible"', 'style="display:none"', 'style="color: red; display: none;"',
+])
+def test_text_the_site_hides_is_not_read(hidden):
+    # Seen on a real site: every card carries "Co-founder", hidden for those who are not.
+    body = ('<div><div><h3>Anna Muster</h3></div><p>Co-founder</p><p>Chief Executive Officer</p></div>'
+            f'<div><div><h3>Ben Probe</h3></div><p {hidden}>Co-founder</p><p>Senior Scientist</p></div>')
+    assert names(body) == [("Anna Muster", "Co-founder")]
+
+
+def test_people_behind_a_tab_or_a_filter_are_read():
+    # Seen on a real site: the second department of a team grid carries "hidden".
+    body = ('<article><h3>Anna Muster</h3><p>Co-Founder &amp; CEO</p></article>'
+            '<article hidden><h3>Clara Vorlage</h3><p>Senior Product Manager</p></article>'
+            '<article aria-hidden="true"><h3>Ben Probe</h3><p>Head of Sales</p></article>')
+    assert [name for name, _title in names(body)] == ["Anna Muster", "Clara Vorlage", "Ben Probe"]
+
+
+def test_co_founder_written_in_two_words():
+    body = "<div><div>Co Founder</div><h2>Peter Beispiel</h2></div>"
+    assert names(body) == [("Peter Beispiel", "Co Founder")]
+
+
+def test_a_long_block_is_read_for_its_first_line():
+    body = ('<div><h3>Peter Beispiel, PhD</h3><div>Co-Founder &amp; CTO<br>Chemist, entrepreneur '
+            'and expert in machine learning for materials discovery,<br>software design, and '
+            'autonomous experimentation.<br><a href="/x">Profile</a> – <a href="/y">Papers</a>'
+            '</div></div>')
+    assert names(body) == [("Peter Beispiel", "Co-Founder & CTO")]
+
+
+def test_a_team_card_with_a_logo_and_no_statement_is_read():
+    body = ('<section><p>We are a small team that loves robots and warehouses alike.</p>'
+            '<div><div class="card"><img alt="Team picture"><div><div>Anna Muster</div>'
+            '<div>Managing Director</div></div><img alt="Author Logo" class="author-logo"></div></div>'
+            '</section>')
+    assert names(body) == [("Anna Muster", "Managing Director")]
+
+
+@pytest.mark.parametrize("body", [
+    # Job titles of the customers a product is for, not people.
+    "<div><div>Finance</div><div>Direttore Finanziario (CFO) · Responsabile Amministrativo</div></div>",
+    "<div><div>Direttore Generale</div><div>CEO</div></div>",
+    "<div><div>Responsabile Vendite</div><div>Head of Sales</div></div>",
+])
+def test_job_titles_in_another_language_are_not_names(body):
+    assert names(body, kind="home") == []
+
+
+@pytest.mark.parametrize("logo", [
+    '<img alt="Other Group Logo" src="/a.png">', '<img alt="" class="client-logo" src="/a.png">',
+])
+def test_a_card_with_a_logo_is_a_customer_speaking(logo):
+    # Seen on a real site: a testimonial without quotation marks, signed with the customer's logo.
+    body = ('<div><div><p><strong>Ben Probe, CEO</strong></p></div>'
+            '<div><p>Their tools changed the way we run our operations.</p></div>'
+            f'<div><div>{logo}</div></div></div>')
+    assert names(body, kind="home") == []

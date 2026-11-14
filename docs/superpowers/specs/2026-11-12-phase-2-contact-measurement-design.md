@@ -227,6 +227,7 @@ failure cause:
 | `other_domain_only` | addresses found, none on the company's domain |
 | `contact_form_only` | no address, but a fetched page has a form with a message field |
 | `no_address` | none of the above |
+| `not_own_site` | the website is a profile of the company on another organisation's site; nothing is fetched (added by D52) |
 
 An error on one company never stops the run: it is recorded as that
 company's outcome and the scraper moves to the next one.

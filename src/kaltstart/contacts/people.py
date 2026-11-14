@@ -27,11 +27,20 @@ _BLOCKS = ("p", "li", "td", "th", "div", "span", "dd", "dt",
 _SKIPPED = ("script", "style", "noscript", "nav", "header")
 MAX_TITLE_BLOCK_WORDS = 14    # longer blocks are prose
 MAX_NAME_BLOCK_WORDS = 8
-MAX_LEVELS_UP = 2             # how far above the title a name block may sit
+MAX_LEVELS_UP = 3             # how far above the title a name block may sit
 # A customer testimonial looks like a team card: a name, then "CEO". What
 # gives it away is the quotation it sits with.
 MAX_TESTIMONIAL_WORDS = 120
-_QUOTE_MARKS = "“”„«»"
+_QUOTE_MARKS = re.compile("[“”„«»]")
+# A biography may put a few words in quotation marks: an award, a nickname.
+MIN_QUOTED_WORDS = 8
+# A testimonial without quotation marks is signed with the customer's logo.
+_LOGO = re.compile(r"logo", re.IGNORECASE)
+# Text a site keeps in the page and never shows: a field its page builder left
+# out for this entry. The `hidden` attribute is not in this list on purpose:
+# it marks what sits behind a tab or a filter, which a visitor can open.
+_HIDDEN_CLASS = frozenset(("w-condition-invisible",))
+_HIDDEN_STYLE = re.compile(r"display\s*:\s*none", re.IGNORECASE)
 _TESTIMONIAL_CLASS = re.compile(r"testimonial|quote|review|kundenstimme|referenz", re.IGNORECASE)
 # A job opening also looks like a team card: a title, then "Full Time".
 _JOB_AD_TITLE = re.compile(r"\((?:[mwfdx]\s*/\s*){1,3}[mwfdx]\)|\d\s*%", re.IGNORECASE)
@@ -49,6 +58,7 @@ _NOT_THE_TEAM = re.compile(
     r"customers?|kunden|testimonials?|stories|speakers?|webinar\w*|press|news)(?!\w)",
     re.IGNORECASE)
 _HEADINGS = ("h1", "h2", "h3", "h4")
+_ALL_HEADINGS = ("h1", "h2", "h3", "h4", "h5", "h6")
 # Small words a title may contain in lower case; any other lower-case word
 # means the block is a sentence ("Built for every Head of Sales").
 _CONNECTORS = frozenset(("of", "and", "und", "der", "die", "das", "des", "de", "du", "la",
@@ -81,7 +91,7 @@ _VOCABULARY = frozenset((
     "professor", "advisor", "adviser", "investor", "angel", "partner", "board",
     "member", "chairman", "chairwoman", "chair", "entrepreneur", "associate",
     "ceo", "cto", "cfo", "coo", "cco", "cso", "cio", "cmo", "cpo", "cro", "mba",
-    "and", "und", "the", "of", "at", "bei", "der", "die", "das",
+    "and", "und", "the", "of", "at", "bei", "der", "die", "das", "co",
     # organisations
     "group", "capital", "ventures", "venture", "partners", "institute",
     "academy", "university", "universität", "labs", "lab", "software",
@@ -105,6 +115,11 @@ _VOCABULARY = frozenset((
     "munich", "münchen", "vienna", "wien", "hamburg", "london", "paris",
     "york", "stadt", "region", "developer", "designer", "analyst", "scientist",
     "specialist", "consultant", "student",
+    # job titles in Italian and French, read on pages that list who a product is for
+    "direttore", "direttrice", "responsabile", "amministratore", "amministrativo",
+    "delegato", "generale", "finanziario", "commerciale", "vendite", "personale",
+    "directeur", "directrice", "général", "générale", "gérant", "gérante",
+    "leiter", "leiterin",
 ))
 
 
@@ -316,6 +331,15 @@ def _neighbour_names(block: Tag, company_key: str) -> list[str]:
         if node.parent is None:
             break
         node = node.parent
+    # Some cards write the title first. Only the title's own next neighbour is
+    # looked at, and never under a heading: a heading that is a title announces
+    # a job opening or a section.
+    if block.name not in _ALL_HEADINGS:
+        sibling = _nearest_filled(block, "next")
+        if sibling is not None and _is_leaf(sibling):
+            text = _text(sibling)
+            if len(text.split()) <= MAX_NAME_BLOCK_WORDS and not TITLE_WORD.search(text):
+                return _whole_names(text, company_key)
     return []
 
 
@@ -352,6 +376,7 @@ def _outside_the_team(block: Tag, company_key: str) -> bool:
 
 def _in_testimonial(block: Tag) -> bool:
     """True when the block sits with a quotation: a customer speaking, not the team."""
+    logo_seen = False
     for ancestor in list(block.parents)[:5]:
         if ancestor.name in ("blockquote", "q"):
             return True
@@ -361,9 +386,47 @@ def _in_testimonial(block: Tag) -> bool:
         text = _text(ancestor)
         if len(text.split()) > MAX_TESTIMONIAL_WORDS:
             return False
-        if ancestor.find(["blockquote", "q"]) or any(mark in text for mark in _QUOTE_MARKS):
+        if ancestor.find(["blockquote", "q"]) or _quotes_somebody(text):
             return True
+        if not logo_seen and _has_logo(ancestor):
+            # Judged once, on the smallest wrapper that holds the logo.
+            logo_seen = True
+            if _holds_a_statement(ancestor):
+                return True
     return False
+
+
+def _has_logo(card: Tag) -> bool:
+    return any(_LOGO.search(" ".join([image.get("alt") or "", *image.get("class", [])]))
+               for image in card.find_all("img"))
+
+
+def _holds_a_statement(card: Tag) -> bool:
+    """True when the card holds a sentence: with a logo, a customer speaking."""
+    return any(_is_leaf(block) and len(_text(block).split()) >= MIN_QUOTED_WORDS
+               for block in card.find_all(_BLOCKS))
+
+
+def _quotes_somebody(text: str) -> bool:
+    """True when quotation marks hold a statement, not just a few words."""
+    pieces = _QUOTE_MARKS.split(text)
+    quoted = pieces[1:-1] if len(pieces) > 2 else pieces[1:]
+    return any(len(piece.split()) >= MIN_QUOTED_WORDS for piece in quoted)
+
+
+def _is_hidden(tag: Tag) -> bool:
+    if _HIDDEN_STYLE.search(tag.get("style") or ""):
+        return True
+    return any(token in _HIDDEN_CLASS for token in tag.get("class", []))
+
+
+def _first_line(block: Tag) -> str:
+    """The text before the block's first line break, when it has one."""
+    for line_break in block.find_all("br"):
+        line_break.replace_with("\n")
+    lines = [" ".join(line.split()) for line in block.get_text(" ").replace("\u200b", "").split("\n")]
+    lines = [line for line in lines if line]
+    return lines[0] if len(lines) > 1 else ""
 
 
 def extract_people(page: Page, company_name: str | None = None) -> list[FoundPerson]:
@@ -374,21 +437,36 @@ def extract_people(page: Page, company_name: str | None = None) -> list[FoundPer
     soup = BeautifulSoup(page.html, "html.parser")
     for tag in soup(_SKIPPED):
         tag.decompose()
+    for tag in [tag for tag in soup.find_all(True) if _is_hidden(tag)]:
+        if not tag.decomposed:
+            tag.decompose()
     people: dict[str, FoundPerson] = {}
     for block in soup.find_all(_BLOCKS):
         if not _is_leaf(block):
             continue
         text = _text(block)
-        if not TITLE_WORD.search(text) or len(text.split()) > MAX_TITLE_BLOCK_WORDS:
+        if not TITLE_WORD.search(text):
             continue
+        first_line = _first_line(block)
+        if len(text.split()) > MAX_TITLE_BLOCK_WORDS:
+            # Prose, unless the title stands alone on the block's first line.
+            if not first_line or len(first_line.split()) > MAX_TITLE_BLOCK_WORDS:
+                continue
+            text = first_line
         if _in_testimonial(block) or _is_job_opening(block, text):
             continue
         found = _in_block(text, company_key)
-        if not found and ":" not in text and _reads_like_a_title(text, company_key):
-            title = _own_title(text, company_key)
-            if title:
-                found = [(name, text, title)
-                         for name in _neighbour_names(block, company_key)]
+        if not found and ":" not in text:
+            # A card's title, or the first line of a block that goes on with a biography.
+            for candidate in (text, first_line):
+                if not candidate or not TITLE_WORD.search(candidate) \
+                        or not _reads_like_a_title(candidate, company_key):
+                    continue
+                title = _own_title(candidate, company_key)
+                if title:
+                    found = [(name, candidate, title)
+                             for name in _neighbour_names(block, company_key)]
+                    break
         if found and _outside_the_team(block, company_key):
             continue
         for name, title_text, title in found:

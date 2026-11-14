@@ -1,7 +1,8 @@
 import pytest
 
 from kaltstart.contacts.site import (
-    links, on_company_domain, same_site, site_host, visible_text)
+    links, on_company_domain, profile_on_another_site, same_site, site_host,
+    visible_text)
 
 
 @pytest.mark.parametrize("website,expected", [
@@ -52,3 +53,21 @@ def test_links_are_absolute_in_order_without_fragments():
     html = '<a href="/team#top">Team</a><a href="https://example.com/x">X</a><a>no href</a>'
     assert links(html, "https://example.ch/") == [
         ("https://example.ch/team", "Team"), ("https://example.com/x", "X")]
+
+
+@pytest.mark.parametrize("website,name,expected", [
+    # A profile of the company on an accelerator's or a directory's site.
+    ("https://www.example.com/qubit-robotics-systems", "Qubit Robotics", True),
+    ("https://example.com/startups/qubit", "Qubit AG", True),
+    # The company's own site, with or without a path.
+    ("https://example-robotics.ch", "Example Robotics", False),
+    ("https://www.examplerobotics.com/en/example-robotics", "Example Robotics", False),
+    ("https://example.ch/en", "Example Robotics", False),
+    # One word of the name in the host is enough to be its own site.
+    ("https://example.com/example-robotics", "Example Robotics", False),
+    ("https://example.ch/de/robotics", "Other Name", False),
+    # Too short a name to tell.
+    ("https://example.com/ab", "AB", False),
+])
+def test_profile_on_another_site(website, name, expected):
+    assert profile_on_another_site(website, name) is expected

@@ -28,6 +28,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   proposes the person matching the student's target role. Two criteria
   replace the founder threshold: accuracy (90 %, blocking) and coverage
   (40 %, a goal).
+- After a tuning run on the 80 companies already measured: titles written
+  above the name, titles followed by a biography in the same block and names
+  three levels above the title are read; text a page never shows, cards with
+  a customer's logo and job titles in Italian or French are not. A website
+  that is a profile on another organisation's site is reported as
+  `not_own_site` and not read.
+- A network failure on `robots.txt` is reported as `unreachable`, not as
+  `robots_forbidden`.
 - Founder extraction rewritten from the failures of the first measurement:
   names are read only from team cards, "Name, role" lines and legal-notice
   labels, and only when the role is held at the company itself.
