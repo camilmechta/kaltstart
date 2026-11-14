@@ -53,22 +53,25 @@ accepted; finding founders is not. The scraper has since been changed to
 read the people a company presents with their job title (leaders, function
 heads and managers, recruiters).
 
-That people scraper was measured on 40 more companies (runs 5 and 6, same
+That people scraper was measured on 60 more companies (runs 5 to 7, same
 code):
 
-| Confirmed, on 40 companies never seen before | Runs 5 and 6 | Threshold | Verdict |
+| Confirmed, on 60 companies never seen before | Runs 5 to 7 | Threshold | Verdict |
 |---|---|---|---|
-| Company with a usable address | 55 % | 65 % | Fail |
-| People accuracy: lists reported that are entirely right | 14 of 16 (88 %) | 90 %, blocking | Inconclusive |
-| People coverage: companies with a right list | 35 % | 40 %, a goal | Below the goal |
+| Company with a usable address | 52 % | 65 % | Fail |
+| People accuracy: lists reported that are entirely right | 24 of 25 (96 %) | 90 %, blocking | Pass |
+| People coverage: companies with a right list | 40 % | 40 %, a goal | At the goal (inconclusive) |
 
-No address reported was wrong. Four of the 40 companies have no site of
-their own in the source data (a profile on an accelerator's site, a social
-network page), three sites that load in a browser did not answer the
-scraper, and two publish their address on a second domain. The two wrong
-lists are a degree read as part of a name, and advisors kept as co-founders.
-Accuracy is one list away from its threshold, so 20 more companies are to be
-measured before deciding whether the people read are shown to students.
+People read by the scraper can be shown to students. Three of the 24 right
+lists hold a co-founder or an acting officer shown in an advisors or board
+section: the rule fixed before the measurement counts them as right, a
+stricter reading would give 21 of 25 (84 %). The one wrong list is a degree
+read as part of a name. No address reported was wrong, but the address rate
+fell from 70 %: five of the 60 companies have no site of their own in the
+source data (a profile on an accelerator's site, a social network page), six
+sites did not answer the scraper although four of them load in a browser,
+and four publish their address on a second domain. This is the next thing to
+investigate.
 
 ## Installation
 

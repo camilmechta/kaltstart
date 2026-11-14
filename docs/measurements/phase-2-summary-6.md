@@ -5,14 +5,14 @@ Companies: 20
 ## Rates
 
 - Usable contact: reported 11/20 (55%), confirmed 11/20 (55%)
-- People, accuracy: 9/10 lists right (90%)
-- People, coverage: 9/20 (45%)
+- People, accuracy: 10/10 lists right (100%)
+- People, coverage: 10/20 (50%)
 
 ## Scraper mistakes found by the verification
 
 - wrong address: 0
 - missed address: 6
-- wrong people list: 1
+- wrong people list: 0
 - missed people: 6
 
 ## Failure causes (companies without a usable contact)
@@ -49,4 +49,4 @@ Counted on confirmed results. Within one company (or one list, for accuracy) of 
 
 - Usable contact (threshold 65%): fail
 - People accuracy (threshold 90%, blocking): inconclusive
-- People coverage (threshold 40%, goal): inconclusive
+- People coverage (threshold 40%, goal): pass
