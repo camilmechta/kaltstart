@@ -10,7 +10,7 @@ CAREERS_LOCAL_PARTS = ("careers", "career", "jobs", "talent", "hr", "karriere",
                        "recruiting")
 
 
-def _owner(address: str, people: Sequence[FoundPerson]) -> FoundPerson | None:
+def address_owner(address: str, people: Sequence[FoundPerson]) -> FoundPerson | None:
     """The person whose name the local part carries, if any.
 
     The last name must be there (alone, or with the first name or its
@@ -29,7 +29,7 @@ def _owner(address: str, people: Sequence[FoundPerson]) -> FoundPerson | None:
 
 def address_type(address: str, people: Sequence[FoundPerson]) -> str:
     """`personal`, `careers` or `generic`. Personal needs a person kept."""
-    if _owner(address, people):
+    if address_owner(address, people):
         return "personal"
     if address.split("@", 1)[0].lower() in CAREERS_LOCAL_PARTS:
         return "careers"
@@ -71,7 +71,7 @@ def choose_contact(emails: Sequence[FoundEmail], person: FoundPerson | None,
     """
     if person:
         own = next((e for e in emails if e.type == "personal"
-                    and _owner(e.address, [person])), None)
+                    and address_owner(e.address, [person])), None)
         if own:
             return ProposedContact(own.address, person.name, "high")
     careers = next((e for e in emails if e.type == "careers"), None)
@@ -82,7 +82,7 @@ def choose_contact(emails: Sequence[FoundEmail], person: FoundPerson | None,
         return ProposedContact(chosen.address, person.name if person else None,
                                "medium" if confident else "low")
     for email in emails:
-        owner = _owner(email.address, people) if email.type == "personal" else None
+        owner = address_owner(email.address, people) if email.type == "personal" else None
         if owner:
             return ProposedContact(email.address, owner.name, "high")
     return None
