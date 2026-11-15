@@ -153,6 +153,47 @@ workflow `.github/workflows/nightly.yml` runs `sync` every night and `backfill`
 every Sunday, and can run any command by hand from the Actions tab. GitHub
 disables scheduled workflows after 60 days without repository activity.
 
+### Contacts
+
+```
+python -m kaltstart.contacts run [--country Switzerland] [--max 300]   # read the sites that are due, store contacts
+python -m kaltstart.contacts status [--country Switzerland]            # counts only
+```
+
+The schema is in `supabase/migrations/0002_contacts.sql`. The workflow
+`.github/workflows/contacts.yml` runs `run` every night, one hour after the
+ingestion, and either command by hand. A company's site is read when it has
+never been visited, again 30 days after a reading, and 7 days after a
+failure to reach it; after three such failures in a row its contacts are
+deleted. Only Switzerland is read for now: the scraper has not been measured
+on German and Austrian sites yet.
+
+Addresses are stored in `contact_emails`, people in `contact_people`. A
+person is a suggestion: the app will show the name, the title and the page
+it was read on, and the student confirms it before it is used.
+
+This repository is public, and so are the logs of its workflows. The
+commands print counts and company identifiers, never a name, an address or
+a page.
+
+### Removal on request
+
+A person or a company can ask not to be listed. The project owner does it
+by hand in the Supabase SQL editor, never through a workflow, because a
+workflow input would be printed in a public log.
+
+1. In Supabase, open the table `companies`, search the company by name and
+   copy its `id`.
+2. In the SQL editor, run one of these lines with that `id`:
+
+```sql
+select exclude_person('00000000-0000-0000-0000-000000000000', 'Anna Muster');
+select exclude_company('00000000-0000-0000-0000-000000000000');
+```
+
+The rows are deleted at once and the scraper never adds them again. The
+exclusion list keeps a key computed from a person's name, not the name.
+
 ## Data
 
 Data: Tech.eu Funding Explorer, CC BY 4.0

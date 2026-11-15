@@ -1,0 +1,50 @@
+name: contacts
+
+on:
+  schedule:
+    # Every night, one hour after the ingestion's sync: read the company
+    # sites that are due and store their contacts.
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+    inputs:
+      command:
+        description: Contacts command to run
+        type: choice
+        options:
+          - run
+          - status
+        default: run
+      args:
+        # This repository is public and so are these logs and inputs: never
+        # type a person's name or an email address here. Removal on request
+        # is done in the Supabase SQL editor (see the README).
+        description: Extra arguments, e.g. --max 20 (never a name or an address)
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+# One run at a time: two runs would read the same sites twice.
+concurrency:
+  group: contacts
+  cancel-in-progress: false
+
+jobs:
+  contacts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+      - name: Run contacts
+        env:
+          COMMAND: ${{ github.event.inputs.command || 'run' }}
+          ARGS: ${{ github.event.inputs.args }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        # $ARGS is unquoted on purpose: the shell splits it into words.
+        run: python -m kaltstart.contacts "$COMMAND" $ARGS

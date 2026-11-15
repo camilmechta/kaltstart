@@ -117,8 +117,8 @@ PRD.md  DECISIONS.md  CHANGELOG.md  CLAUDE.md  README.md
 
 ## 6. Data
 
-Seven tables, plus a technical table `sync_runs` that keeps the summary of
-each nightly run.
+Nine tables, plus two technical tables, `sync_runs` and `contact_runs`, that
+keep the summary of each nightly run.
 
 ### 6.1 Company data (written by the nightly scripts)
 
@@ -127,11 +127,16 @@ each nightly run.
 | `raw_rounds` | A funding round as Tech.eu returned it | Tech.eu identifier, raw response, retrieval date |
 | `companies` | A company | Tech.eu identifier, name, website, description, country, cleaned city, canton or region, sectors |
 | `rounds` | A cleaned funding round | company, amount in euros, original stage, size category, date, investors, source link |
-| `contacts` | An address or a name found on the website | company, type (personal, careers, generic), address, a person's name, job title, categories and level, source page, confidence, verification date |
+| `contact_emails` | An address found on the company's website | company, address, type (personal, careers, generic), source page, date read |
+| `contact_people` | A person suggested for a company | company, name, job title, categories and level, source page, date read |
+| `contact_exclusions` | A company or a person that asked not to be listed | company, a key computed from the person's name (empty for the whole company), date |
+| `contact_runs` | The summary of one run of the contact scraper | dates, status, country, counts |
 
-The `companies` table also carries the scraping state of each company: never
-visited, succeeded, or failed with its reason, the number of attempts and the
-date of the next attempt.
+The `companies` table also carries the reading state of each company: the
+date of the last attempt, its outcome, the number of failed attempts in a row
+and the date of the next attempt. Confidence is not stored: it is computed
+with the proposed contact, which depends on the student. Details in
+`2026-11-15-phase-2-contacts-storage-design.md`.
 
 ### 6.2 Student data (written by the front and the server)
 

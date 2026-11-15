@@ -25,6 +25,13 @@ python -m kaltstart.ingestion report
 python -m kaltstart.ingestion cities
 ```
 
+Contact commands, run from the `contacts` workflow for the same reason:
+
+```
+python -m kaltstart.contacts run [--country Switzerland] [--max 300]
+python -m kaltstart.contacts status
+```
+
 ## Constraints
 
 - No call to any AI API at runtime.
@@ -38,6 +45,9 @@ python -m kaltstart.ingestion cities
   CC BY 4.0.
 - Every file in the repository is in English: public documents, spec, plans,
   code, comments and commit messages.
+- The repository is public and so are its workflow logs: no command, log,
+  workflow input or run summary may contain a person's name, an email
+  address or a page. Removal on request is done in the Supabase SQL editor.
 - No secret in the repository. Supabase keys come from the environment
   variables `SUPABASE_URL` and `SUPABASE_SERVICE_KEY`.
 - Contact scraper: `robots.txt` is read first and obeyed; at least 2 seconds

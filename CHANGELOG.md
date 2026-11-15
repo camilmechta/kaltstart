@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Contact storage: tables `contact_emails`, `contact_people`,
+  `contact_exclusions` and `contact_runs`, the `run` and `status` commands,
+  and the `contacts` workflow that reads the due company sites every night
+  (Switzerland only for now). Removal on request through two SQL functions.
 - Contact scraper (`kaltstart.contacts`): polite fetcher, page choice, address
   and founder extraction, contact selection, and the `measure` and `summary`
   commands. Not run nightly and not connected to the database yet.
