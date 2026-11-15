@@ -14,6 +14,7 @@ company's. When in doubt nothing is returned: a wrong name ends up in a mail.
 """
 
 import re
+from urllib.parse import urlsplit
 
 from bs4 import BeautifulSoup, Tag
 
@@ -58,6 +59,12 @@ _NOT_THE_TEAM = re.compile(
     r"customers?|kunden|testimonials?|stories|speakers?|webinar\w*|press|news)(?!\w)",
     re.IGNORECASE)
 _HEADINGS = ("h1", "h2", "h3", "h4")
+# A section may be announced by a plain block instead of a heading: "Board".
+MAX_LABEL_WORDS = 3
+MAX_LABEL_LEVELS_UP = 4
+# A card that leads to a customer's story shows the customer, not the team.
+_CUSTOMER_STORY_LINK = re.compile(
+    r"success[-_]?stor|case[-_]?stud|customers?|testimonials?|kunden|referenz", re.IGNORECASE)
 _ALL_HEADINGS = ("h1", "h2", "h3", "h4", "h5", "h6")
 # Small words a title may contain in lower case; any other lower-case word
 # means the block is a sentence ("Built for every Head of Sales").
@@ -365,6 +372,8 @@ def _outside_the_team(block: Tag, company_key: str) -> bool:
     """True when the nearest section heading announces advisors, a board,
     investors, job openings or customers. A heading that is itself somebody's
     name (a team card's own heading) is passed over."""
+    if _under_a_label_outside_the_team(block):
+        return True
     for heading in block.find_all_previous(_HEADINGS, limit=6):
         text = _text(heading)
         if _NOT_THE_TEAM.search(text):
@@ -374,11 +383,39 @@ def _outside_the_team(block: Tag, company_key: str) -> bool:
     return False
 
 
+def _is_label(node: Tag | None) -> bool:
+    return node is not None and _is_leaf(node) \
+        and 0 < len(_text(node).split()) <= MAX_LABEL_WORDS
+
+
+def _under_a_label_outside_the_team(block: Tag) -> bool:
+    """True when the block that comes right before the card, or before one of
+    its wrappers, is a plain label such as "Board" or "Advisors".
+
+    Only the nearest neighbour is read at each level, and the search stops at
+    the first label met. Two labels in a row are tabs, not a section label.
+    """
+    node = block
+    for _level in range(MAX_LABEL_LEVELS_UP + 1):
+        sibling = node.find_previous_sibling(lambda tag: bool(_text(tag)))
+        if _is_label(sibling) and node is not block:
+            if _is_label(sibling.find_previous_sibling(lambda tag: bool(_text(tag)))):
+                return False
+            return bool(_NOT_THE_TEAM.search(_text(sibling)))
+        if node.parent is None:
+            break
+        node = node.parent
+    return False
+
+
 def _in_testimonial(block: Tag) -> bool:
     """True when the block sits with a quotation: a customer speaking, not the team."""
     logo_seen = False
     for ancestor in list(block.parents)[:5]:
         if ancestor.name in ("blockquote", "q"):
+            return True
+        if ancestor.name == "a" and _CUSTOMER_STORY_LINK.search(
+                urlsplit(ancestor.get("href") or "").path):
             return True
         marked = " ".join([*ancestor.get("class", []), ancestor.get("id") or ""])
         if _TESTIMONIAL_CLASS.search(marked):

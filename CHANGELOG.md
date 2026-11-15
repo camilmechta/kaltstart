@@ -40,6 +40,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   a customer's logo and job titles in Italian or French are not. A website
   that is a profile on another organisation's site is reported as
   `not_own_site` and not read.
+- People under a plain "Board" or "Advisors" label, and people on a card
+  that links to a customer story, are no longer kept.
 - The address threshold (65 % of all companies) is replaced by two criteria:
   an address found for 75 % of the companies that publish one on a site of
   their own, and no wrong address. The `summary` command reports both.

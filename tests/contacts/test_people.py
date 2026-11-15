@@ -354,3 +354,46 @@ def test_a_card_with_a_logo_is_a_customer_speaking(logo):
             '<div><p>Their tools changed the way we run our operations.</p></div>'
             f'<div><div>{logo}</div></div></div>')
     assert names(body, kind="home") == []
+
+
+def test_a_plain_label_announces_a_board_like_a_heading():
+    # Seen on a real site: "Board" written in a paragraph, not in a heading.
+    body = ("<section><h2>Who builds it</h2>"
+            "<p>Leadership</p><div>" + card("Anna Muster", "Co-Founder &amp; CEO") + "</div>"
+            "<p>Board</p><div>" + card("Ben Probe", "CEO &amp; Co-Founder") + "</div></section>")
+    assert names(body) == [("Anna Muster", "Co-Founder & CEO")]
+
+
+@pytest.mark.parametrize("label", ["Advisors", "Our Investors", "Advisory Board"])
+def test_other_plain_labels_outside_the_team(label):
+    body = f"<div><p>{label}</p><div>" + card("Ben Probe", "Chief Marketing Officer") + "</div></div>"
+    assert names(body) == []
+
+
+def test_a_row_of_tabs_is_not_a_section_label():
+    # "Team | Board" above one grid: the grid shows the team first.
+    body = ("<div><span>Team</span><span>Board</span><div>"
+            + card("Anna Muster", "Co-Founder &amp; CEO") + "</div></div>")
+    assert names(body) == [("Anna Muster", "Co-Founder & CEO")]
+
+
+def test_a_label_inside_the_card_is_not_a_section_label():
+    body = "<div><div>Board</div><div>Anna Muster</div><div>Chairwoman &amp; CEO</div></div>"
+    assert names(body) == [("Anna Muster", "Chairwoman & CEO")]
+
+
+@pytest.mark.parametrize("href", [
+    "/success-stories/faster-warehouses", "/case-studies/other-group",
+    "https://example.ch/customers/other-group", "/kunden/other-group", "/referenzen/other"])
+def test_a_card_that_links_to_a_customer_story_is_a_customer(href):
+    # Seen on a real site: no quotation, a logo, and the card leads to the story.
+    body = (f'<a href="{href}"><div><img class="story-logo" src="/a.png">'
+            '<div><p>Ben Probe</p><p>Chief Executive Officer</p></div></div>'
+            '<p>Faster warehouses</p><p>Other Group</p></a>')
+    assert names(body, kind="home") == []
+
+
+def test_a_team_card_that_links_to_a_profile_is_read():
+    body = ('<a href="/team/anna-muster"><div><p>Anna Muster</p>'
+            '<p>Chief Executive Officer</p></div></a>')
+    assert names(body) == [("Anna Muster", "Chief Executive Officer")]

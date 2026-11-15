@@ -109,6 +109,14 @@ One tuning round on the 80 companies already seen added these rules
   quotation marks;
 - text the page builder never shows is not read; people behind a tab or a
   filter are;
+- (after the eighth measurement, decision D58) a section may be announced by
+  a plain block instead of a heading: when the block right before a card, or
+  before one of its wrappers, is a label of at most three words such as
+  "Board" or "Advisors", the card is skipped; two labels in a row are tabs
+  and decide nothing;
+- (D58) a card inside a link to a customer story (`/success-stories/`,
+  `/case-studies/`, `/customers/`, `/kunden/`, `/referenzen/`) shows the
+  customer and is skipped;
 - a website that is a profile of the company on another organisation's site
   (the company's name in the path, not in the host) is not read at all.
 
