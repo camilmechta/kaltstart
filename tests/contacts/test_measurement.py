@@ -92,7 +92,7 @@ def test_summarise_rates_and_mistakes(tmp_path):
         "other_domain_only: 0", "contact_form_only: 1", "no_address: 1",
         "Address found when one is published (threshold 75%): pass",
         "Wrong addresses (none allowed, blocking): fail",
-        "People accuracy (threshold 90%, blocking): inconclusive",
+        "People accuracy (threshold 90%, tracked): inconclusive",
         "People coverage (threshold 40%, goal): inconclusive",
     ):
         assert line in text, line
@@ -147,7 +147,7 @@ def test_summarise_with_no_people_reported(tmp_path):
         row["people_check"] = "none_exists"
     text = summarise(rows)
     assert "People, accuracy: 0/0 lists right" in text
-    assert "People accuracy (threshold 90%, blocking): fail" in text
+    assert "People accuracy (threshold 90%, tracked): fail" in text
     assert "People, coverage: 0/20 (0%)" in text
 
 

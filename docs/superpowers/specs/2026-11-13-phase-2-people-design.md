@@ -32,8 +32,11 @@ Three levels, from automatic to manual. Only the first is built in this
 phase; the two others are recorded here so that the phases that build them
 agree with it.
 
-1. **The scraper proposes a person**, read on the company's own site, with the
-   page it was read on.
+1. **The scraper suggests a person**, read on the company's own site, with the
+   page it was read on. Since decision D60 this is a suggestion to confirm:
+   the app shows the name, the title and a link to the source page, and the
+   student confirms or replaces the person before it is used in a mail. An
+   unconfirmed person is never used.
 2. **Otherwise the student completes it**: the app shows the link to the
    company's team page, a button that opens a search the student runs in
    their own browser, and two fields, name and job title. The scraper visits
@@ -117,6 +120,10 @@ One tuning round on the 80 companies already seen added these rules
 - (D58) a card inside a link to a customer story (`/success-stories/`,
   `/case-studies/`, `/customers/`, `/kunden/`, `/referenzen/`) shows the
   customer and is skipped;
+- (after the ninth measurement, decision D60) a line that introduces
+  somebody ("With Anna Muster, CEO of ...", a video or interview caption) is
+  not read; "Personal" counts as human resources only when no other word
+  follows it ("Leiter Personal", not "Personal Care");
 - a website that is a profile of the company on another organisation's site
   (the company's name in the path, not in the host) is not read at all.
 
@@ -238,8 +245,10 @@ new code.
 | Accuracy | Among companies for which the scraper reports people: the share where every person reported is a real person of this company, with the right title, in a kept category | 90 %, blocking |
 | Coverage | Among all companies: the share where the scraper reports at least one person and the whole list is right | 40 %, a goal |
 
-Accuracy blocks: below 90 %, the people read by the scraper are not shown to
-students, and only levels 2 and 3 of section 2 are offered. Coverage is a
+Accuracy blocked at first: below 90 %, the people read by the scraper were
+not to be shown to students. After the ninth measurement (decisions D59 and
+D60) it is a tracked figure instead: every person is shown as a suggestion
+the student confirms on its source page, whatever the measured accuracy. Coverage is a
 measure of comfort: at 35 % the product still works.
 
 On the last 40 companies, with the founder-only code, accuracy was 14 of 19

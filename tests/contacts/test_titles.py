@@ -129,3 +129,19 @@ def test_more_titles_kept(text, categories, level):
 ])
 def test_more_titles_not_kept(text):
     assert classify_title(text) is None
+
+
+@pytest.mark.parametrize("text", [
+    # Seen on a real site: "Personal" is an English adjective here, not German for staff.
+    "Commercial Lead - Personal Care", "Head of Personal Care", "Director Personal Banking",
+])
+def test_personal_before_another_word_is_not_human_resources(text):
+    assert classify_title(text) is None
+
+
+@pytest.mark.parametrize("text", [
+    "Leiter Personal", "Leiterin Personal und Finanzen", "Head of Personal & Finance",
+    "Leiterin Personal, Mitglied der Geschäftsleitung",
+])
+def test_german_personal_is_still_human_resources(text):
+    assert "recruiting" in classify_title(text).categories

@@ -74,8 +74,10 @@ _FUNCTIONS = {
     "data": r"data|analytics|daten",
     "operations": r"operations|betrieb|opérations",
     "sales": r"sales|business development|partnerships?|vertrieb|ventes",
+    # "Personal" is German for staff only when no other word follows it:
+    # "Personal Care" and "Personal Banking" are English.
     "recruiting": (r"people|hr|rh|human resources|talent acquisition|talent|recruit\w*|"
-                   r"personal|ressources humaines"),
+                   r"personal(?!\s+(?!und\b|and\b)\w)|ressources humaines"),
 }
 # German compounds: "Marketingleiter", "Vertriebsleiterin", "HR-Leiterin".
 _COMPOUND_HEADS = {

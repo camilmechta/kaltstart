@@ -26,7 +26,7 @@ only if the final test reaches thresholds set in advance.
 |---|---|---|
 | Address found by the scraper | 75 % of the companies that publish one on a site of their own (was 65 % of all companies, see decision D57) | Phase 2 |
 | Wrong addresses reported by the scraper | none, blocking | Phase 2 |
-| People read by the scraper, accuracy: lists where every person is right | 90 % of the lists reported, blocking | Phase 2 |
+| People read by the scraper, accuracy: lists where every person is right | 90 % of the lists reported, tracked; a person is a suggestion the student confirms on its source page before use (decision D60) | Phase 2 |
 | People read by the scraper, coverage: companies with a right list | 40 % of companies, a goal | Phase 2 |
 | Human reply rate | 10 % of mails sent | Phase 5 |
 | Positive reply rate | 3 % of mails sent | Phase 5 |

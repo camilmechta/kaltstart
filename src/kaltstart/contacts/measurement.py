@@ -19,7 +19,7 @@ RESULT_COLUMNS = (
 # none_exists: nothing to find and nothing reported.
 CHECK_VALUES = ("confirmed", "wrong", "missed", "none_exists")
 FOUND_THRESHOLD = 0.75       # addresses found among companies that publish one; decision D57
-ACCURACY_THRESHOLD = 0.9     # share of reported people lists that are right; blocking
+ACCURACY_THRESHOLD = 0.9     # share of reported people lists that are right; tracked, see D60
 COVERAGE_THRESHOLD = 0.4     # share of companies with a right list; a goal
 _SIZES = ("small", "medium", "large")
 _CONFIDENCES = ("high", "medium", "low")
@@ -158,7 +158,7 @@ def summarise(rows: Sequence[dict]) -> str:
         f"{found_verdict}",
         f"- Wrong addresses (none allowed, blocking): "
         f"{'fail' if wrong_addresses else 'pass'}",
-        f"- People accuracy (threshold {ACCURACY_THRESHOLD:.0%}, blocking): "
+        f"- People accuracy (threshold {ACCURACY_THRESHOLD:.0%}, tracked): "
         f"{accuracy_verdict}",
         f"- People coverage (threshold {COVERAGE_THRESHOLD:.0%}, goal): "
         f"{verdict(right, n, COVERAGE_THRESHOLD)}",

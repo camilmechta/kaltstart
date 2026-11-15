@@ -397,3 +397,13 @@ def test_a_team_card_that_links_to_a_profile_is_read():
     body = ('<a href="/team/anna-muster"><div><p>Anna Muster</p>'
             '<p>Chief Executive Officer</p></div></a>')
     assert names(body) == [("Anna Muster", "Chief Executive Officer")]
+
+
+@pytest.mark.parametrize("line", [
+    "With Anna Muster, CEO of Example Robotics.",       # seen on a real site: a video caption
+    "Mit Anna Muster, CEO von Example Robotics",
+    "By Anna Muster, Founder", "Interview Anna Muster, Founder",
+])
+def test_a_caption_that_introduces_somebody_is_not_a_name(line):
+    assert names(f"<div><h4>How we build robots</h4><p><strong>{line}</strong></p></div>",
+                 kind="home") == []

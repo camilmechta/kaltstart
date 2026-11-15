@@ -113,7 +113,14 @@ three new causes (a video caption read as a name, a photo caption given a
 title that the page does not show for that person, and "Personal Care" in a
 sales title read as the German word for staff). Over runs 5 to 9, people
 accuracy is 38 lists of 44 (86 %). People read by the scraper are not
-reliable enough yet to be shown to students without a check.
+reliable enough to be used without a check. A person is therefore a
+suggestion: the app will show the name, the title and the page it was read
+on, and the student confirms it before it is used. The 90 % accuracy figure
+is tracked and no longer blocks.
+
+Correction to run 9: one of the three lists counted wrong (a title said to
+be absent from the page) is in fact shown on the page, so the count is 7
+right lists of 9 (78 %), and 39 of 44 (89 %) over runs 5 to 9.
 
 ## Installation
 

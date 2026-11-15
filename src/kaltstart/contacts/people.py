@@ -107,7 +107,7 @@ _VOCABULARY = frozenset((
     # page furniture
     "about", "us", "our", "from", "dear", "friends", "message", "story",
     "team", "award", "collective", "office", "year", "contact", "home", "meet",
-    "welcome", "read", "more", "person", "stelle", "unser", "unsere", "über",
+    "welcome", "read", "more", "person", "with", "mit", "by", "avec", "interview", "stelle", "unser", "unsere", "über",
     "uns", "mehr", "kontakt", "impressum",
     # job openings, places and page labels that sit where a name would
     "full", "part", "time", "remote", "hybrid", "apply", "now", "permanent",

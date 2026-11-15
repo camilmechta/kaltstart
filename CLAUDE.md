@@ -50,7 +50,10 @@ python -m kaltstart.ingestion cities
   level and source page are kept.
 - Thresholds: address found for 75 % of the companies that publish one on a
   site of their own, no wrong address (blocking), people accuracy 90 %
-  (blocking), people coverage 40 % (a goal).
+  (tracked, not blocking), people coverage 40 % (a goal).
+- A person read by the scraper is a suggestion: the app shows the name, the
+  title and the page it was read on, and the student confirms it before it
+  is used in a mail. Never used unconfirmed.
 - Contact test fixtures are invented pages with invented people on
   `example.ch`, `example.de` and `example.com`. Never commit a real page, name
   or address. Detailed measurement results stay under `local/` (git-ignored).

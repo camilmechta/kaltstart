@@ -40,6 +40,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   a customer's logo and job titles in Italian or French are not. A website
   that is a profile on another organisation's site is reported as
   `not_own_site` and not read.
+- A person read by the scraper is now a suggestion the student confirms on
+  its source page; people accuracy (90 %) is tracked and no longer blocks.
+- A caption that introduces somebody ("With ...") is not read as a name, and
+  "Personal Care" in a title is no longer read as human resources.
 - People under a plain "Board" or "Advisors" label, and people on a card
   that links to a customer story, are no longer kept.
 - Ninth measurement, on 20 new companies: address found for 13 of the 16
