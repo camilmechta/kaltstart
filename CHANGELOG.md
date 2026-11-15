@@ -23,6 +23,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fifth to seventh measurements, on 60 new companies with the people
   scraper: people accuracy 24 lists of 25 (96 %, pass), people coverage 40 %
   (at the goal), usable address 52 % (fail against 65 %).
+- Eighth measurement, on 20 new companies after the address fixes: usable
+  address 70 % (one company above 65 %, inconclusive), people accuracy 8
+  lists of 10, people coverage 40 %. No wrong address.
 
 ### Changed
 

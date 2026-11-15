@@ -70,8 +70,24 @@ read as part of a name. No address reported was wrong, but the address rate
 fell from 70 %: five of the 60 companies have no site of their own in the
 source data (a profile on an accelerator's site, a social network page), six
 sites did not answer the scraper although four of them load in a browser,
-and four publish their address on a second domain. This is the next thing to
-investigate.
+and four publish their address on a second domain.
+
+The investigation that followed found that 17 of the 29 companies without an
+address publish none on a site of their own, so about 72 % was the most this
+sample could give. Three fixes cover five of the twelve real misses. An
+eighth run on 20 companies never seen, after the fixes:
+
+| Confirmed, on 20 companies never seen before | Run 8 | Threshold | Verdict |
+|---|---|---|---|
+| Company with a usable address | 14 of 20 (70 %) | 65 % | Inconclusive (one company above) |
+| People accuracy: lists reported that are entirely right | 8 of 10 (80 %) | 90 %, blocking | Below, on 10 lists |
+| People coverage: companies with a right list | 40 % | 40 %, a goal | At the goal (inconclusive) |
+
+No address reported was wrong. None of the 14 addresses came from the three
+fixes: this sample simply held no accelerator profile and no site refusing
+automated clients. The two wrong lists keep people of other organisations
+(two customers quoted on a home page, an investor's representative). Over
+runs 5 to 8, people accuracy is 32 lists of 35 (91 %).
 
 ## Installation
 
