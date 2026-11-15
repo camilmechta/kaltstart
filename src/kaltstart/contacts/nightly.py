@@ -55,6 +55,29 @@ def due_companies(candidates: list[dict], recent_ids: set[str], excluded_ids: se
     return (never + again)[:limit]
 
 
+def status(store: ContactStore, country: str, now: datetime | None = None) -> dict:
+    """Counts about the companies of a country. Numbers only."""
+    now = now or datetime.now(timezone.utc)
+    excluded_ids = {row["company_id"] for row in store.exclusions()
+                    if row["person_key"] is None}
+    recent_ids = store.company_ids_with_round_since(
+        (now - timedelta(days=RECENT_ROUND_DAYS)).date())
+    candidates = store.candidate_companies(country)
+    eligible = [c for c in candidates
+                if c["id"] in recent_ids and c["id"] not in excluded_ids]
+    visited = [c for c in eligible if c["contacts_checked_at"] is not None]
+    with_people = store.company_ids_with_people()
+    return {
+        "eligible": len(eligible),
+        "visited": len(visited),
+        "with_address": sum(1 for c in visited if c["contacts_outcome"] == "ok"),
+        "with_people": sum(1 for c in eligible if c["id"] in with_people),
+        "due_now": len(due_companies(candidates, recent_ids, excluded_ids, now,
+                                     limit=len(candidates))),
+        "outcomes": dict(Counter(c["contacts_outcome"] for c in visited)),
+    }
+
+
 def _rows(company_id: str, emails, people, read_at: str) -> tuple[list[dict], list[dict]]:
     email_rows = [{"company_id": company_id, "address": e.address, "type": e.type,
                    "source_url": e.source_url, "read_at": read_at} for e in emails]
