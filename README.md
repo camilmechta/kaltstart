@@ -191,7 +191,8 @@ select exclude_person('00000000-0000-0000-0000-000000000000', 'Anna Muster');
 select exclude_company('00000000-0000-0000-0000-000000000000');
 ```
 
-The rows are deleted at once and the scraper never adds them again. The
+Write the person's name as the company's site writes it, accents included;
+capital letters and extra spaces do not matter. The rows are deleted at once and the scraper never adds them again. The
 exclusion list keeps a key computed from a person's name, not the name.
 
 ## Data
