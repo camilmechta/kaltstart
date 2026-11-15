@@ -80,6 +80,8 @@ def test_summarise_rates_and_mistakes(tmp_path):
     for line in (
         "Companies: 20",
         "Usable contact: reported 16/20 (80%), confirmed 15/20 (75%)",
+        "Address published by the company: 18/20 (90%)",
+        "Address found when one is published: 15/18 (83%)",
         "People, accuracy: 8/9 lists right (89%)",
         "People, coverage: 8/20 (40%)",
         "wrong address: 1", "missed address: 2",
@@ -88,7 +90,8 @@ def test_summarise_rates_and_mistakes(tmp_path):
         "operations: 0", "sales: 0",
         "robots_forbidden: 0", "unreachable: 1", "little_text: 1",
         "other_domain_only: 0", "contact_form_only: 1", "no_address: 1",
-        "Usable contact (threshold 65%): pass",
+        "Address found when one is published (threshold 75%): pass",
+        "Wrong addresses (none allowed, blocking): fail",
         "People accuracy (threshold 90%, blocking): inconclusive",
         "People coverage (threshold 40%, goal): inconclusive",
     ):
@@ -111,8 +114,19 @@ def test_summarise_contains_no_personal_data(tmp_path):
 
 def test_thresholds():
     from kaltstart.contacts.measurement import (
-        ACCURACY_THRESHOLD, CONTACT_THRESHOLD, COVERAGE_THRESHOLD)
-    assert (CONTACT_THRESHOLD, ACCURACY_THRESHOLD, COVERAGE_THRESHOLD) == (0.65, 0.9, 0.4)
+        ACCURACY_THRESHOLD, COVERAGE_THRESHOLD, FOUND_THRESHOLD)
+    assert (FOUND_THRESHOLD, ACCURACY_THRESHOLD, COVERAGE_THRESHOLD) == (0.75, 0.9, 0.4)
+
+
+def test_summarise_without_a_wrong_or_published_address(tmp_path):
+    rows = verified_rows(tmp_path)
+    for row in rows:
+        row["emails"], row["email_check"] = "", "none_exists"
+    text = summarise(rows)
+    assert "Address published by the company: 0/20 (0%)" in text
+    assert "Address found when one is published: 0/0" in text
+    assert "Address found when one is published (threshold 75%): fail" in text
+    assert "Wrong addresses (none allowed, blocking): pass" in text
 
 
 def test_check_problems(tmp_path):

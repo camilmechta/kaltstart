@@ -263,7 +263,8 @@ A result within one company (coverage) or one list (accuracy) of its
 threshold is inconclusive, and 20 more companies are drawn.
 
 The usable-contact criterion stays at 65 % and is measured again on the same
-40 companies, to check that nothing regressed.
+40 companies, to check that nothing regressed. (Replaced after the
+measurements by the two address criteria of decision D57.)
 
 ## 10. Consequences for the parent spec
 

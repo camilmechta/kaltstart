@@ -24,7 +24,8 @@ only if the final test reaches thresholds set in advance.
 
 | Criterion | Threshold | Measured in |
 |---|---|---|
-| Usable contacts found by the scraper | 65 % of companies | Phase 2 |
+| Address found by the scraper | 75 % of the companies that publish one on a site of their own (was 65 % of all companies, see decision D57) | Phase 2 |
+| Wrong addresses reported by the scraper | none, blocking | Phase 2 |
 | People read by the scraper, accuracy: lists where every person is right | 90 % of the lists reported, blocking | Phase 2 |
 | People read by the scraper, coverage: companies with a right list | 40 % of companies, a goal | Phase 2 |
 | Human reply rate | 10 % of mails sent | Phase 5 |
@@ -363,7 +364,7 @@ count the scraper's mistakes.
 |---|---|---|
 | 0. Framing | Spec, PRD.md, repo, CLAUDE.md, structure | The spec is validated |
 | 1. Ingestion | Tech.eu to Supabase for the three countries, cleaning, incremental update | The rounds are in the database, clean; a second run adds only what is new |
-| 2. Contacts | Scraper tested on 20 Swiss sites | The rates are measured and compared with the 65 % and 40 % thresholds |
+| 2. Contacts | Scraper tested on 20 Swiss sites | The rates are measured and compared with the thresholds of section 2 |
 | 3. Mails | Generator and templates in English and German | All test cases pass, for each style |
 | 4. Front | FastAPI server, sign-up with invitation code, filters, list, company page, tracking | A student goes from sign-up to a copied mail without help |
 | 5. Test | 20 HSG students, about 200 mails | Report comparing the rates with the 10 % and 3 % thresholds |

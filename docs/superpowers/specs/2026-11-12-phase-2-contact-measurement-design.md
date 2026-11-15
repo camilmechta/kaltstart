@@ -18,7 +18,7 @@ Success criteria, from the parent spec:
 
 | Criterion | Threshold |
 |---|---|
-| Companies with a usable contact | 65 % (was 70 %, see decision D39) |
+| Companies with a usable contact | 65 % (was 70 %, see decision D39). Replaced on 2026-11-15 by two criteria, see decision D57: address found for 75 % of the companies that publish one on a site of their own, and no wrong address (blocking) |
 | Companies with the name of a founder | 40 % |
 
 - **Usable contact**: at least one email address published on the company's

@@ -40,6 +40,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   a customer's logo and job titles in Italian or French are not. A website
   that is a profile on another organisation's site is reported as
   `not_own_site` and not read.
+- The address threshold (65 % of all companies) is replaced by two criteria:
+  an address found for 75 % of the companies that publish one on a site of
+  their own, and no wrong address. The `summary` command reports both.
 - After the verdict on 60 companies, three address fixes: the root of the
   site is read when the stored page no longer exists, a "Site Notice" link
   is read as a legal notice, and an address on a second domain that carries

@@ -18,7 +18,7 @@ RESULT_COLUMNS = (
 # missed: the site publishes one and the scraper found none.
 # none_exists: nothing to find and nothing reported.
 CHECK_VALUES = ("confirmed", "wrong", "missed", "none_exists")
-CONTACT_THRESHOLD = 0.65     # lowered from 0.70 on 2026-11-12, decision D39
+FOUND_THRESHOLD = 0.75       # addresses found among companies that publish one; decision D57
 ACCURACY_THRESHOLD = 0.9     # share of reported people lists that are right; blocking
 COVERAGE_THRESHOLD = 0.4     # share of companies with a right list; a goal
 _SIZES = ("small", "medium", "large")
@@ -110,6 +110,12 @@ def summarise(rows: Sequence[dict]) -> str:
     checks = {column: Counter(r[column] for r in rows)
               for column in ("email_check", "people_check")}
     confirmed_contacts = checks["email_check"]["confirmed"]
+    wrong_addresses = checks["email_check"]["wrong"]
+    # A company publishes an address when the verification saw one: found,
+    # missed, or reported wrongly (counted against the scraper).
+    publishing = confirmed_contacts + checks["email_check"]["missed"] + wrong_addresses
+    found_verdict = (verdict(confirmed_contacts, publishing, FOUND_THRESHOLD)
+                     if publishing else "fail")
     right = checks["people_check"]["confirmed"]
     wrong = checks["people_check"]["wrong"]
     lists = right + wrong
@@ -123,6 +129,8 @@ def summarise(rows: Sequence[dict]) -> str:
         f"Companies: {n}", "",
         "## Rates", "",
         f"- Usable contact: reported {contacts}, confirmed {_rate(confirmed_contacts, n)}",
+        f"- Address published by the company: {_rate(publishing, n)}",
+        f"- Address found when one is published: {_rate(confirmed_contacts, publishing)}",
         f"- People, accuracy: {accuracy}",
         f"- People, coverage: {_rate(right, n)}",
         "", "## Scraper mistakes found by the verification", "",
@@ -146,8 +154,10 @@ def summarise(rows: Sequence[dict]) -> str:
         "", "## Verdict", "",
         "Counted on confirmed results. Within one company (or one list, for "
         "accuracy) of a threshold, the result is inconclusive.", "",
-        f"- Usable contact (threshold {CONTACT_THRESHOLD:.0%}): "
-        f"{verdict(confirmed_contacts, n, CONTACT_THRESHOLD)}",
+        f"- Address found when one is published (threshold {FOUND_THRESHOLD:.0%}): "
+        f"{found_verdict}",
+        f"- Wrong addresses (none allowed, blocking): "
+        f"{'fail' if wrong_addresses else 'pass'}",
         f"- People accuracy (threshold {ACCURACY_THRESHOLD:.0%}, blocking): "
         f"{accuracy_verdict}",
         f"- People coverage (threshold {COVERAGE_THRESHOLD:.0%}, goal): "

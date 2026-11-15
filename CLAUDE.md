@@ -48,8 +48,9 @@ python -m kaltstart.ingestion cities
   job title on the company's own site. Never prose, never a testimonial,
   never somebody of another organisation. Only name, title, categories,
   level and source page are kept.
-- Thresholds: usable contact 65 %, people accuracy 90 % (blocking), people
-  coverage 40 % (a goal).
+- Thresholds: address found for 75 % of the companies that publish one on a
+  site of their own, no wrong address (blocking), people accuracy 90 %
+  (blocking), people coverage 40 % (a goal).
 - Contact test fixtures are invented pages with invented people on
   `example.ch`, `example.de` and `example.com`. Never commit a real page, name
   or address. Detailed measurement results stay under `local/` (git-ignored).

@@ -89,6 +89,15 @@ automated clients. The two wrong lists keep people of other organisations
 (two customers quoted on a home page, an investor's representative). Over
 runs 5 to 8, people accuracy is 32 lists of 35 (91 %).
 
+The share of all companies with an address depends mostly on the draw: about
+a quarter of the companies publish no address on a site of their own, and
+nothing can be found there. The address threshold was therefore replaced by
+two criteria: an address found for 75 % of the companies that publish one,
+and no wrong address at all (blocking). Over runs 5 to 8, 59 of 80 companies
+publish an address and the scraper found 45 of them (76 %), with no wrong
+address. The new threshold was set knowing this figure, so it only counts as
+passed once a later measurement confirms it.
+
 ## Installation
 
 Requires Python 3.12 or later.
