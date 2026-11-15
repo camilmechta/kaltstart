@@ -42,6 +42,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `not_own_site` and not read.
 - People under a plain "Board" or "Advisors" label, and people on a card
   that links to a customer story, are no longer kept.
+- Ninth measurement, on 20 new companies: address found for 13 of the 16
+  companies that publish one, no wrong address, people accuracy 6 lists of
+  9 (fail), people coverage 30 %.
 - The address threshold (65 % of all companies) is replaced by two criteria:
   an address found for 75 % of the companies that publish one on a site of
   their own, and no wrong address. The `summary` command reports both.

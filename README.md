@@ -98,6 +98,23 @@ publish an address and the scraper found 45 of them (76 %), with no wrong
 address. The new threshold was set knowing this figure, so it only counts as
 passed once a later measurement confirms it.
 
+A ninth run on 20 more companies never seen, after two more people rules
+(a plain "Board" label, cards linking to a customer story):
+
+| Confirmed, on 20 companies never seen before | Run 9 | Threshold | Verdict |
+|---|---|---|---|
+| Address found when the company publishes one | 13 of 16 (81 %) | 75 % | Inconclusive (one company above) |
+| Wrong addresses | 0 | none, blocking | Pass |
+| People accuracy: lists reported that are entirely right | 6 of 9 (67 %) | 90 %, blocking | Fail |
+| People coverage: companies with a right list | 30 % | 40 %, a goal | Below |
+
+The address part holds. The people part does not: the three wrong lists have
+three new causes (a video caption read as a name, a photo caption given a
+title that the page does not show for that person, and "Personal Care" in a
+sales title read as the German word for staff). Over runs 5 to 9, people
+accuracy is 38 lists of 44 (86 %). People read by the scraper are not
+reliable enough yet to be shown to students without a check.
+
 ## Installation
 
 Requires Python 3.12 or later.
