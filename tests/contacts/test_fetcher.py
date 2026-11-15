@@ -335,3 +335,21 @@ def test_default_http_client_settings():
     assert client.timeout == httpx.Timeout(15)
     assert client.follow_redirects is True
     assert client.headers["user-agent"].startswith("python-httpx/")
+
+
+def test_missing_start_page_falls_back_to_the_site_root():
+    site = simple_site()            # https://example.ch/en answers 404
+    f, _ = fetcher(site)
+    outcome = f.fetch_site("https://example.ch/en")
+    assert outcome.status == "ok"
+    assert outcome.pages[0].url == "https://example.ch/"
+    assert [p.kind for p in outcome.pages] == ["home", "contact", "team"]
+
+
+def test_start_page_forbidden_by_robots_does_not_fall_back():
+    site = simple_site(**{"https://example.ch/robots.txt": (
+        200, {"content-type": "text/plain"}, "User-agent: *\nDisallow: /en\n")})
+    f, _ = fetcher(site)
+    outcome = f.fetch_site("https://example.ch/en")
+    assert outcome.status == "robots_forbidden"
+    assert "https://example.ch/" not in site.urls

@@ -90,6 +90,46 @@ def on_company_domain(email_domain: str, hosts: Iterable[str]) -> bool:
     return False
 
 
+MIN_SHARED_NAME_CHARS = 5
+SHARED_NAME_SHARE = 0.75
+
+
+def _squash(text: str) -> str:
+    return re.sub(r"[\W_]+", "", text.lower())
+
+
+def _without_ending(host: str) -> str:
+    return host.rsplit(".", 1)[0] if "." in host else host
+
+
+def company_second_domain(email_domain: str, hosts: Iterable[str],
+                          company_name: str) -> bool:
+    """True when a domain read on the company's own site carries the company's
+    name: the same name under another ending, or a shorter or longer form.
+
+    The domain's name is compared with the site's host and with the company
+    name, letters and digits only. They must start alike for at least
+    `MIN_SHARED_NAME_CHARS` characters and for `SHARED_NAME_SHARE` of the
+    shorter of the two, so that an agency, a tool or a name that merely
+    starts with the same letters is never taken for the company.
+    """
+    domain = _squash(_without_ending(email_domain))
+    references = {_squash(" ".join(word for word in re.findall(r"[^\W_]+", company_name.lower())
+                                   if word not in _LEGAL_FORMS))}
+    for host in hosts:
+        references |= {_squash(host), _squash(_without_ending(host))}
+    for reference in references:
+        shared = 0
+        for a, b in zip(domain, reference):
+            if a != b:
+                break
+            shared += 1
+        if shared >= MIN_SHARED_NAME_CHARS \
+                and shared >= SHARED_NAME_SHARE * min(len(domain), len(reference)):
+            return True
+    return False
+
+
 def _soup(html: str) -> BeautifulSoup:
     return BeautifulSoup(html, "html.parser")
 

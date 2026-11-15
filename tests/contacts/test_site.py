@@ -1,7 +1,8 @@
 import pytest
 
 from kaltstart.contacts.site import (
-    links, on_company_domain, profile_on_another_site, same_site, site_host,
+    company_second_domain, links, on_company_domain, profile_on_another_site,
+    same_site, site_host,
     visible_text)
 
 
@@ -71,3 +72,26 @@ def test_links_are_absolute_in_order_without_fragments():
 ])
 def test_profile_on_another_site(website, name, expected):
     assert profile_on_another_site(website, name) is expected
+
+
+@pytest.mark.parametrize("domain,host,name,expected", [
+    # The same name under another ending, or written with a hyphen.
+    ("qubitrobotics.example", "qubitrobotics.test", "Qubit Robotics", True),
+    ("qubit-robotics.example", "qubit.robotics", "Qubit Robotics", True),
+    # A shorter or a longer form of the same name.
+    ("qubit.example", "qubit-robotics.test", "Qubit Robotics AG", True),
+    ("qubit-robotics.example", "qubit.test", "Qubit", True),
+    ("qubitrx.example", "qubitrobotics.test", "Qubit Robotics", True),
+    # A site still on its builder's host: the company name decides.
+    ("qubit.example", "qubit-robotics.builder.test", "Qubit Robotics", True),
+    ("builder.example", "qubit-robotics.builder.test", "Qubit Robotics", False),
+    # Somebody else: an agency, a tool, a name that only starts alike.
+    ("agency.example", "qubitrobotics.test", "Qubit Robotics", False),
+    ("mail.jobtool.example", "qubitrobotics.test", "Qubit Robotics", False),
+    ("qubicle-agency.example", "qubitrobotics.test", "Qubit Robotics", False),
+    ("robotics.example", "qubitrobotics.test", "Qubit Robotics", False),
+    # Too short to mean anything.
+    ("qub.example", "qub.test", "Qub", False),
+])
+def test_company_second_domain(domain, host, name, expected):
+    assert company_second_domain(domain, [host], name) is expected

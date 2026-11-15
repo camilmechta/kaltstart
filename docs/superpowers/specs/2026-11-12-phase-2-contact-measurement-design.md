@@ -105,6 +105,9 @@ Five steps, one module each, under `src/kaltstart/contacts/`.
 - Waits at least 2 seconds between two requests to the same site, redirect
   hops included.
 - Fetches at most 8 pages per company, home page included.
+- When the website in the sample has a path and that page cannot be read
+  (a 404, for instance), the root of the same site is read as the home page
+  instead. Not when `robots.txt` forbids the page.
 - Stays on the company's site: same host as the website in the sample, with
   or without `www`, or a subdomain of it. Links to any other site are
   ignored. Redirects are followed by hand, at most 5 hops, and each hop is
@@ -127,7 +130,7 @@ text or address contains a keyword, in this priority order:
 
 | Priority | Kind | Keywords |
 |---|---|---|
-| 1 | Legal notice | impressum, imprint, legal |
+| 1 | Legal notice | impressum, imprint, site notice, legal |
 | 2 | Contact | contact, kontakt |
 | 3 | Team and about | team, about, ueber-uns, über uns, about-us, company, unternehmen |
 | 4 | Careers | careers, career, jobs, karriere, join |
@@ -147,8 +150,14 @@ fixed paths of the parent spec (`/impressum`, `/imprint`, `/contact`, `/team`,
 - Only addresses on the company's domain are kept: the site's host, a
   subdomain of it, or its parent when the host is a generic subdomain such as
   `app.` or `shop.`. The parent of any other subdomain may belong to a
-  university or a site builder and is not trusted. Addresses on another
-  domain are counted, not kept (see 5.6).
+  university or a site builder and is not trusted.
+- An address on a second domain is kept when that domain carries the
+  company's name: letters and digits only, without its ending, it starts
+  like the site's host or like the company name for at least 5 characters
+  and for 75 % of the shorter of the two (`example-robotics.com` for
+  `example.ch` of Example Robotics). An agency, a tool or a site builder
+  never passes.
+- Addresses on any other domain are counted, not kept (see 5.6).
 - Addresses hidden by Cloudflare's email protection are decoded: they are
   published, and every browser shows them.
 - Addresses of website tooling are discarded (for example error-tracking or

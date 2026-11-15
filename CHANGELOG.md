@@ -37,6 +37,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   a customer's logo and job titles in Italian or French are not. A website
   that is a profile on another organisation's site is reported as
   `not_own_site` and not read.
+- After the verdict on 60 companies, three address fixes: the root of the
+  site is read when the stored page no longer exists, a "Site Notice" link
+  is read as a legal notice, and an address on a second domain that carries
+  the company's name is kept.
 - A network failure on `robots.txt` is reported as `unreachable`, not as
   `robots_forbidden`.
 - Founder extraction rewritten from the failures of the first measurement:

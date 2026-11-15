@@ -60,9 +60,9 @@ Out of scope, in the phases that already hold them:
 - Mail wording that depends on the recipient's job: Phase 3.
 - The nightly run, the database table, removal on request: the second plan of
   Phase 2, after the verdict.
-- Accepting a company's second domain when its own legal notice presents it
-  as its own (seen 4 times in 80 companies): a separate change, after this
-  one, so that one measurement tests one change.
+- Accepting a company's second domain (seen 4 times in 80 companies): a
+  separate change, after this one, so that one measurement tests one
+  change. Done after the verdict, see decision D55.
 - The Swiss commercial register as a second source: later, if the measurement
   shows small Swiss companies are the weak point.
 - Everything about addresses, which is accepted as it is.

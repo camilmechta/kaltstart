@@ -159,3 +159,11 @@ def test_a_profile_page_on_another_organisation_s_site_is_not_read():
     result = scrape_company(company, Unused())
     assert result.failure == "not_own_site"
     assert result.contact is None and result.people == () and result.pages_fetched == ()
+
+
+def test_address_on_a_second_domain_of_the_company_is_proposed():
+    result = scrape(ok(page("/impressum", "legal",
+                            "<p>info@example-robotics.com</p><p>web@agency.example.com</p>")))
+    assert result.failure is None
+    assert [e.address for e in result.emails] == ["info@example-robotics.com"]
+    assert result.contact.address == "info@example-robotics.com"

@@ -39,7 +39,7 @@ def scrape_company(company: dict, fetcher,
     people: dict[str, FoundPerson] = {}
     other_domain = 0
     for page in outcome.pages:
-        kept, others = extract_addresses(page, outcome.hosts)
+        kept, others = extract_addresses(page, outcome.hosts, company["name"])
         other_domain += others
         for address in kept:
             addresses.setdefault(address, page.url)

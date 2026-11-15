@@ -7,7 +7,8 @@ from urllib.parse import unquote
 from bs4 import BeautifulSoup
 
 from kaltstart.contacts.models import Page
-from kaltstart.contacts.site import on_company_domain, visible_text
+from kaltstart.contacts.site import (
+    company_second_domain, on_company_domain, visible_text)
 
 TOOLING_DOMAINS = ("sentry.io", "wixpress.com")
 _IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp")
@@ -67,8 +68,12 @@ def _is_noise(domain: str) -> bool:
     return any(domain == d or domain.endswith("." + d) for d in TOOLING_DOMAINS)
 
 
-def extract_addresses(page: Page, hosts: Iterable[str]) -> tuple[list[str], int]:
+def extract_addresses(page: Page, hosts: Iterable[str],
+                      company_name: str = "") -> tuple[list[str], int]:
     """Addresses on the company's domain, and how many others were seen.
+
+    With a company name, an address on a second domain that carries that
+    name is kept too (see `site.company_second_domain`).
 
     Kept addresses are lower case, in order of first appearance, without
     duplicates. Addresses of website tooling are ignored altogether.
@@ -83,7 +88,8 @@ def extract_addresses(page: Page, hosts: Iterable[str]) -> tuple[list[str], int]
         domain = address.rsplit("@", 1)[1]
         if _is_noise(domain):
             continue
-        if on_company_domain(domain, hosts):
+        if on_company_domain(domain, hosts) or (
+                company_name and company_second_domain(domain, hosts, company_name)):
             if address not in kept:
                 kept.append(address)
         else:

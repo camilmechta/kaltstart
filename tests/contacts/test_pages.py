@@ -14,7 +14,7 @@ def a(href, text="link"):
 
 def test_constants_match_the_spec():
     assert KINDS == ("legal", "contact", "team", "careers")
-    assert KEYWORDS["legal"] == ("impressum", "imprint", "legal")
+    assert KEYWORDS["legal"] == ("impressum", "imprint", "site notice", "legal")
     assert KEYWORDS["contact"] == ("contact", "kontakt")
     assert KEYWORDS["team"] == ("team", "about", "ueber-uns", "über uns",
                                 "about-us", "company", "unternehmen")
@@ -113,3 +113,11 @@ def test_keywords_match_whole_words_only():
 def test_home_page_variants_are_never_chosen():
     html = home(a("/?lang=en", "Company"), a("https://www.example.ch/", "About"), a("/team"))
     assert choose_links(html, HOME, HOSTS) == [("https://example.ch/team", "team")]
+
+
+def test_site_notice_is_a_legal_page():
+    html = home(a("/p/7", "Site Notice"), a("/site-notice"), a("/notice-board"))
+    assert choose_links(html, HOME, HOSTS) == [
+        ("https://example.ch/p/7", "legal"),
+        ("https://example.ch/site-notice", "legal"),
+    ]

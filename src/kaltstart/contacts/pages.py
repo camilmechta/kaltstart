@@ -8,7 +8,7 @@ from kaltstart.contacts.site import links, same_site, site_host
 
 KINDS = ("legal", "contact", "team", "careers")
 KEYWORDS: dict[str, tuple[str, ...]] = {
-    "legal": ("impressum", "imprint", "legal"),
+    "legal": ("impressum", "imprint", "site notice", "legal"),
     "contact": ("contact", "kontakt"),
     "team": ("team", "about", "ueber-uns", "über uns", "about-us", "company",
              "unternehmen"),

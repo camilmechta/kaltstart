@@ -80,3 +80,14 @@ def test_cloudflare_protected_addresses_are_decoded(body):
 def test_broken_cloudflare_code_is_ignored():
     html = '<span class="__cf_email__" data-cfemail="zz12">x</span><a href="/cdn-cgi/l/email-protection#4">y</a>'
     assert extract_addresses(page(html), ["example.ch"]) == ([], 0)
+
+
+def test_second_domain_of_the_company_is_kept_when_the_name_is_given():
+    body = "<p>info@example-robotics.com, web@agency.example.com</p>"
+    found = extract_addresses(page(body), ["example.ch"], "Example Robotics")
+    assert found == (["info@example-robotics.com"], 1)
+
+
+def test_without_a_company_name_no_second_domain_is_kept():
+    body = "<p>info@example-robotics.com</p>"
+    assert extract_addresses(page(body), ["example.ch"]) == ([], 1)

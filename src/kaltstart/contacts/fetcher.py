@@ -60,6 +60,10 @@ class SiteFetcher:
 
         # A redirect of the home page may lead to the company's new domain.
         status, final_url, html = self._fetch(home_url, hosts, may_add_host=True)
+        root_url = _origin(home_url) + "/"
+        if status == "failed" and home_url != root_url:
+            # The stored address may point to a page that no longer exists.
+            status, final_url, html = self._fetch(root_url, hosts, may_add_host=True)
         if status != "ok":
             failed = "robots_forbidden" if status == "forbidden" else "unreachable"
             return FetchOutcome(failed, (), tuple(hosts))
