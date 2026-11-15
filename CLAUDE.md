@@ -84,8 +84,9 @@ docs/                       specification and plans
 .github/workflows/          CI and nightly jobs
 ```
 
-`ingestion/` is done (Phase 1) and `contacts/` is in progress (Phase 2); the
-other directories are created in their phase.
+`ingestion/` is done (Phase 1). `contacts/` runs every night for Switzerland
+(Phase 2); Germany and Austria wait for a measurement. The other
+directories are created in their phase.
 
 ## Maintenance
 

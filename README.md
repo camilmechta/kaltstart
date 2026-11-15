@@ -12,7 +12,7 @@ reviews and sends the mail from their own mailbox; the app never sends anything.
 |---|---|---|
 | 0. Scoping | Spec, PRD, repository, structure | Done |
 | 1. Ingestion | Tech.eu funding rounds to Supabase | Done |
-| 2. Contacts | Contact scraper | In progress |
+| 2. Contacts | Contact scraper, stored and read every night (Switzerland) | Done for Switzerland; Germany and Austria to be measured |
 | 3. Mails | Mail generator, English and German | Not started |
 | 4. Front end | Server and web app | Not started |
 | 5. Test | Test with 20 students | Not started |
@@ -167,6 +167,10 @@ never been visited, again 30 days after a reading, and 7 days after a
 failure to reach it; after three such failures in a row its contacts are
 deleted. Only Switzerland is read for now: the scraper has not been measured
 on German and Austrian sites yet.
+
+After the first full run (2026-11-15), the 236 eligible Swiss companies have
+been read: 161 have an address stored and 110 a suggested person. These are
+the scraper's own counts, not verified figures.
 
 Addresses are stored in `contact_emails`, people in `contact_people`. A
 person is a suggestion: the app will show the name, the title and the page

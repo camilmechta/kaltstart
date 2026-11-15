@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- First full contact run on the 236 eligible Swiss companies: 161 with an
+  address stored, 110 with a person suggested. The nightly run is live.
 - Contact storage: tables `contact_emails`, `contact_people`,
   `contact_exclusions` and `contact_runs`, the `run` and `status` commands,
   and the `contacts` workflow that reads the due company sites every night
