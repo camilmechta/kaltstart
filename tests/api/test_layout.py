@@ -22,7 +22,7 @@ def test_the_navigation_once_signed_in(client):
     page = client.get("/companies").text
     for link in ('href="/companies"', 'href="/mails"', 'href="/profile"'):
         assert link in page
-    assert "0 / 5 pending" in page
+    assert '<a class="pill" href="/mails"' in page and "0 of 5 mails in progress" in page
 
 
 def test_the_css_defines_every_design_token_in_both_themes():
@@ -54,3 +54,19 @@ def test_assets_carry_a_version_so_browsers_reload_them(client):
     digest = hashlib.sha256(CSS.read_bytes()).hexdigest()[:10]
     assert f"/static/app.css?v={digest}" in page
     assert "/static/app.js?v=" in page
+
+
+
+def test_my_mails_explains_mails_in_progress(client):
+    sign_up_and_in(client)
+    page = client.get("/mails").text
+    assert "in progress" in page and "not marked as sent or abandoned" in page
+
+
+def test_figures_and_tags_use_the_main_font_and_inputs_are_styled():
+    css = CSS.read_text()
+    for selector in (".amount {", ".size {", ".kicker {", ".pill {"):
+        block = css.split(selector, 1)[1].split("}", 1)[0]
+        assert "var(--font-mono)" not in block, selector
+    assert 'input[type="checkbox"], input[type="radio"] {' in css
+    assert "appearance: none" in css

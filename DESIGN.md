@@ -48,11 +48,12 @@ suggested person, so colour points at what matters.
 
 ## Typography
 
-- **Geist** for everything, **Geist Mono** for figures and labels:
-  amounts, stages, counters, dates in tables, the SUBJECT/TO labels of a
-  mail. Both are under the SIL Open Font License and are served from the
-  app itself (no third-party font service), in woff2, weights 400, 500,
-  600, 700 for Geist and 400, 500 for Geist Mono.
+- **Geist** for everything, figures included, with tabular figures so
+  amounts and dates line up. **Geist Mono** is kept in the files but no
+  longer used on screen: the owner found the monospaced labels harsh
+  (2026-11-16). Both fonts are under the SIL Open Font License and are
+  served from the app itself (no third-party font service), as variable
+  woff2 files with their licence.
 - Figures use `font-variant-numeric: tabular-nums`.
 - Headings: weight 700, letter spacing -0.03em at 26px and above, -0.02em
   below.
@@ -107,13 +108,20 @@ dense lists do. Running text is at most 68 characters wide.
   of the limit, `--error` above it.
 - **Company row**: `--surface`, 1px `--border`, 10px radius; hover border
   `--border-strong` and background `--surface-2`; the whole row is the link.
-- **Tag** (stage, country): Geist Mono 11px upper case, `--surface-2`
-  background, `--muted` text, 6px radius.
-- **Size tag**: Geist Mono 11px upper case. Small: `--primary-soft` and
+- **Tag** (month, "Suggested"): a pill, Geist 12px weight 500,
+  `--surface-2` background, `--muted` text.
+- **Size tag**: a pill (full radius), Geist 12px weight 500, sentence case,
+  with a 6px dot of its colour before the word. Small: `--primary-soft` and
   `--link`; Medium: `--accent-soft` and `--accent`; Large: `--surface-2`
   and `--text` with a 1px `--border-strong`. A one-line legend under the
   filters says what each size means for the student.
-- **Kicker**: Geist Mono 12px upper case in `--accent`, above a page title.
+- **Kicker**: Geist 13px weight 600 in `--accent`, above a page title.
+- **Checkbox and radio**: drawn by the app, 18px, `--surface` with a 1.5px
+  `--border-strong` border; hover border `--primary`; a checked checkbox is
+  filled `--primary` with an `--on-primary` tick; a checked radio has a
+  `--primary` border and dot.
+- **In-progress counter** (navigation): "N of 5 mails in progress", a pill
+  that links to My mails, where the limit is explained.
 - **Stepper** (company page): three numbered steps in a row; the number in
   a 24px circle, `--primary-soft` with `--link` for the current step,
   `--accent-soft` with `--accent` and a check for a finished one.

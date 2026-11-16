@@ -34,7 +34,7 @@
   {% for item in items %}{% set c = item.company %}
   <li><a class="row" href="/companies/{{ c.id }}">
     <div><span class="row-title">{{ c.name }}</span><div class="row-detail"><span class="size size-{{ c.size_category }}">{{ size_info[c.size_category][0] }}</span> {{ c.sector or '' }}</div></div>
-    <div><span class="amount">{{ item.round }}</span><div class="row-detail mono">{{ c.round_date.strftime('%b %Y') }}</div></div>
+    <div><span class="amount">{{ item.round }}</span><div class="row-detail">{{ c.round_date.strftime('%b %Y') }}</div></div>
     <div class="row-detail">{{ c.city or '' }}{% if c.city %} · {% endif %}{{ c.country }}</div>
     <div class="row-detail">{% if item.last_slot %}<span class="last-slot">Last slot</span> · {% endif %}<span class="{{ 'contact-person' if item.contact == 'People named' else '' }}">{{ item.contact }}</span></div>
   </a></li>
@@ -42,7 +42,7 @@
 </ul>
 <div class="pager">
   {% if previous %}<a href="{{ previous }}">← Previous</a>{% endif %}
-  <span class="mono">Page {{ page_number }} / {{ pages }}</span>
+  <span>Page {{ page_number }} of {{ pages }}</span>
   {% if next_page %}<a href="{{ next_page }}">Next →</a>{% endif %}
 </div>
 {% else %}
