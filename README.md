@@ -36,8 +36,8 @@ A nightly job keeps the data up to date, and a weekly job re-reads the last
 
 ### Phase 2 measurements
 
-The contact scraper is measured on Swiss companies drawn at random, with every
-result checked by hand. Samples and summaries are in
+The contact scraper is measured on companies drawn at random, with every
+result checked on the company's site by an assistant. Samples and summaries are in
 [docs/measurements](docs/measurements); they contain no name and no address.
 
 | Confirmed, on companies never seen before | Run 1 | Run 2 | Runs 3 and 4 | Threshold | Verdict |

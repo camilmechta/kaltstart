@@ -269,7 +269,8 @@ The protocol of the contact measurement, with these changes:
    frozen between the two. Twenty companies were shown to be too few to
    conclude (D42).
 3. Verification by an assistant on all 40 with a browser that renders
-   JavaScript, then by the owner on 5 companies of each sample.
+   JavaScript, then by the owner on 5 companies of each sample (dropped from
+   2026-11-16, decision D64).
 
 The verification column `founder_check` becomes `people_check`, with the same
 four values: `confirmed` (every person reported is right), `wrong` (at least

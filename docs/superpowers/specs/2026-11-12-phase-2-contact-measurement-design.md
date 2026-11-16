@@ -65,6 +65,10 @@ Out of scope, deferred to a later plan that depends on the verdict:
    project owner then confirms the reported finds through their source links
    and checks 5 of the 20 companies independently, drawn at random. If the two
    passes disagree on any of those 5, all 20 are checked again.
+   From 2026-11-16 (decision D64) the owner's check is dropped: in nine
+   measurements it never disagreed with the assistant. Instead, every row the
+   assistant marks `wrong` is checked again on the saved page by the
+   implementer, since the assistant was once wrong in that direction.
 4. **Verdict.** The confirmed rates are compared with the thresholds and the
    result is recorded in `DECISIONS.md`.
 
