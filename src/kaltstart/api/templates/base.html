@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en" data-theme="">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Kaltstart{% endblock %}</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="logo" href="/"><b>Kalt</b>start</a>
+      {% if user_id %}
+      <nav class="nav-links">
+        <a href="/companies" {% if path.startswith('/companies') %}aria-current="page"{% endif %}>Companies</a>
+        <a href="/mails" {% if path.startswith('/mails') %}aria-current="page"{% endif %}>My mails</a>
+        <a href="/profile" {% if path.startswith('/profile') %}aria-current="page"{% endif %}>Profile</a>
+      </nav>
+      <span class="pill" title="Mails waiting for a status">{{ pending }} / 5 pending</span>
+      <form method="post" action="/signout" class="inline">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <button class="btn-quiet" type="submit">Sign out</button>
+      </form>
+      {% endif %}
+    </div>
+  </header>
+  <main class="{% block main_class %}container{% endblock %}">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>Kaltstart · funding data: Tech.eu Funding Explorer, CC BY 4.0</span>
+      <span>To be removed from Kaltstart, write to <a href="mailto:{{ removal_contact }}">{{ removal_contact }}</a></span>
+      <button class="btn-quiet" type="button" data-theme-toggle>Light / dark</button>
+    </div>
+  </footer>
+</body>
+</html>

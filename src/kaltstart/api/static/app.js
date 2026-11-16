@@ -1,0 +1,62 @@
+// Kaltstart: the few things a page cannot do without a script.
+// Every feature works without it, except copying to the clipboard.
+(function () {
+  "use strict";
+
+  // Theme: the system setting, or the student's choice kept in this browser.
+  var root = document.documentElement;
+  try {
+    var saved = localStorage.getItem("theme");
+    if (saved === "light" || saved === "dark") root.setAttribute("data-theme", saved);
+  } catch (e) { /* storage blocked: follow the system */ }
+
+  function current() {
+    var set = root.getAttribute("data-theme");
+    if (set) return set;
+    return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  }
+
+  document.addEventListener("click", function (event) {
+    var toggle = event.target.closest("[data-theme-toggle]");
+    if (toggle) {
+      var next = current() === "light" ? "dark" : "light";
+      root.setAttribute("data-theme", next);
+      try { localStorage.setItem("theme", next); } catch (e) { /* ignore */ }
+      return;
+    }
+
+    // Copy buttons: data-copy="<id of the element holding the text>".
+    var button = event.target.closest("[data-copy]");
+    if (!button) return;
+    var source = document.getElementById(button.getAttribute("data-copy"));
+    if (!source || !navigator.clipboard) return;
+    navigator.clipboard.writeText(source.innerText).then(function () {
+      var label = button.textContent;
+      button.textContent = "Copied";
+      setTimeout(function () { button.textContent = label; }, 2000);
+      // Copying the body tells the server the mail moved to "copied".
+      var notify = button.getAttribute("data-copied-form");
+      if (notify) {
+        var form = document.getElementById(notify);
+        if (form) fetch(form.action, { method: "POST", body: new FormData(form), credentials: "same-origin" });
+      }
+    });
+  });
+
+  // Live word counters: <textarea data-max-words="60"> and <span data-counter-for="id">.
+  function count(field) {
+    var words = field.value.trim() ? field.value.trim().split(/\s+/).length : 0;
+    var max = parseInt(field.getAttribute("data-max-words"), 10);
+    var counter = document.querySelector('[data-counter-for="' + field.id + '"]');
+    if (!counter) return;
+    counter.textContent = words + " / " + max + " words";
+    counter.classList.toggle("near", words >= max * 0.9 && words <= max);
+    counter.classList.toggle("over", words > max);
+  }
+  document.addEventListener("input", function (event) {
+    if (event.target.matches("[data-max-words]")) count(event.target);
+  });
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("[data-max-words]").forEach(count);
+  });
+})();
