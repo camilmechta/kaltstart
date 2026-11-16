@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Profile · Kaltstart{% endblock %}
+{% block main_class %}container column{% endblock %}
+{% macro error(name) %}{% if errors.get(name) %}<p class="error-text" role="alert">{{ errors[name] }}</p>{% endif %}{% endmacro %}
+{% macro cls(name) %}{% if errors.get(name) %}field-error{% endif %}{% endmacro %}
+{% block content %}
+<h1 class="title-xl">Your profile</h1>
+<p class="muted">Filled once, used for every mail. Complete it before your first mail.</p>
+{% if saved %}<p class="notice notice-success" role="status" style="margin-top:16px">Profile saved.</p>{% endif %}
+{% if errors %}<p class="notice notice-error" role="alert" style="margin-top:16px">Some fields need your attention.</p>{% endif %}
+<form method="post" action="/profile" class="stack" style="margin-top:24px">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <div class="card stack">
+    <h2 class="title-lg">You</h2>
+    <label>First name <input class="{{ cls('first_name') }}" type="text" name="first_name" value="{{ profile.first_name }}" autocomplete="given-name" maxlength="40">{{ error('first_name') }}</label>
+    <label>Last name <input class="{{ cls('last_name') }}" type="text" name="last_name" value="{{ profile.last_name }}" autocomplete="family-name" maxlength="40">{{ error('last_name') }}</label>
+    <label>Degree programme <input class="{{ cls('programme') }}" type="text" name="programme" value="{{ profile.programme }}" placeholder="e.g. Business Innovation" maxlength="70">{{ error('programme') }}</label>
+    <fieldset><legend class="small muted">Languages you write in</legend>
+      <label class="choice"><input type="checkbox" name="lang_en" checked disabled> English</label>
+      <input type="hidden" name="lang_en" value="on">
+      <label class="choice"><input type="checkbox" name="lang_de" {% if 'de' in profile.languages %}checked{% endif %}> German</label>
+    </fieldset>
+    <label>Link: LinkedIn, website or portfolio (optional) <input class="{{ cls('link') }}" type="url" name="link" value="{{ profile.link or '' }}" placeholder="https://">{{ error('link') }}</label>
+  </div>
+
+  <div class="card stack">
+    <h2 class="title-lg">What you are looking for</h2>
+    <label>Target role
+      <select class="{{ cls('target_role') }}" name="target_role">
+        <option value="">Choose…</option>
+        {% for value, label in roles.items() %}<option value="{{ value }}" {% if profile.target_role == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>{{ error('target_role') }}</label>
+    <fieldset><legend class="small muted">I am looking for</legend>
+      <label class="choice"><input type="radio" name="request" value="internship" {% if profile.request != 'part_time' %}checked{% endif %}> An internship</label>
+      <label class="choice"><input type="radio" name="request" value="part_time" {% if profile.request == 'part_time' %}checked{% endif %}> Part-time work</label>
+      {{ error('request') }}
+    </fieldset>
+    <label>From <input class="{{ cls('start_date') }}" type="date" name="start_date" value="{{ profile.start_date or '' }}">{{ error('start_date') }}</label>
+    <label>Internship: duration in months <input class="{{ cls('duration_months') }}" type="number" min="1" max="24" name="duration_months" value="{{ profile.duration_months or '' }}">{{ error('duration_months') }}</label>
+    <label>Part-time: workload in per cent <input class="{{ cls('workload_percent') }}" type="number" min="10" max="100" step="10" name="workload_percent" value="{{ profile.workload_percent or '' }}">{{ error('workload_percent') }}</label>
+  </div>
+
+  <div class="card stack">
+    <h2 class="title-lg">Your showcase sentences</h2>
+    <p class="small muted">The heart of every mail: what you have done that shows you can help. Up to 60 words. Write the German version only if you write in German.</p>
+    {% for position in (1, 2) %}
+    {% set s = showcase.get(position) %}
+    <label>Showcase sentence {{ position }}{% if position == 1 %} (required){% else %} (optional){% endif %}, English
+      <textarea class="{{ cls('showcase%d_en' % position) }}" id="showcase{{ position }}_en" name="showcase{{ position }}_en" data-max-words="60">{{ s.text_en if s and s.text_en else '' }}</textarea>
+      <span class="counter" data-counter-for="showcase{{ position }}_en"></span>{{ error('showcase%d_en' % position) }}</label>
+    <label>Showcase sentence {{ position }}, German version
+      <textarea class="{{ cls('showcase%d_de' % position) }}" id="showcase{{ position }}_de" name="showcase{{ position }}_de" data-max-words="60">{{ s.text_de if s and s.text_de else '' }}</textarea>
+      <span class="counter" data-counter-for="showcase{{ position }}_de"></span>{{ error('showcase%d_de' % position) }}</label>
+    {% endfor %}
+  </div>
+
+  <div class="card stack">
+    <h2 class="title-lg">Preferences</h2>
+    <p class="small muted">They only pre-set the filters of the company list.</p>
+    <fieldset><legend class="small muted">Countries</legend>
+      {% for country in countries %}<label class="choice"><input type="checkbox" name="pref_country" value="{{ country }}" {% if country in profile.preferred_countries %}checked{% endif %}> {{ country }}</label>{% endfor %}
+    </fieldset>
+    <fieldset><legend class="small muted">Sectors</legend>
+      {% for sector in sectors %}<label class="choice"><input type="checkbox" name="pref_sector" value="{{ sector }}" {% if sector in profile.preferred_sectors %}checked{% endif %}> {{ sector }}</label>{% endfor %}
+    </fieldset>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary" type="submit">Save</button>
+    <a class="btn-quiet" href="/profile/delete">Delete my account</a>
+  </div>
+</form>
+{% endblock %}

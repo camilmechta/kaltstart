@@ -42,3 +42,25 @@ def sign_up_and_in(client, email="lea@example.com", password="a-long-password"):
                                             "csrf": csrf(client)})
     assert response.status_code == 303, response.text
     return response
+
+
+def user_id(auth, email="lea@example.com"):
+    return auth.users[email][2]
+
+
+PROFILE = {
+    "first_name": "Lea", "last_name": "Beispiel", "programme": "Business Innovation",
+    "lang_en": "on", "target_role": "growth", "request": "internship",
+    "start_date": "2027-04-01", "duration_months": "3", "workload_percent": "",
+    "link": "https://example.com/lea",
+    "showcase1_en": "I grew a student newsletter from 0 to 4000 readers in one year.",
+    "showcase1_de": "", "showcase2_en": "", "showcase2_de": "",
+    "pref_country": ["Switzerland", "Germany"],
+}
+
+
+def save_profile(client, **changes):
+    data = dict(PROFILE)
+    data.update(changes)
+    data["csrf"] = csrf(client, "/profile")
+    return client.post("/profile", data=data)
