@@ -274,6 +274,25 @@ All in `tests/mailgen/`, invented people and companies only:
 Jinja2 is added to the dependencies of `pyproject.toml`. `DECISIONS.md` and
 `CHANGELOG.md` are updated as for every phase.
 
+## 10b. Change after the owner's reading (decision D71)
+
+The owner reversed the weight of the two texts of the student:
+
+- The **showcase sentence** of the profile (the chosen example) is the heart
+  of every mail and is required in the mail's language; refusal names
+  `example`. A short lead-in introduces it: "A bit about me:" / "Kurz zu
+  mir:" (Direct), "What I bring:" / "Was ich mitbringe:" (Round), "One
+  example of my work:" / "Ein Beispiel aus meiner Arbeit:" (Formal).
+- The **sentence about the company** is a bonus for a motivated student who
+  researched the company, since users of the app usually do not know the
+  startup yet. It comes after the showcase, in its own paragraph. In Round
+  and Formal it replaces the paragraph about the role, to keep within 150
+  words (the owner's choice among three options).
+- Each text stays at most 35 words and 200 characters; the two together at
+  most 50 words, else the refusal names `company_line`. With the longest
+  realistic inputs the worst mail is then under 150 words in every style.
+- The reference mails cover both cases: twelve files.
+
 ## 11. Open points for the owner
 
 - The sector sentence is dropped (section 8.4).

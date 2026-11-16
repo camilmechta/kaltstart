@@ -11,6 +11,8 @@ from tests.mailgen.helpers import company, contact, round_, student
 
 # The longest a student text may be: 35 words within 200 characters.
 LONG_TEXT = " ".join(["abcd"] * 35)[:198] + "."
+# With the showcase at 35 words, the company sentence may hold 15 (50 together).
+LONG_LINE = " ".join(["abcd"] * 15) + "."
 LONG_COMPANY = "Example Robotics And Autonomous Systems X"          # 41 characters
 LONG_INVESTOR = "Example Ventures Growth Opportunities Fund"[:40]
 # The longest HSG programme name, and long first and last names.
@@ -45,7 +47,7 @@ def test_every_combination(style, language):
         rnd = round_(**values)
         m = generate(stu, company(name=LONG_COMPANY), rnd, contact(person_name=person),
                      style=style, language=language,
-                     company_line=LONG_TEXT if with_line else None, variant=number)
+                     company_line=LONG_LINE if with_line else None, variant=number)
         case = (style, language, size, role, kind, missing, with_line, number, person)
         assert not GAPS.search(m.body), (case, m.body)
         assert len(m.body.split()) <= MAX_BODY_WORDS, (case, len(m.body.split()))

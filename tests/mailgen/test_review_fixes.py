@@ -117,3 +117,12 @@ def test_an_out_of_range_variant_is_refused(changes):
 def test_an_unknown_role_or_request_is_refused(changes):
     with pytest.raises(ValueError):
         mail(student=student(**changes))
+
+
+def test_the_two_sentences_together_stay_within_50_words():
+    showcase = " ".join(["word"] * 30) + "."
+    two = student(examples=(Example(showcase, showcase),))
+    assert mail(student=two, company_line=" ".join(["line"] * 20))
+    with pytest.raises(TooLong) as error:
+        mail(student=two, company_line=" ".join(["line"] * 21))
+    assert error.value.field == "company_line"

@@ -39,12 +39,35 @@ def test_formal_greetings():
         "Dear Example Robotics team,")
 
 
-def test_company_line_is_the_core_when_given():
-    with_line = mail(company_line=LINE)
-    assert with_line.used_company_line and LINE in with_line.body
-    without = mail()
-    assert not without.used_company_line
-    assert student().examples[0].text_en in without.body
+SHOWCASE = student().examples[0].text_en
+LEAD_INS = {("direct", "en"): "A bit about me:", ("round", "en"): "What I bring:",
+            ("formal", "en"): "One example of my work:", ("direct", "de"): "Kurz zu mir:",
+            ("round", "de"): "Was ich mitbringe:", ("formal", "de"): "Ein Beispiel aus meiner Arbeit:"}
+
+
+@pytest.mark.parametrize("style,language", LEAD_INS)
+def test_the_showcase_sentence_is_the_core_with_its_lead_in(style, language):
+    m = mail(style=style, language=language)
+    example = student().examples[0]
+    text = example.text_en if language == "en" else example.text_de
+    assert f"{LEAD_INS[(style, language)]} {text}" in m.body
+    assert not m.used_company_line
+
+
+@pytest.mark.parametrize("style", ["direct", "round", "formal"])
+def test_the_company_line_comes_after_the_showcase(style):
+    m = mail(style=style, company_line=LINE)
+    assert m.used_company_line
+    paragraphs = m.body.split("\n\n")
+    showcase = next(i for i, p in enumerate(paragraphs) if SHOWCASE in p)
+    assert paragraphs[showcase + 1] == LINE
+
+
+@pytest.mark.parametrize("style", ["round", "formal"])
+def test_the_role_paragraph_gives_way_to_the_company_line(style):
+    role = "New funding means ambitious targets."
+    assert role in mail(style=style).body
+    assert role not in mail(style=style, company_line=LINE).body
 
 
 def test_the_chosen_example_is_used():
@@ -72,12 +95,12 @@ def test_missing_address_is_named():
     assert error.value.fields == ("contact_address",)
 
 
-def test_a_german_mail_without_a_german_text_is_refused():
+def test_a_mail_needs_a_showcase_sentence_in_its_language():
     english_only = student(examples=(Example("Only English.", None),))
-    with pytest.raises(MissingData) as error:
-        mail(student=english_only, language="de")
-    assert error.value.fields == ("company_line_or_example",)
-    assert mail(student=english_only, language="de", company_line="Ich kenne euer Produkt.")
+    for line in (None, "Ich kenne euer Produkt."):
+        with pytest.raises(MissingData) as error:
+            mail(student=english_only, language="de", company_line=line)
+        assert error.value.fields == ("example",)
 
 
 def test_several_missing_fields_are_named_in_order():
@@ -160,7 +183,8 @@ def test_the_round_opening_names_the_role_once(language, number):
 
 def test_round_keeps_the_role_paragraph_apart():
     paragraphs = mail(style="round").body.split("\n\n")
-    assert paragraphs[2] == student().examples[0].text_en
+    assert paragraphs[2] == f"What I bring: {student().examples[0].text_en}"
+    assert paragraphs[3].startswith("New funding means")
 
 
 @pytest.mark.parametrize("style,greeting", [("direct", "Hallo zusammen!"), ("round", "Hallo zusammen,")])

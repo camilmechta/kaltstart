@@ -128,9 +128,10 @@ right lists of 9 (78 %), and 39 of 44 (89 %) over runs 5 to 9.
 application from a student's profile, a company, its round and a contact. It
 is a pure function: no network, no database, no AI. Three styles (Direct,
 Round, Formal), each in English and German, at most 150 words and a subject
-of at most 60 characters. The student may add one sentence of their own
-about the company; it becomes the heart of the mail. The six reference mails
-are in [tests/mailgen/golden](tests/mailgen/golden).
+of at most 60 characters. Every mail is built around the student's
+showcase sentence from their profile; a motivated student may add a sentence
+of their own about the company. The twelve reference mails are in
+[tests/mailgen/golden](tests/mailgen/golden).
 
 ## Installation
 

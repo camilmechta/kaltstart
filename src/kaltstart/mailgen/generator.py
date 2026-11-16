@@ -13,7 +13,8 @@ from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 from kaltstart.mailgen.choices import subject, variant as choose_variant
 from kaltstart.mailgen.models import (
-    LANGUAGES, MAX_NAME_CHARS, MAX_PROGRAMME_CHARS, MAX_TEXT_CHARS, MAX_TEXT_WORDS, REQUESTS,
+    LANGUAGES, MAX_NAME_CHARS, MAX_PROGRAMME_CHARS, MAX_TEXT_CHARS, MAX_TEXT_WORDS,
+    MAX_TWO_TEXTS_WORDS, REQUESTS,
     ROLES, STYLES, VARIANTS, Company, Contact, Mail, MissingData, Round, Student, TooLong)
 from kaltstart.mailgen.phrases import (
     amount, investor_phrase, request_phrase, role_name, role_paragraph, round_name,
@@ -23,6 +24,13 @@ MAX_BODY_WORDS = 150
 _TITLES = frozenset(("dr", "prof", "mag", "ing", "dipl", "lic", "phd", "mba"))
 # Stand-ins for the student's own texts when the generated parts are checked.
 _STUDENT_TEXT = "Student text."
+# The showcase sentence of the profile is the heart of every mail; its lead-in
+# says why the reader is told it (decision D71).
+_LEAD_INS = {
+    ("en", "direct"): "A bit about me:", ("en", "round"): "What I bring:",
+    ("en", "formal"): "One example of my work:", ("de", "direct"): "Kurz zu mir:",
+    ("de", "round"): "Was ich mitbringe:", ("de", "formal"): "Ein Beispiel aus meiner Arbeit:",
+}
 _LINK = "https://example.com/link"
 
 _ENV = Environment(
@@ -167,9 +175,11 @@ def _bounded(student: Student, texts: dict[str, str | None]) -> None:
     for field, text in texts.items():
         if text and (len(text) > MAX_TEXT_CHARS or len(text.split()) > MAX_TEXT_WORDS):
             raise TooLong(field)
+    if all(texts.values()) and sum(len(t.split()) for t in texts.values()) > MAX_TWO_TEXTS_WORDS:
+        raise TooLong("company_line")
 
 
-def _missing(student: Student, contact: Contact, core: str | None) -> tuple[str, ...]:
+def _missing(student: Student, contact: Contact, example: str | None) -> tuple[str, ...]:
     fields = []
     for name in ("first_name", "last_name", "programme"):
         if not (getattr(student, name) or "").strip():
@@ -182,8 +192,8 @@ def _missing(student: Student, contact: Contact, core: str | None) -> tuple[str,
         fields.append("workload_percent")
     if not (contact.address or "").strip():
         fields.append("contact_address")
-    if core is None:
-        fields.append("company_line_or_example")
+    if example is None:
+        fields.append("example")
     return tuple(fields)
 
 
@@ -224,8 +234,7 @@ def generate(student: Student, company: Company, round: Round, contact: Contact,
     line = company_line.strip() if company_line and company_line.strip() else None
     example = _example_text(student, language)
     _bounded(student, {"company_line": line, "example": example})
-    core = line or example
-    missing = _missing(student, contact, core)
+    missing = _missing(student, contact, example)
     if missing:
         raise MissingData(missing)
 
@@ -240,16 +249,22 @@ def generate(student: Student, company: Company, round: Round, contact: Contact,
         greeting=_greeting(style, language, contact, company),
         opening=opening,
         intro=_intro(style, language, student),
-        role_paragraph=role_paragraph(student.role, language, style == "formal"),
+        # The student's own sentence about the company, when given, replaces the
+        # generic paragraph about the role (decision D71).
+        role_paragraph=None if line else role_paragraph(student.role, language, style == "formal"),
         close=_close(style, language, student.role, team),
         sign_off=_SIGN_OFF[(language, style)],
         name=f"{student.first_name.strip()} {student.last_name.strip()}",
         programme_line=_programme_line(language, student),
     )
     template = _ENV.get_template(f"{style}_{language}.j2")
-    _check(template.render(core=_STUDENT_TEXT, link=link and _LINK, **parts).strip(),
-           style, language)
-    body = template.render(core=student_text(core), link=link, **parts).strip()
+    lead_in = _LEAD_INS[(language, style)]
+    _check(template.render(showcase=f"{lead_in} {_STUDENT_TEXT}",
+                           company_line=line and _STUDENT_TEXT, link=link and _LINK,
+                           **parts).strip(), style, language)
+    body = template.render(showcase=f"{lead_in} {student_text(example)}",
+                           company_line=line and student_text(line), link=link,
+                           **parts).strip()
     if len(body.split()) > MAX_BODY_WORDS:
         raise TooLong("body")
     return Mail(

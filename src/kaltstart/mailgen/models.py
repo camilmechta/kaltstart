@@ -12,6 +12,8 @@ VARIANTS = 3
 # Bounds on what the student types, so that every mail fits in 150 words.
 MAX_TEXT_CHARS = 200
 MAX_TEXT_WORDS = 35
+# The showcase sentence and the sentence about the company, together.
+MAX_TWO_TEXTS_WORDS = 50
 MAX_PROGRAMME_CHARS = 70
 MAX_NAME_CHARS = 40
 
