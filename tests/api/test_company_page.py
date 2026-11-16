@@ -148,3 +148,17 @@ def test_the_page_explains_who_the_suggested_person_is(client):
     page = client.get("/companies/c1").text
     assert "Why Anna" in page and "matches your target role: Growth" in page
     assert "found on the company's own website" in page
+
+
+def test_the_steps_are_shown_and_choices_are_cards(client):
+    ready(client)
+    page = client.get("/companies/c1").text
+    assert 'class="stepper"' in page and page.count('class="option-card') == 4
+    assert 'aria-current="step"' in page
+
+
+def test_after_a_preview_the_third_step_is_current(client):
+    ready(client)
+    page = post(client, "preview", choice="team").text
+    current = page.split('aria-current="step"', 1)[1][:200]
+    assert "Keep" in current

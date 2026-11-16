@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Companies · Kaltstart{% endblock %}
 {% block content %}
+<p class="kicker">New rounds · Switzerland · Germany · Austria</p>
 <h1 class="title-xl">Who just raised money</h1>
 <p class="muted">{{ total }} {{ "company matches" if total == 1 else "companies match" }} your filters, newest rounds first. Each company takes at most 3 mails a month, so founders are not flooded.</p>
 <form method="get" action="/companies" class="filters" role="search">
@@ -35,7 +36,7 @@
     <div><span class="row-title">{{ c.name }}</span><div class="row-detail"><span class="size size-{{ c.size_category }}">{{ size_info[c.size_category][0] }}</span> {{ c.sector or '' }}</div></div>
     <div><span class="amount">{{ item.round }}</span><div class="row-detail mono">{{ c.round_date.strftime('%b %Y') }}</div></div>
     <div class="row-detail">{{ c.city or '' }}{% if c.city %} · {% endif %}{{ c.country }}</div>
-    <div class="row-detail">{% if item.last_slot %}<span class="last-slot">Last slot</span> · {% endif %}{{ item.contact }}</div>
+    <div class="row-detail">{% if item.last_slot %}<span class="last-slot">Last slot</span> · {% endif %}<span class="{{ 'contact-person' if item.contact == 'Person suggested' else '' }}">{{ item.contact }}</span></div>
   </a></li>
   {% endfor %}
 </ul>

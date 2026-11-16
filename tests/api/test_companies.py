@@ -89,3 +89,8 @@ def test_each_row_shows_its_size_and_the_sizes_are_explained(client):
     for words in ("Small", "Medium", "Large", "founders read applications themselves",
                   "heads of product, growth or sales", "recruiter"):
         assert words in page, words
+
+
+def test_the_list_opens_with_a_kicker(client):
+    sign_up_and_in(client)
+    assert 'class="kicker"' in client.get("/companies").text

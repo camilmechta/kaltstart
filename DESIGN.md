@@ -1,7 +1,9 @@
 # Kaltstart design system
 
-Direction **Ignition** (chosen by the owner, 2026-11-16): graphite and one
-ignition orange. A cold start that catches fire. The app should feel fast
+Direction **Ignition** (chosen by the owner, 2026-11-16): graphite, an
+ignition orange, and since the owner's first try of the app a second, cold
+colour (ice blue) for information, so the app reads livelier and airier. A
+cold start that catches fire. The app should feel fast
 and startup-like, different from the blue of most tech sites, with a premium
 touch that comes from restraint: one colour for actions, fine borders,
 figures in a monospace, dense rows.
@@ -31,13 +33,18 @@ reach at least 4.5:1 (checked).
 | `--primary` | `#FF7A2F` | `#FF7A2F` | The one action colour: primary buttons, focus ring, the "Kalt" of the logo |
 | `--on-primary` | `#140A03` | `#140A03` | Text on primary buttons (7.5:1) |
 | `--primary-dim` | `#7A4220` | `#FFD9C2` | Hover border of a row, selected chip background |
+| `--primary-soft` | `#33231F` | `#FFF1E8` | Tinted backgrounds: the suggested person, a selected choice, the Small size tag, step numbers |
+| `--accent` | `#7CC4FF` | `#1D6FB8` | The cold second colour, for information only, never for actions: the Medium size tag, "Person suggested", the kicker of a page, finished steps |
+| `--accent-soft` | `#212E3C` | `#EAF4FD` | Tinted background of accent tags and notes |
 | `--link` | `#FF8A45` | `#B8470A` | Links in text |
 | `--success` | `#3DD68C` | `#11804F` | Sent, positive reply |
 | `--warning` | `#F5B83D` | `#9A6400` | "Last slot", the 72-hour reminder |
 | `--error` | `#FF6B6B` | `#C72C2C` | Refusals and form errors |
 
 No gradient, no glow, no glass. Status colours appear as text or a 1px
-border, never as large fills.
+border, never as large fills. Tinted backgrounds (`--primary-soft`,
+`--accent-soft`) are used only for tags, the selected choice and the
+suggested person, so colour points at what matters.
 
 ## Typography
 
@@ -69,9 +76,9 @@ dense lists do. Running text is at most 68 characters wide.
   `--space-4` 16, `--space-5` 24, `--space-6` 32, `--space-7` 48,
   `--space-8` 64.
 - Content width 1120px, centred, with a 16px side gutter on phones; no
-  horizontal scroll at 360px.
-- A row of the company list: 12px vertical and 14px horizontal padding,
-  6px between rows. On phones the columns stack in the row.
+  horizontal scroll at 360px. Pages open with 48px above the title.
+- A row of the company list: 16px vertical and 18px horizontal padding,
+  8px between rows. On phones the columns stack in the row.
 - The company page is one column of at most 720px.
 
 ## Shape and depth
@@ -102,6 +109,17 @@ dense lists do. Running text is at most 68 characters wide.
   `--border-strong` and background `--surface-2`; the whole row is the link.
 - **Tag** (stage, country): Geist Mono 11px upper case, `--surface-2`
   background, `--muted` text, 6px radius.
+- **Size tag**: Geist Mono 11px upper case. Small: `--primary-soft` and
+  `--link`; Medium: `--accent-soft` and `--accent`; Large: `--surface-2`
+  and `--text` with a 1px `--border-strong`. A one-line legend under the
+  filters says what each size means for the student.
+- **Kicker**: Geist Mono 12px upper case in `--accent`, above a page title.
+- **Stepper** (company page): three numbered steps in a row; the number in
+  a 24px circle, `--primary-soft` with `--link` for the current step,
+  `--accent-soft` with `--accent` and a check for a finished one.
+- **Choice card**: a whole card is the label of a radio button; selected,
+  it takes a `--primary` border and `--primary-soft` background. Used for
+  "who are you writing to".
 - **Navigation**: logo ("**Kalt**start", "Kalt" in `--primary`), then
   Companies, My mails, Profile; on the right the pending pill
   ("2 / 5 pending") in Geist Mono. One line on desktop; on phones the links
