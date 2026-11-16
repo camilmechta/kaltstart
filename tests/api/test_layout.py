@@ -39,3 +39,10 @@ def test_the_css_defines_every_design_token_in_both_themes():
 def test_static_files_are_served(client):
     assert client.get("/static/app.css").status_code == 200
     assert client.get("/static/app.js").status_code == 200
+
+
+def test_the_fonts_are_served_with_their_licence(client):
+    for name in ("Geist-Variable.woff2", "GeistMono-Variable.woff2"):
+        response = client.get(f"/static/fonts/{name}")
+        assert response.status_code == 200 and response.content[:4] == b"wOF2", name
+    assert "SIL Open Font License" in client.get("/static/fonts/OFL.txt").text
