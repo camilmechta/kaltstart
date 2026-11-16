@@ -125,8 +125,16 @@ def register(app: FastAPI) -> None:
     from kaltstart.mailgen.phrases import amount, round_name
     from kaltstart.mailgen.models import Round as MailRound
 
-    SIZES = {"small": "Small (pre-seed, seed)", "medium": "Medium (Series A)",
-             "large": "Large (Series B and later)"}
+    # What a size category means for a student (parent spec 6.3).
+    SIZE_INFO = {
+        "small": ("Small", "pre-seed or seed, or under €7M",
+                  "Usually a small team: founders read applications themselves."),
+        "medium": ("Medium", "Series A, or €7M to €20M",
+                   "A team is forming: heads of product, growth or sales start hiring."),
+        "large": ("Large", "Series B and later, or over €20M",
+                  "A structured company: a recruiter or the HR team handles applications."),
+    }
+    SIZES = {key: label for key, (label, _r, _m) in SIZE_INFO.items()}
 
     def contact_kind(company_id: str) -> str:
         if store.people(company_id):
@@ -177,7 +185,7 @@ def register(app: FastAPI) -> None:
         pages = max((total + 49) // 50, 1)
         link = lambda n: "/companies?" + urlencode(base + [("page", str(n))])
         return page(request, "companies.html", items=items, total=total, filters=filters,
-                    countries=COUNTRIES, sectors=store.sectors(), sizes=SIZES,
+                    countries=COUNTRIES, sectors=store.sectors(), sizes=SIZES, size_info=SIZE_INFO,
                     page_number=page_number, pages=pages,
                     previous=link(page_number - 1) if page_number > 1 else None,
                     next_page=link(page_number + 1) if page_number < pages else None)
@@ -249,7 +257,7 @@ def register(app: FastAPI) -> None:
                     emails=emails, profile=profile, showcases=store.showcases(student),
                     style=form.get("style") or style, language=form.get("language") or language,
                     form=form, preview=preview, recipient=recipient, error=error,
-                    error_link=error_link)
+                    error_link=error_link, size_info=SIZE_INFO[company.size_category])
 
     def compose_mail(request, company, form):
         """(recipient, mail) or (None, (message, link, status))."""

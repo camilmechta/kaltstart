@@ -5,6 +5,7 @@
 <p class="small"><a href="/companies">← Companies</a></p>
 <h1 class="title-xl">{{ company.name }}</h1>
 <p class="muted">{{ company.sector or '' }}{% if company.sector %} · {% endif %}{{ company.city or '' }}{% if company.city %} · {% endif %}{{ company.country }}</p>
+<p style="margin-top:12px"><span class="size size-{{ company.size_category }}">{{ size_info[0] }}</span> <span class="muted small">{{ size_info[1] }}. {{ size_info[2] }}</span></p>
 <p style="margin-top:12px"><span class="amount">{{ round }}</span> <span class="tag">{{ company.round_date.strftime('%b %Y') }}</span>
   {% if company.investors %}<span class="muted"> · with {{ company.investors[0] }}{% if company.investors|length > 1 %} and others{% endif %}</span>{% endif %}</p>
 {% if company.description %}<p style="margin-top:12px">{{ company.description }}</p>{% endif %}

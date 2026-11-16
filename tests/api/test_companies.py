@@ -80,3 +80,12 @@ def test_the_person_filter_in_the_page(client, store, auth):
     assert names(page) == [r.name for r in rows] and rows
     assert 'name="person" value="1" checked' in page
     assert "General address" not in page and "Careers address" not in page
+
+
+def test_each_row_shows_its_size_and_the_sizes_are_explained(client):
+    sign_up_and_in(client)
+    page = client.get("/companies?months=12").text
+    assert 'class="size size-small"' in page or 'class="size size-medium"' in page
+    for words in ("Small", "Medium", "Large", "founders read applications themselves",
+                  "heads of product, growth or sales", "recruiter"):
+        assert words in page, words

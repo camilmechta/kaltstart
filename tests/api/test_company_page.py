@@ -134,3 +134,10 @@ def test_a_typed_name(client, store):
     mail = store.all_mails()[0]
     assert (mail.person_name, mail.address, mail.person_choice) == (
         "Clara Vorlage", "jobs@c1.example.ch", "typed")
+
+
+def test_the_company_page_says_what_its_size_means(client):
+    ready(client)
+    page = client.get("/companies/c1").text                 # C1 is medium
+    assert 'class="size size-medium"' in page and "Series A" in page
+    assert "heads of product, growth or sales" in page
