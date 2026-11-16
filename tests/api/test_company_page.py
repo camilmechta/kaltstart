@@ -162,3 +162,10 @@ def test_after_a_preview_the_third_step_is_current(client):
     page = post(client, "preview", choice="team").text
     current = page.split('aria-current="step"', 1)[1][:200]
     assert "Keep" in current
+
+
+def test_without_a_profile_the_page_asks_for_it_before_suggesting(client):
+    sign_up_and_in(client)
+    page = client.get("/companies/c1").text
+    assert "Complete your profile" in page and 'href="/profile"' in page
+    assert "Why Anna" not in page

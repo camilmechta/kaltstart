@@ -28,8 +28,11 @@
   <section class="step">
     <h2 class="step-title"><span class="step-number">1</span> Who are you writing to?</h2>
     <p class="step-help">A mail to a named person gets read more often. Pick one; the right address is chosen for you.</p>
+    {% if profile_missing %}
+    <p class="notice notice-warning" style="margin-bottom:12px">Complete your profile so we can suggest the right person for your target role: <a href="/profile">open your profile</a>.</p>
+    {% endif %}
     <div class="choices">
-      {% if suggested %}
+      {% if suggested and not profile_missing %}
       <label class="option-card suggested-card">
         <input type="radio" name="choice" value="suggested" {% if form.get('choice') == 'suggested' %}checked{% endif %}>
         <span class="option-title">{{ suggested.name }}, {{ suggested.title }}</span> <span class="tag">Suggested</span>

@@ -21,7 +21,7 @@
   <select name="months" aria-label="Round date">
     {% for m in (3, 6, 12) %}<option value="{{ m }}" {% if filters.months == m %}selected{% endif %}>Last {{ m }} months</option>{% endfor %}
   </select>
-  <label class="choice filter-check"><input type="checkbox" name="person" value="1" {% if filters.with_person %}checked{% endif %}> Only companies with a suggested person</label>
+  <label class="choice filter-check"><input type="checkbox" name="person" value="1" {% if filters.with_person %}checked{% endif %}> Only companies that name people</label>
   <button class="btn btn-secondary" type="submit">Filter</button>
 </form>
 <div class="legend">
@@ -36,7 +36,7 @@
     <div><span class="row-title">{{ c.name }}</span><div class="row-detail"><span class="size size-{{ c.size_category }}">{{ size_info[c.size_category][0] }}</span> {{ c.sector or '' }}</div></div>
     <div><span class="amount">{{ item.round }}</span><div class="row-detail mono">{{ c.round_date.strftime('%b %Y') }}</div></div>
     <div class="row-detail">{{ c.city or '' }}{% if c.city %} · {% endif %}{{ c.country }}</div>
-    <div class="row-detail">{% if item.last_slot %}<span class="last-slot">Last slot</span> · {% endif %}<span class="{{ 'contact-person' if item.contact == 'Person suggested' else '' }}">{{ item.contact }}</span></div>
+    <div class="row-detail">{% if item.last_slot %}<span class="last-slot">Last slot</span> · {% endif %}<span class="{{ 'contact-person' if item.contact == 'People named' else '' }}">{{ item.contact }}</span></div>
   </a></li>
   {% endfor %}
 </ul>

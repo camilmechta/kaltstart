@@ -21,7 +21,8 @@ def test_the_list_shows_every_eligible_company_with_its_round(client, store, aut
 def test_each_row_says_what_contact_exists(client, store, auth):
     sign_up_and_in(client)
     page = client.get("/companies?months=12").text
-    assert "Person suggested" in page or "Careers address" in page or "General address" in page
+    assert "People named" in page and ("Careers address" in page or "General address" in page)
+    assert "Person suggested" not in page
 
 
 def test_a_full_company_is_hidden_and_no_counter_is_shown(client):
@@ -79,6 +80,7 @@ def test_the_person_filter_in_the_page(client, store, auth):
     rows, _ = store.companies(ListFilters(with_person=True), user_id(auth), NOW)
     assert names(page) == [r.name for r in rows] and rows
     assert 'name="person" value="1" checked' in page
+    assert "Only companies that name people" in page
     assert "General address" not in page and "Careers address" not in page
 
 

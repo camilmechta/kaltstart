@@ -138,7 +138,7 @@ def register(app: FastAPI) -> None:
 
     def contact_kind(company_id: str) -> str:
         if store.people(company_id):
-            return "Person suggested"
+            return "People named"
         if any(e.type == "careers" for e in store.emails(company_id)):
             return "Careers address"
         return "General address"
@@ -258,7 +258,8 @@ def register(app: FastAPI) -> None:
                     style=form.get("style") or style, language=form.get("language") or language,
                     form=form, preview=preview, recipient=recipient, error=error,
                     error_link=error_link, size_info=SIZE_INFO[company.size_category],
-                    why=compose.why(person, profile, company) if person else None)
+                    why=compose.why(person, profile, company) if person else None,
+                    profile_missing=missing_for_mail(profile, store.showcases(student)))
 
     def compose_mail(request, company, form):
         """(recipient, mail) or (None, (message, link, status))."""
