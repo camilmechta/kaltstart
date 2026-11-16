@@ -59,12 +59,11 @@ def _opening(style: str, language: str, round: Round, company: Company, role: st
                     f"Congratulations on {deal}, great news!",
                     f"I just read about {deal}. Congrats!")[number]
         if style == "round":
-            return (f"With {deal}, I imagine {company.name} is about to scale fast, "
-                    f"and {role_text} will be at the heart of it.",
-                    f"{deal[0].upper()}{deal[1:]} is great news. The next months at "
-                    f"{company.name} will be about scaling, and {role_text} is where I would like to help.",
-                    f"I saw the news about {deal}, congratulations! A round like this usually "
-                    f"means building out {role_text}, which is exactly where I want to contribute.")[number]
+            return (f"With {deal}, {company.name} is about to scale, and {role_text} will be central.",
+                    f"{deal[0].upper()}{deal[1:]} is great news, and I would love to help with "
+                    f"{role_text} as {company.name} scales.",
+                    f"Congratulations on {deal}! A round like this usually means building out "
+                    f"{role_text}, which is where I want to help.")[number]
         return f"Congratulations on {deal}."
     if style == "direct":
         deal = _deal(round, "de", "eurer")
@@ -72,14 +71,12 @@ def _opening(style: str, language: str, round: Round, company: Company, role: st
                 f"Herzlichen Glückwunsch zu {deal}, starke Neuigkeiten!",
                 f"Ich habe gerade von {deal} gelesen. Glückwunsch!")[number]
     if style == "round":
-        if number == 0:
-            return (f"Mit {_deal(round, 'de', 'eurer')} wird {company.name} jetzt sicher schnell "
-                    f"grösser, und {role_text} steht dabei im Mittelpunkt.")
-        if number == 1:
-            return (f"{_deal(round, 'de', 'Eure')} ist eine tolle Nachricht. In den nächsten Monaten "
-                    f"geht es bei {company.name} ums Skalieren, und bei {role_text} würde ich gerne mithelfen.")
-        return (f"Ich habe von {_deal(round, 'de', 'eurer')} gelesen, herzlichen Glückwunsch! So eine "
-                f"Runde bedeutet meist, {role_text} auszubauen, und genau dort möchte ich beitragen.")
+        return (f"Mit {_deal(round, 'de', 'eurer')} wird {company.name} jetzt skalieren, und "
+                f"{role_text} wird dabei zentral sein.",
+                f"{_deal(round, 'de', 'Eure')} ist eine tolle Nachricht, und bei {role_text} "
+                f"würde ich gerne mithelfen.",
+                f"Glückwunsch zu {_deal(round, 'de', 'eurer')}! So eine Runde bedeutet meist, "
+                f"{role_text} auszubauen, und genau dort möchte ich helfen.")[number]
     return f"Herzlichen Glückwunsch zu {_deal(round, 'de', 'Ihrer')}."
 
 
@@ -95,16 +92,16 @@ def _greeting(style: str, language: str, contact: Contact, company: Company) -> 
     end = "!" if style == "direct" else ","
     if language == "en":
         return f"Hi {first}{end}" if first else f"Hi {company.name} team{end}"
-    return f"Hallo {first}{end}" if first else f"Hallo Team von {company.name}{end}"
+    return f"Hallo {first}{end}" if first else f"Hallo zusammen{end}"
 
 
 def _intro(style: str, language: str, student: Student) -> str:
     request = request_phrase(student, language)
     if language == "en":
         if style == "formal":
-            return (f"I am a {student.programme} student at the University of St. Gallen (HSG) "
+            return (f"I study {student.programme} at the University of St. Gallen (HSG) "
                     f"and am applying for {request}.")
-        return f"I'm studying {student.programme} at HSG and am looking for {request}."
+        return f"I'm a {student.programme} student at HSG, looking for {request}."
     if style == "formal":
         return (f"Ich studiere {student.programme} an der Universität St. Gallen (HSG) und "
                 f"bewerbe mich um {request}.")
@@ -116,15 +113,15 @@ def _close(style: str, language: str, role: str, team: bool) -> str:
     if language == "en":
         return {
             "direct": f"I'd love to help with {role_text}, or with whatever helps most. Would that work?",
-            "round": "Could we talk for 15 minutes next week?",
-            "formal": "I would be glad to discuss this in a short call. Thank you for your time.",
+            "round": "Could we talk for 15 minutes?",
+            "formal": "I would welcome a short call. Thank you for your time.",
         }[style]
     return {
         "direct": f"Ich würde gerne bei {role_text} mithelfen, oder dort, wo es am meisten bringt. "
                   "Würde das passen?",
-        "round": ("Hättet ihr nächste Woche 15 Minuten für ein kurzes Gespräch?" if team
-                  else "Hättest du nächste Woche 15 Minuten für ein kurzes Gespräch?"),
-        "formal": "Über ein kurzes Gespräch würde ich mich freuen. Vielen Dank für Ihre Zeit.",
+        "round": ("Habt ihr 15 Minuten für ein kurzes Gespräch?" if team
+                  else "Hast du 15 Minuten für ein kurzes Gespräch?"),
+        "formal": "Über ein kurzes Gespräch freue ich mich. Vielen Dank für Ihre Zeit.",
     }[style]
 
 
@@ -136,8 +133,7 @@ _SIGN_OFF = {
 
 
 def _programme_line(language: str, student: Student) -> str:
-    return (f"{student.programme}, University of St. Gallen (HSG)" if language == "en"
-            else f"{student.programme}, Universität St. Gallen (HSG)")
+    return f"{student.programme}, HSG"
 
 
 # --- checks --------------------------------------------------------------------

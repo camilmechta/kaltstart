@@ -8,7 +8,7 @@ from tests.mailgen.helpers import company, contact, round_, student
 
 LINE = "I used your robot arm at a university lab and saw how hard calibration was."
 INFORMAL = {"du", "dich", "dir", "dein", "deine", "deinem", "deinen", "deiner",
-            "ihr", "euch", "euer", "eure", "eurem", "euren", "eurer", "hättet", "hättest"}
+            "ihr", "euch", "euer", "eure", "eurem", "euren", "eurer", "hast", "habt"}
 FORMAL = {"Sie", "Ihnen", "Ihre", "Ihrer", "Ihrem", "Ihren"}
 
 
@@ -161,3 +161,9 @@ def test_the_round_opening_names_the_role_once(language, number):
 def test_round_keeps_the_role_paragraph_apart():
     paragraphs = mail(style="round").body.split("\n\n")
     assert paragraphs[2] == student().examples[0].text_en
+
+
+@pytest.mark.parametrize("style,greeting", [("direct", "Hallo zusammen!"), ("round", "Hallo zusammen,")])
+def test_german_team_greeting(style, greeting):
+    text = mail(style=style, language="de", contact=contact(person_name=None)).body
+    assert text.startswith(greeting)

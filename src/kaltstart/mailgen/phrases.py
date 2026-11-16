@@ -29,26 +29,26 @@ _ROLE_NAMES = {
 }
 # What the student would do in that function at a company that has just raised.
 _ROLE_PARAGRAPHS = {
-    ("en", "product"): "After a round, the product has to keep pace with new customers. I would like to "
-                       "help turn their feedback into clear priorities and ship the next features faster.",
-    ("en", "growth"): "Fresh funding usually means ambitious growth targets. I would like to help test "
-                      "channels quickly, measure what works and put more weight behind it.",
-    ("en", "data"): "With more users comes more data to make sense of. I would like to help build the "
-                    "dashboards and analyses the team needs to decide quickly.",
-    ("en", "operations"): "Scaling after a round puts pressure on every process. I would like to help "
-                          "find the bottlenecks and set up workflows that keep up with the growth.",
-    ("en", "business_development"): "A new round opens doors to new partners and markets. I would like "
-                                    "to help research leads, prepare first conversations and follow them up.",
-    ("de", "product"): "Nach einer Runde muss das Produkt mit neuen Kunden Schritt halten. Ich würde "
-                       "gerne helfen, Feedback in klare Prioritäten zu übersetzen und Features schneller auszuliefern.",
-    ("de", "growth"): "Frisches Kapital bedeutet meist ehrgeizige Wachstumsziele. Ich würde gerne helfen, "
-                      "Kanäle schnell zu testen, Ergebnisse zu messen und das Wirksame auszubauen.",
-    ("de", "data"): "Mit mehr Nutzern kommen mehr Daten. Ich würde gerne helfen, die Dashboards und "
-                    "Analysen aufzubauen, mit denen das Team schnell entscheiden kann.",
-    ("de", "operations"): "Wachstum nach einer Runde setzt jeden Prozess unter Druck. Ich würde gerne "
-                          "helfen, Engpässe zu finden und Abläufe aufzusetzen, die mitwachsen.",
-    ("de", "business_development"): "Eine neue Runde öffnet Türen zu Partnern und Märkten. Ich würde "
-                                    "gerne helfen, Kontakte zu recherchieren und erste Gespräche vorzubereiten.",
+    ("en", "product"): "After a round, the product must keep pace. I would like to help turn "
+                       "customer feedback into the next features.",
+    ("en", "growth"): "New funding means ambitious targets. I would like to help test channels "
+                      "fast and double down on what works.",
+    ("en", "data"): "More users bring more data. I would like to help build the dashboards the "
+                    "team needs to decide quickly.",
+    ("en", "operations"): "Scaling puts pressure on every process. I would like to help find "
+                          "bottlenecks and set up workflows that keep up.",
+    ("en", "business_development"): "A new round opens doors to partners and markets. I would "
+                                    "like to help research leads and prepare first conversations.",
+    ("de", "product"): "Nach einer Runde muss das Produkt Schritt halten. Ich würde gerne helfen, "
+                       "Kundenfeedback in die nächsten Features zu übersetzen.",
+    ("de", "growth"): "Neues Kapital bedeutet ehrgeizige Ziele. Ich würde gerne helfen, Kanäle "
+                      "schnell zu testen und das Wirksame auszubauen.",
+    ("de", "data"): "Mehr Nutzer bringen mehr Daten. Ich würde gerne helfen, die Dashboards "
+                    "aufzubauen, mit denen das Team schnell entscheidet.",
+    ("de", "operations"): "Skalieren setzt jeden Prozess unter Druck. Ich würde gerne helfen, "
+                          "Engpässe zu finden und Abläufe aufzusetzen, die mitwachsen.",
+    ("de", "business_development"): "Eine neue Runde öffnet Türen zu Partnern und Märkten. Ich "
+                                    "würde gerne helfen, Kontakte zu recherchieren und Gespräche vorzubereiten.",
 }
 
 
