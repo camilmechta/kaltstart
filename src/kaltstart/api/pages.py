@@ -59,7 +59,7 @@ def register(app: FastAPI) -> None:
     from kaltstart.api import rules
 
     ORDER = {"generated": 0, "copied": 1, "sent": 2, "human_reply": 3, "positive_reply": 4}
-    LABELS = {"generated": "Generated", "copied": "Copied", "sent": "Sent",
+    LABELS = {"generated": "Kept", "copied": "Copied", "sent": "Sent",
               "human_reply": "Got a reply", "positive_reply": "Positive reply",
               "abandoned": "Abandoned", "presumed_sent": "Presumed sent"}
 
@@ -93,6 +93,7 @@ def register(app: FastAPI) -> None:
             return Response("Not found", status_code=404)
         shown = rules.shown_status(mail.record(), app.state.now())
         return page(request, "mail.html", mail=mail, shown=shown, labels=LABELS,
+                    kept=request.query_params.get("kept") == "1",
                     company_name=names_of([mail])[mail.company_id])
 
     @app.post("/mails/{mail_id}/status")
@@ -145,8 +146,8 @@ def register(app: FastAPI) -> None:
     SIZES = {key: info[0] for key, info in SIZE_INFO.items()}
 
     def contact_kind(company_id: str) -> str:
-        if store.people(company_id):
-            return "People named"
+        if (count := len(store.people(company_id))):
+            return f"{count} {'person' if count == 1 else 'people'} named"
         if any(e.type == "careers" for e in store.emails(company_id)):
             return "Careers address"
         return "General address"
@@ -186,7 +187,7 @@ def register(app: FastAPI) -> None:
         now = app.state.now()
         rows, total = store.companies(filters, request.state.user_id, now)
         records = store.mail_records()
-        items = [dict(company=c, round=round_text(c), contact=contact_kind(c.id),
+        items = [dict(company=c, round=round_text(c), contact=contact_kind(c.id), named=bool(store.people(c.id)),
                       last_slot=rules.last_slot(c.id, records, now)) for c in rows]
         student = request.state.user_id
         get_started = None
@@ -242,7 +243,8 @@ def register(app: FastAPI) -> None:
         """The suggested person, style and language shown before any choice."""
         person = compose.suggested(company, people, profile)
         if person is not None:
-            style = "direct"
+            # Direct suits founders and team leads; a recruiter gets the rounder style.
+            style = "round" if "recruiting" in person.categories else "direct"
         else:
             shared = next((e for e in emails if e.type == "careers"), None) or \
                 next((e for e in emails if e.type == "generic"), None)

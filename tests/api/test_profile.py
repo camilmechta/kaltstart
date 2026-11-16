@@ -117,3 +117,10 @@ def test_a_second_showcase_opens_by_itself_when_filled(client, store, auth):
     sign_up_and_in(client)
     save_profile(client, showcase2_en="I ran the finance club's events for a year.")
     assert "<details open" in client.get("/profile").text
+
+
+def test_dates_follow_the_kind_of_request(client):
+    sign_up_and_in(client)
+    page = client.get("/profile").text
+    assert 'data-show-when="request=internship"' in page
+    assert 'data-show-when="request=part_time" hidden' in page

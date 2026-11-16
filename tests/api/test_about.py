@@ -5,7 +5,7 @@ from tests.api.test_company_page import client, ready, store  # noqa: F401  (fix
 def test_the_about_page_is_public_and_credits_the_source(client):
     page = client.get("/about")
     assert page.status_code == 200
-    for words in ("Tech.eu Funding Explorer", "CC BY 4.0", "own website", "never sends",
+    for words in ("Tech.eu Funding Explorer", "CC BY 4.0", "own website", "Your part",
                   "r@example.com"):
         assert words in page.text, words
 
@@ -16,3 +16,8 @@ def test_tech_eu_is_not_repeated_on_every_page(client):
         page = client.get(path).text
         assert "Tech.eu" not in page, path
         assert 'href="/about"' in page, path
+
+
+def test_the_about_page_does_not_repeat_the_steps(client):
+    page = client.get("/about").text
+    assert "How it works" not in page and "the part that gets you hired is yours" in page

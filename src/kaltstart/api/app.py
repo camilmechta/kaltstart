@@ -130,6 +130,7 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
         target = safe_next(request.query_params.get("next") or form.get("next"))
         if not tokens:
             return page(request, "signin.html", status=400, next=target,
+                        email=form.get("email", "")[:254],
                         error="Wrong e-mail or password, or the e-mail is not confirmed yet.")
         request.state.session.update(access=tokens.access, refresh=tokens.refresh)
         return redirect(request, target)
@@ -155,7 +156,7 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
         if ok:
             ok = auth.sign_up(form.get("email", ""), form.get("password", ""), code)
         if not ok:
-            return page(request, "signup.html", status=400,
+            return page(request, "signup.html", status=400, email=form.get("email", "")[:254],
                         error="Sign-up failed. Check your invitation code, your e-mail, and that "
                               "the password has at least 8 characters.")
         return page(request, "signup.html", done=True)

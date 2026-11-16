@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Web app, after an outside design review: an invented example of the
+  product on the landing page and an honest headline, a folding size legend,
+  style cards and no stepper on the company page, "Kept" status pills and
+  rows on My mails, matching sign-in and sign-up pages, larger helper text.
+  The default style is Round when the suggested person is a recruiter.
 - Web app, second round of the owner's feedback: a profile with role cards,
   chips and a German switch; saving it leads to the company list; the
   company page says the address comes with the generated mail.

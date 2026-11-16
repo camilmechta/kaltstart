@@ -71,7 +71,8 @@ suggested person, so colour points at what matters.
 | `--text-2xl` | 36 / 40 | Sign-in page title only |
 
 Body text is never below 16px; rows use 15px titles and 13px details, as
-dense lists do. Running text is at most 68 characters wide.
+dense lists do. Helper text under fields and in cards is 15px, never less
+(outside review, 2026-11-16). Running text is at most 68 characters wide.
 
 ## Spacing and layout
 
@@ -118,23 +119,31 @@ dense lists do. Running text is at most 68 characters wide.
   and `--violet`.
 - **Size legend** ("Who reads your mail"): one card per size, with a 3px
   top border in the size's colour, a light tint of it from the top, and the
-  reader ("Founders", "Team leads", "Recruiters") in that colour. A one-line legend under the
-  filters says what each size means for the student.
+  reader ("Founders", "Team leads", "Recruiters") in that colour. It sits
+  under the filters in a `<details>`, open until the student keeps a first
+  mail, folded after.
 - **Kicker**: Geist 13px weight 600 in `--accent`, above a page title.
 - **Checkbox and radio**: drawn by the app, 18px, `--surface` with a 1.5px
   `--border-strong` border; hover border `--primary`; a checked checkbox is
   filled `--primary` with an `--on-primary` tick; a checked radio has a
   `--primary` border and dot.
 - **Landing page** (signed-out visitors): a hero with the promise, the
-  number of companies and the 3-mail rule; three "why it works" cards with
-  a Lucide icon on `--accent-soft`; three numbered "how it works" steps.
+  number of companies and the 3-mail rule; "What you get", an invented
+  example built from the app's own components (a company row, the suggested
+  person card, a mail preview) labelled 1 to 3; three numbered "how it
+  works" steps. No icon-card trio: it read as a template.
 - **Get started** (signed in, before the first kept mail): a card with an
   orange left border and two steps, ticked in `--accent` once done.
 - **In-progress counter** (navigation): "N of 5 mails in progress", a pill
   that links to My mails, where the limit is explained.
-- **Stepper** (company page): three numbered steps in a row; the number in
-  a 24px circle, `--primary-soft` with `--link` for the current step,
-  `--accent-soft` with `--accent` and a check for a finished one.
+- **Company page steps**: numbered section headings only (no separate
+  stepper, which repeated them); step 3 appears once a mail is generated.
+  Errors show next to the Generate button, in an `aria-live` region.
+- **Style card**: the role-card component with the style name and what it
+  does, three in a row.
+- **Status pill** (My mails): a pill with a 6px dot. Kept and Copied in
+  `--primary-soft`/`--link`; Sent in `--accent-soft`/`--accent`; replies in
+  a `--success` tint. My mails uses company rows, not a table.
 - **Choice card**: a whole card is the label of a radio button; selected,
   it takes a `--primary` border and `--primary-soft` background. Used for
   "who are you writing to".

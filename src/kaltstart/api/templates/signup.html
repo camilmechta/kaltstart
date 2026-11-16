@@ -4,14 +4,15 @@
 {% block content %}
 <h1 class="title-xl">Create your account</h1>
 {% if done %}
-<p class="notice notice-success" role="status">Almost there: we sent you an e-mail. Confirm your address, then <a href="/signin">sign in</a>.</p>
+<p class="notice notice-success" role="status">Almost there: we sent you an e-mail. Confirm your address, then sign in.</p>
+<div class="actions"><a class="btn btn-primary" href="/signin">Sign in</a></div>
 {% else %}
 <form method="post" action="/signup" class="card stack">
   <input type="hidden" name="csrf" value="{{ csrf }}">
   {% if error %}<p class="notice notice-error" role="alert">{{ error }}</p>{% endif %}
-  <label>E-mail <input type="email" name="email" autocomplete="email" required></label>
-  <label>Password <input type="password" name="password" autocomplete="new-password" minlength="8" required></label>
-  <label>Invitation code <input type="text" name="code" autocomplete="off" required></label>
+  <label>E-mail <input type="email" name="email" value="{{ email or '' }}" autocomplete="email" required></label>
+  <label>Password <input type="password" name="password" autocomplete="new-password" minlength="8" required aria-describedby="password-help"><span class="field-help" id="password-help">At least 8 characters.</span></label>
+  <label>Invitation code <input type="text" name="code" autocomplete="off" required aria-describedby="code-help"><span class="field-help" id="code-help">The code shared with HSG students.</span></label>
   <button class="btn btn-primary" type="submit">Create account</button>
   <p class="small muted">Already registered? <a href="/signin">Sign in</a>.</p>
 </form>

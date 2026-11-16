@@ -36,7 +36,7 @@
     <label>Link: LinkedIn, website or portfolio (optional) <input class="{{ cls('link') }}" type="url" name="link" value="{{ profile.link or '' }}" placeholder="https://">{{ error('link') }}</label>
     <div>
       <p class="field-label">Languages</p>
-      <p class="small muted">Every mail can be in English. Switch on German to write in German to companies in Germany, Austria and German-speaking Switzerland.</p>
+      <p class="field-help">Every mail can be in English. Switch on German to write in German to companies in Germany, Austria and German-speaking Switzerland.</p>
       <label class="switch"><input type="checkbox" name="lang_de" data-toggles="lang_de" {% if german %}checked{% endif %}><span class="switch-track" aria-hidden="true"></span> I can also write in German</label>
     </div>
   </div>
@@ -65,11 +65,12 @@
       </div>
       {{ error('request') }}
     </fieldset>
+    {% set part_time = profile.request == 'part_time' %}
     <div class="two-columns">
       <label>From <input class="{{ cls('start_date') }}" type="date" name="start_date" value="{{ profile.start_date or '' }}">{{ error('start_date') }}</label>
-      <label>Internship: months <input class="{{ cls('duration_months') }}" type="number" min="1" max="24" name="duration_months" value="{{ profile.duration_months or '' }}">{{ error('duration_months') }}</label>
+      <label data-show-when="request=internship" {% if part_time %}hidden{% endif %}>For how many months <input class="{{ cls('duration_months') }}" type="number" min="1" max="24" name="duration_months" value="{{ profile.duration_months or '' }}">{{ error('duration_months') }}</label>
+      <label data-show-when="request=part_time" {% if not part_time %}hidden{% endif %}>Workload in per cent <input class="{{ cls('workload_percent') }}" type="number" min="10" max="100" step="10" name="workload_percent" value="{{ profile.workload_percent or '' }}">{{ error('workload_percent') }}</label>
     </div>
-    <label>Part-time: workload in per cent <input class="{{ cls('workload_percent') }}" type="number" min="10" max="100" step="10" name="workload_percent" value="{{ profile.workload_percent or '' }}">{{ error('workload_percent') }}</label>
   </div>
 
   <div class="card stack">
@@ -87,7 +88,7 @@
     {% set s2 = showcase.get(2) %}
     <details {% if (s2 and (s2.text_en or s2.text_de)) or errors.get('showcase2_en') or errors.get('showcase2_de') %}open{% endif %}>
       <summary>Add a second one (optional)</summary>
-      <p class="small muted">Another achievement, for companies where it fits better. You choose which one to use for each mail.</p>
+      <p class="field-help">Another achievement, for companies where it fits better. You choose which one to use for each mail.</p>
       <label>In English
         <textarea class="{{ cls('showcase2_en') }}" id="showcase2_en" name="showcase2_en" data-max-words="60">{{ s2.text_en if s2 and s2.text_en else '' }}</textarea>
         <span class="counter" data-counter-for="showcase2_en"></span>{{ error('showcase2_en') }}</label>
@@ -101,7 +102,7 @@
 
   <div class="card stack">
     <h2 class="title-lg">Preferences</h2>
-    <p class="small muted">They only pre-set the filters of the company list. Leave them empty to see everything.</p>
+    <p class="field-help">They only pre-set the filters of the company list. Leave them empty to see everything.</p>
     <fieldset>
       <legend class="field-label">Countries</legend>
       <div class="chips">

@@ -6,9 +6,9 @@ def test_visitors_land_on_a_page_that_explains_the_product(client, store):
     page = client.get("/")
     assert page.status_code == 200
     text = page.text
-    for words in ("Write to startups the week they raise money", "The right moment",
+    for words in ("Write to startups while the money is fresh", "The right moment",
                   "The right person", "A mail that stands out", "How it works",
-                  "3 mails", "never sends"):
+                  "3 mails", "the part that gets you hired is yours"):
         assert words in text, words
     assert 'href="/signup"' in text and 'href="/signin"' in text
     _rows, total = store.companies(ListFilters(), "", NOW)
@@ -49,3 +49,12 @@ def test_the_panel_disappears_after_the_first_kept_mail(client, store, auth):
     save_profile(client)
     keep(store, user_id(auth), "dev01")
     assert "Get started" not in client.get("/companies").text
+
+
+def test_the_landing_page_shows_an_example_of_the_product(client):
+    text = client.get("/").text
+    assert "the week they raise" not in text
+    example = text.split('product-example"', 1)[1].split("</section>", 1)[0]
+    assert 'class="row' in example and 'class="mail-preview' in example
+    assert "invented" in example.lower()
+    assert 'class="feature"' not in text

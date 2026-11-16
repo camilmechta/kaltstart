@@ -44,8 +44,8 @@
   <label class="choice filter-check"><input type="checkbox" name="person" value="1" {% if filters.with_person %}checked{% endif %}> Only companies that name people</label>
   <button class="btn btn-secondary" type="submit">Filter</button>
 </form>
-<section class="legend" aria-labelledby="legend-title">
-  <h2 id="legend-title" class="legend-title">Who reads your mail</h2>
+<details class="legend" {% if get_started %}open{% endif %}>
+  <summary class="legend-title">Who reads your mail: Small, Medium or Large</summary>
   <div class="legend-items">
     {% for key, (label, reader, rounds, _sentence, why) in size_info.items() %}
     <div class="legend-item legend-{{ key }}">
@@ -56,7 +56,7 @@
     </div>
     {% endfor %}
   </div>
-</section>
+</details>
 {% if items %}
 <ul class="rows">
   {% for item in items %}{% set c = item.company %}
@@ -64,7 +64,7 @@
     <div><span class="row-title">{{ c.name }}</span><div class="row-detail"><span class="size size-{{ c.size_category }}">{{ size_info[c.size_category][0] }}</span> {{ c.sector or '' }}</div></div>
     <div><span class="amount">{{ item.round }}</span><div class="row-detail">{{ c.round_date.strftime('%b %Y') }}</div></div>
     <div class="row-detail">{{ c.city or '' }}{% if c.city %} · {% endif %}{{ c.country }}</div>
-    <div class="row-detail">{% if item.last_slot %}<span class="last-slot">Last slot</span> · {% endif %}<span class="{{ 'contact-person' if item.contact == 'People named' else '' }}">{{ item.contact }}</span></div>
+    <div class="row-detail">{% if item.last_slot %}<span class="last-slot">Last slot</span> · {% endif %}<span class="{{ 'contact-person' if item.named else '' }}">{{ item.contact }}</span></div>
   </a></li>
   {% endfor %}
 </ul>

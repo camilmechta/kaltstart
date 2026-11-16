@@ -301,12 +301,7 @@ input[type="checkbox"]:disabled { opacity: 0.6; cursor: not-allowed; }
 .section-block:last-child { padding-bottom: var(--space-8); }
 .section-title { font-size: var(--text-xl); line-height: 32px; letter-spacing: -0.03em;
   margin-bottom: var(--space-5); }
-.features { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
-.feature { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
   padding: var(--space-5); }
-.feature h3 { font-size: var(--text-lg); line-height: 28px; margin: var(--space-3) 0 var(--space-2); }
-.feature p { color: var(--muted); font-size: var(--text-md); line-height: 24px; }
-.feature-icon { color: var(--accent); background: var(--accent-soft); border-radius: var(--radius-md);
   padding: 8px; width: 40px; height: 40px; }
 .how { list-style: none; padding: 0; margin: 0 0 var(--space-6); display: grid; gap: var(--space-4); }
 .how li { display: flex; gap: var(--space-4); align-items: flex-start; }
@@ -382,3 +377,54 @@ details[open] summary { margin-bottom: var(--space-3); }
 details > * + * { margin-top: var(--space-3); }
 [hidden] { display: none !important; }
 .mail-address { font-weight: 600; color: var(--text); }
+
+/* --- landing: the product example ---------------------------------------- */
+.example-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-top: var(--space-5); align-items: start; }
+@media (max-width: 760px) { .example-grid { grid-template-columns: 1fr; } }
+.example-col { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+.example-col + .example-col .example-label { margin-top: 0; }
+.example-label { display: flex; align-items: center; gap: var(--space-2); font-weight: 600; font-size: var(--text-md); }
+.example-col .example-label ~ .example-label { margin-top: var(--space-4); }
+.example-row { grid-template-columns: 1.4fr 1fr 1fr; cursor: default; }
+.example-row:hover { background: var(--surface); border-color: var(--border); }
+.example-person { cursor: default; }
+.example-mail .mail-body { font-size: var(--text-md); }
+.example-note { color: var(--muted); font-size: var(--text-sm); line-height: 20px; }
+
+/* --- companies: folded legend, people count ------------------------------ */
+details.legend > summary.legend-title { color: var(--muted); font-size: var(--text-sm); font-weight: 600;
+  padding: var(--space-2) 0; }
+details.legend > summary.legend-title:hover { color: var(--text); }
+details.legend[open] > summary.legend-title { margin-bottom: var(--space-2); }
+.contact-person { color: var(--text); font-weight: 500; }
+
+/* --- helper text: never below 15px (owner's review, 2026-11-16) ----------- */
+.field-help { display: block; color: var(--muted); font-size: var(--text-md); line-height: 22px;
+  font-weight: 400; margin-top: var(--space-1); }
+.legend-rounds, .legend-why { font-size: var(--text-md); line-height: 22px; }
+.style-cards { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 640px) { .style-cards { grid-template-columns: 1fr; } }
+.option-card .option-detail { font-size: var(--text-md); line-height: 22px; }
+/* Five role cards: three on the first row, two wider ones on the second. */
+.role-cards:not(.style-cards) { grid-template-columns: repeat(6, 1fr); }
+.role-cards:not(.style-cards) > .role-card { grid-column: span 2; }
+.role-cards:not(.style-cards) > .role-card:nth-child(n+4) { grid-column: span 3; }
+@media (max-width: 640px) {
+  .role-cards:not(.style-cards) { grid-template-columns: 1fr; }
+  .role-cards:not(.style-cards) > .role-card, .role-cards:not(.style-cards) > .role-card:nth-child(n+4) { grid-column: auto; }
+}
+
+/* --- My mails: rows and status pills -------------------------------------- */
+.mail-row { grid-template-columns: 1.8fr 1.2fr 0.8fr auto; }
+.mail-row:hover { background: var(--surface); }
+.mail-row .row-title { color: var(--text); }
+.mail-row .row-title:hover { color: var(--link); }
+.mail-row-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; justify-content: flex-end; }
+@media (max-width: 760px) { .mail-row { grid-template-columns: 1fr; } .mail-row-actions { justify-content: flex-start; } }
+.status-pill { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: var(--radius-full);
+  font-size: var(--text-xs); line-height: 18px; font-weight: 500; background: var(--surface-2); color: var(--muted); }
+.status-pill::before { content: ""; width: 6px; height: 6px; border-radius: var(--radius-full); background: currentColor; }
+.status-pill.status-generated, .status-pill.status-copied { background: var(--primary-soft); color: var(--link); }
+.status-pill.status-sent, .status-pill.status-presumed_sent { background: var(--accent-soft); color: var(--accent); }
+.status-pill.status-human_reply, .status-pill.status-positive_reply { background: color-mix(in srgb, var(--success) 14%, transparent); color: var(--success); }
+.copy-row .btn { white-space: nowrap; min-width: 104px; justify-content: center; }

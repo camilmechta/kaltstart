@@ -21,7 +21,8 @@ def test_the_list_shows_every_eligible_company_with_its_round(client, store, aut
 def test_each_row_says_what_contact_exists(client, store, auth):
     sign_up_and_in(client)
     page = client.get("/companies?months=12").text
-    assert "People named" in page and ("Careers address" in page or "General address" in page)
+    assert "people named" in page and ("Careers address" in page or "General address" in page)
+    assert "People named" not in page
     assert "Person suggested" not in page
 
 
@@ -114,3 +115,22 @@ def test_each_size_says_why_a_student_would_aim_at_it(client):
     for words in ("straight to a founder", "learn from the head of your field",
                   "internship programme"):
         assert words in legend, words
+
+
+def test_the_size_legend_folds_away_once_a_mail_is_kept(client, store, auth):
+    from tests.api.test_mails import keep
+    sign_up_and_in(client)
+    assert '<details class="legend" open' in client.get("/companies").text
+    keep(store, user_id(auth), "dev01")
+    page = client.get("/companies").text
+    assert '<details class="legend"' in page and '<details class="legend" open' not in page
+
+
+def test_each_row_counts_the_people_named(client, store):
+    sign_up_and_in(client)
+    page = client.get("/companies?months=12").text
+    rows, _ = store.companies(ListFilters(), "", NOW)
+    named = next(c for c in rows if store.people(c.id))
+    count = len(store.people(named.id))
+    word = "person" if count == 1 else "people"
+    assert f"{count} {word} named" in page

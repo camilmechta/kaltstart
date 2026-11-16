@@ -56,18 +56,21 @@
   document.addEventListener("input", function (event) {
     if (event.target.matches("[data-max-words]")) count(event.target);
   });
-  // Sections shown only when a switch is on: data-toggles="x" and data-show-when="x".
-  function sync(toggle) {
-    var name = toggle.getAttribute("data-toggles");
-    document.querySelectorAll('[data-show-when="' + name + '"]').forEach(function (el) {
-      el.hidden = !toggle.checked;
+  // Parts shown only when a field is chosen: data-show-when="lang_de" (a
+  // ticked checkbox) or data-show-when="request=part_time" (a chosen radio).
+  function sync() {
+    document.querySelectorAll("[data-show-when]").forEach(function (el) {
+      var rule = el.getAttribute("data-show-when").split("=");
+      var selector = 'input[name="' + rule[0] + '"]' + (rule[1] ? '[value="' + rule[1] + '"]' : "");
+      var input = document.querySelector(selector);
+      if (input) el.hidden = !input.checked;
     });
   }
   document.addEventListener("change", function (event) {
-    if (event.target.matches("[data-toggles]")) sync(event.target);
+    if (event.target.matches("input[type=checkbox], input[type=radio]")) sync();
   });
   document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll("[data-max-words]").forEach(count);
-    document.querySelectorAll("[data-toggles]").forEach(sync);
+    sync();
   });
 })();

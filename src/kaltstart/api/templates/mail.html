@@ -5,7 +5,8 @@
 {% block content %}
 <p class="small"><a href="/mails">← My mails</a></p>
 <h1 class="title-xl">Your mail to {{ company_name }}</h1>
-<p class="muted">Status: <span class="status-{{ shown }}">{{ labels[shown] }}</span>. Copy it into your own mailbox and send it from there.</p>
+{% if kept %}<p class="notice notice-success" role="status" style="margin-top:16px">Kept. Copy it and send it from your own mailbox.</p>{% endif %}
+<p class="muted" style="margin-top:12px"><span class="status-pill status-{{ shown }}">{{ labels[shown] }}</span> Copy each part into your own mailbox. Read it once more first: one line of your own makes the difference.</p>
 <div class="mail-preview" style="margin-top:24px">
   <div class="copy-row"><div><div class="mail-label">To</div><div id="copy-to">{{ mail.address or '' }}</div></div>
     <button class="btn btn-secondary" type="button" data-copy="copy-to">Copy</button></div>

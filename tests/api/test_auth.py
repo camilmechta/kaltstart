@@ -74,3 +74,24 @@ def test_sign_out_ends_the_session(client):
     sign_up_and_in(client)
     client.post("/signout", data={"csrf": csrf(client, "/companies")})
     assert client.get("/companies").status_code == 303
+
+
+def test_sign_in_and_sign_up_titles_match_and_help_is_given(client):
+    signin, signup = client.get("/signin").text, client.get("/signup").text
+    assert 'class="title-xl"' in signin and 'class="title-xl"' in signup
+    assert "At least 8 characters" in signup
+    assert "shared with HSG students" in signup
+
+
+def test_a_failed_sign_in_keeps_the_email(client):
+    from tests.api.conftest import csrf
+    page = client.post("/signin", data={"email": "nobody@example.com", "password": "wrongpass1",
+                                        "csrf": csrf(client, "/signin")}).text
+    assert 'value="nobody@example.com"' in page
+
+
+def test_after_sign_up_a_sign_in_button_is_shown(client):
+    from tests.api.conftest import csrf
+    page = client.post("/signup", data={"email": "new@example.com", "password": "longenough1",
+                                        "code": "dev", "csrf": csrf(client, "/signup")}).text
+    assert 'class="btn btn-primary" href="/signin"' in page

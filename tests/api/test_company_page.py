@@ -150,18 +150,47 @@ def test_the_page_explains_who_the_suggested_person_is(client):
     assert "found on the company's own website" in page
 
 
-def test_the_steps_are_shown_and_choices_are_cards(client):
+def test_no_stepper_and_choices_are_cards(client):
     ready(client)
     page = client.get("/companies/c1").text
-    assert 'class="stepper"' in page and page.count('class="option-card') == 4
-    assert 'aria-current="step"' in page
+    assert 'class="stepper"' not in page and page.count('class="option-card') == 4
+    assert "Keep it, then copy it" not in page
 
 
-def test_after_a_preview_the_third_step_is_current(client):
+def test_after_a_preview_the_third_step_appears(client):
     ready(client)
-    page = post(client, "preview", choice="team").text
-    current = page.split('aria-current="step"', 1)[1][:200]
-    assert "Keep" in current
+    assert "Keep it, then copy it" in post(client, "preview", choice="team").text
+
+
+def test_a_missing_choice_is_said_next_to_the_button(client):
+    ready(client)
+    page = post(client, "preview").text
+    step = page.split('id="generate"', 1)[1]
+    assert 'aria-live="polite"' in step.split("Generate my mail", 1)[0]
+    assert "Choose who you write to" in step.split("Generate my mail", 1)[0]
+
+
+def test_styles_are_chips_that_say_what_they_do(client):
+    ready(client)
+    page = client.get("/companies/c1").text
+    for value, hint in (("direct", "Best for founders"), ("round", "15-minute call"),
+                        ("formal", "large companies")):
+        assert f'name="style" value="{value}"' in page and hint in page
+    assert page.count('class="role-card style-card"') == 3
+    assert page.count('class="chip-toggle"') >= 2   # the two languages
+
+
+def test_the_style_is_round_when_the_suggested_person_recruits(client, store):
+    from kaltstart.api.store import PersonRow
+    from tests.api.test_compose import C1, EMAILS
+    from dataclasses import replace
+    store.add_company(replace(C1, id="c2", name="Recruit Co"), emails=EMAILS, people=[
+        PersonRow("Noah Beispiel", "Talent Acquisition Manager", ("recruiting",), "manager",
+                  "https://c1.example.ch/team", NOW)])
+    ready(client)
+    page = client.get("/companies/c2").text
+    assert 'name="style" value="round" checked' in page
+    assert 'name="style" value="direct" checked' in client.get("/companies/c1").text
 
 
 def test_without_a_profile_the_page_asks_for_it_before_suggesting(client):

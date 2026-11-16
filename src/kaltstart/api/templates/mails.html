@@ -2,6 +2,7 @@
 {% from "_status_actions.html" import actions %}
 {% block title %}My mails · Kaltstart{% endblock %}
 {% block content %}
+<p class="kicker">Your applications</p>
 <h1 class="title-xl">My mails</h1>
 <p class="muted">{{ pending }} of 5 mails in progress. A mail is in progress when you kept it but have not marked as sent or abandoned yet. You can have 5 at a time: mark them as you go, so you can keep new ones. After 7 days without news, a mail counts as sent.</p>
 {% for mail, days in reminders %}
@@ -11,19 +12,16 @@
 </div>
 {% endfor %}
 {% if rows %}
-<table class="table" style="margin-top:24px">
-  <thead><tr><th>Company</th><th>To</th><th>Status</th><th></th></tr></thead>
-  <tbody>
+<ul class="rows" style="margin-top:24px">
   {% for mail, shown in rows %}
-  <tr>
-    <td><a href="/mails/{{ mail.id }}">{{ companies[mail.company_id] }}</a><div class="small muted">{{ mail.subject }}</div></td>
-    <td>{{ mail.person_name or ('Careers' if mail.address_type == 'careers' else 'Team') }}</td>
-    <td class="status-{{ shown }}">{{ labels[shown] }}</td>
-    <td>{{ actions(mail, shown, '/mails') }}</td>
-  </tr>
+  <li class="row mail-row">
+    <div><a class="row-title" href="/mails/{{ mail.id }}">{{ companies[mail.company_id] }}</a><div class="row-detail">{{ mail.subject }}</div></div>
+    <div class="row-detail">To {{ mail.person_name or ('the careers address' if mail.address_type == 'careers' else 'the team') }}</div>
+    <div><span class="status-pill status-{{ shown }}">{{ labels[shown] }}</span></div>
+    <div class="mail-row-actions">{{ actions(mail, shown, '/mails') }}</div>
+  </li>
   {% endfor %}
-  </tbody>
-</table>
+</ul>
 {% else %}
 <p class="card" style="margin-top:24px">No mail yet. <a href="/companies">Find a company that just raised</a>.</p>
 {% endif %}

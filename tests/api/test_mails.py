@@ -80,3 +80,14 @@ def test_copying_the_body_marks_the_mail_copied(client, store, auth):
     response = client.post(f"/mails/{mail_id}/copied", data={"csrf": csrf(client, "/mails")})
     assert response.status_code == 204
     assert store.mail(me, mail_id).status == "copied"
+
+
+def test_a_kept_mail_says_kept_and_confirms_it(client, store, auth):
+    sign_up_and_in(client)
+    mail = keep(store, user_id(auth))
+    listing = client.get("/mails").text
+    assert "Kept" in listing and ">Generated<" not in listing
+    assert 'class="status-pill' in listing and 'class="row' in listing
+    page = client.get(f"/mails/{mail}?kept=1").text
+    assert "Kept. Copy it and send it from your own mailbox." in page
+    assert 'class="kicker"' in listing
