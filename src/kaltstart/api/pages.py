@@ -181,6 +181,121 @@ def register(app: FastAPI) -> None:
                     previous=link(page_number - 1) if page_number > 1 else None,
                     next_page=link(page_number + 1) if page_number < pages else None)
 
+    from kaltstart.api import compose
+    from kaltstart.api.forms import missing_for_mail
+    from kaltstart.api.store import NewMail
+    from kaltstart.mailgen.choices import suggested_style
+    from kaltstart.mailgen.language import choose_language
+    from kaltstart.mailgen import models as mg
+    from kaltstart.mailgen.generator import generate
+    from kaltstart.mailgen.models import MissingData, TooLong
+
+    REFUSALS = {
+        "company_full": "This company already has 3 mails this month, to protect its founders.",
+        "student_pending": "You have 5 mails waiting for a status. Mark some as sent or "
+                           "abandoned in My mails, then come back.",
+        "company_done": "You already wrote to this company.",
+        "person_done": "You already wrote to this person.",
+    }
+    FIELD_WORDS = {"first_name": "first name", "last_name": "last name",
+                   "programme": "degree programme", "start_date": "start date",
+                   "duration_months": "duration", "workload_percent": "workload",
+                   "contact_address": "an address for this company",
+                   "example": "a showcase sentence in the language of this mail"}
+    TOO_LONG = {"company_line": "Your sentence about the company: 35 words at most.",
+                "example": "Your showcase sentence is too long for a mail: 60 words at most.",
+                "programme": "Your degree programme is too long: 70 characters at most.",
+                "first_name": "Your first name is too long.", "last_name": "Your last name is too long.",
+                "body": "This mail would be too long: shorten your sentences."}
+
+    def refusal_text(refused) -> str:
+        text = REFUSALS[refused.reason]
+        if refused.frees_on:
+            from kaltstart.mailgen.phrases import long_date
+            text += f" A slot frees on {long_date(refused.frees_on, 'en')}."
+        return text
+
+    def defaults(company, profile, people, emails):
+        """The suggested person, style and language shown before any choice."""
+        person = compose.suggested(company, people, profile)
+        if person is not None:
+            style = "direct"
+        else:
+            shared = next((e for e in emails if e.type == "careers"), None) or \
+                next((e for e in emails if e.type == "generic"), None)
+            style = suggested_style(
+                mg.Contact(shared.address if shared else None,
+                           shared.type if shared else "generic", None),
+                mg.Round(company.stage, company.amount_eur, company.amount_native,
+                         company.currency, company.investors, company.size_category))
+        language = "en"
+        if profile:
+            reader = mg.Student(profile.id, "", "", "", profile.languages, "growth",
+                                "internship", None, None, None, None, ())
+            language = choose_language(reader, mg.Company(company.id, company.name,
+                                                          company.country, company.city, None))
+        return person, style, language
+
+    def company_view(request, company, *, form=None, preview=None, recipient=None, error=None,
+                     error_link=None, status=200):
+        student = request.state.user_id
+        profile = store.profile(student)
+        people, emails = store.people(company.id), store.emails(company.id)
+        person, style, language = defaults(company, profile, people, emails)
+        form = form or {}
+        return page(request, "company.html", status=status, company=company,
+                    round=round_text(company), suggested=person, people=people,
+                    emails=emails, profile=profile, showcases=store.showcases(student),
+                    style=form.get("style") or style, language=form.get("language") or language,
+                    form=form, preview=preview, recipient=recipient, error=error,
+                    error_link=error_link)
+
+    def compose_mail(request, company, form):
+        """(recipient, mail) or (None, (message, link, status))."""
+        student = request.state.user_id
+        profile, showcases = store.profile(student), store.showcases(student)
+        choice = form.get("choice") or ""
+        if choice not in compose.CHOICES:
+            return None, ("Choose who you write to (step 1).", None, 400)
+        missing = missing_for_mail(profile, showcases)
+        if missing:
+            return None, ("Complete your profile first: " + ", ".join(missing) + ".",
+                          "/profile", 400)
+        try:
+            index = int(form.get("person")) if form.get("person") not in (None, "") else None
+        except ValueError:
+            index = None
+        try:
+            recipient = compose.choose(company, store.people(company.id), store.emails(company.id),
+                                       profile, choice, person_index=index,
+                                       typed_name=form.get("typed_name"))
+        except compose.NoAddress:
+            return None, ("This company publishes no address for this choice. Choose someone "
+                          "else or write to the team.", None, 400)
+        except ValueError:
+            return None, ("Choose who you write to (step 1).", None, 400)
+        refused = rules.refusal(student, company.id, recipient.person_key,
+                                store.mail_records(), app.state.now())
+        if refused:
+            return None, (refusal_text(refused), "/mails" if refused.reason != "company_full"
+                          else None, 409)
+        style = form.get("style") if form.get("style") in ("direct", "round", "formal") else "direct"
+        language = form.get("language") if form.get("language") in ("en", "de") else "en"
+        try:
+            showcase = int(form.get("showcase") or 1)
+        except ValueError:
+            showcase = 1
+        inputs = compose.to_mailgen(profile, showcases, company, recipient, showcase)
+        try:
+            mail = generate(*inputs, style=style, language=language,
+                            company_line=form.get("company_line") or None)
+        except MissingData as exc:
+            words = [FIELD_WORDS.get(f, f) for f in exc.fields]
+            return None, ("Missing for this mail: " + ", ".join(words) + ".", "/profile", 400)
+        except TooLong as exc:
+            return None, (TOO_LONG.get(exc.field, "A text is too long."), None, 400)
+        return recipient, mail
+
     @app.get("/companies/{company_id}")
     async def company_page(request: Request, company_id: str):
         if (gate := signed_in(request)):
@@ -188,4 +303,46 @@ def register(app: FastAPI) -> None:
         company = store.company(company_id)
         if company is None:
             return Response("Not found", status_code=404)
-        return page(request, "company.html", company=company)
+        return company_view(request, company)
+
+    @app.post("/companies/{company_id}/preview")
+    async def preview(request: Request, company_id: str):
+        if (gate := signed_in(request)):
+            return gate
+        form = await form_of(request)
+        company = store.company(company_id)
+        if company is None:
+            return Response("Not found", status_code=404)
+        recipient, result = compose_mail(request, company, form)
+        if recipient is None:
+            message, link, status = result
+            return company_view(request, company, form=form, error=message, error_link=link,
+                                status=status)
+        return company_view(request, company, form=form, preview=result, recipient=recipient)
+
+    @app.post("/companies/{company_id}/keep")
+    async def keep_mail(request: Request, company_id: str):
+        if (gate := signed_in(request)):
+            return gate
+        form = await form_of(request)
+        company = store.company(company_id)
+        if company is None:
+            return Response("Not found", status_code=404)
+        recipient, result = compose_mail(request, company, form)
+        if recipient is None:
+            message, link, status = result
+            return company_view(request, company, form=form, error=message, error_link=link,
+                                status=status)
+        mail = result
+        kept = store.reserve(request.state.user_id, NewMail(
+            company_id=company.id, round_id=company.round_id, address=recipient.address,
+            address_type=recipient.address_type, person_name=recipient.person_name,
+            person_key=recipient.person_key, person_choice=recipient.person_choice,
+            person_source_url=recipient.person_source_url, style=mail.style,
+            language=mail.language, company_line=(form.get("company_line") or None),
+            used_company_line=mail.used_company_line, subject=mail.subject, body=mail.body),
+            app.state.now())
+        if not isinstance(kept, str):
+            return company_view(request, company, form=form, error=refusal_text(kept),
+                                error_link="/mails", status=409)
+        return redirect(request, f"/mails/{kept}?kept=1")
