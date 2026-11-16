@@ -105,7 +105,7 @@ def run(store: ContactStore, fetcher, *, country: str = "Switzerland",
     outcomes: Counter[str] = Counter()
     summary = {"started_at": stamp, "finished_at": stamp, "status": "success",
                "country": country, "companies_visited": 0, "with_address": 0,
-               "with_people": 0, "outcomes": {}, "error": None}
+               "with_people": 0, "write_errors": 0, "outcomes": {}, "error": None}
     try:
         excluded_ids, person_keys, address_keys = _read_exclusions(store.exclusions())
         recent_ids = store.company_ids_with_round_since(
@@ -135,6 +135,7 @@ def run(store: ContactStore, fetcher, *, country: str = "Switzerland",
                                         attempts=attempts, next_at=next_at.isoformat())
             except Exception as exc:
                 # The company's state is untouched: it is due again next run.
+                summary["write_errors"] += 1
                 write_errors += 1
                 if write_errors >= MAX_WRITE_ERRORS:
                     raise _TooManyWriteErrors(type(exc).__name__) from None

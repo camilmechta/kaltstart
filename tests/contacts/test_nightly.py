@@ -120,6 +120,7 @@ def test_first_run_stores_rows_state_and_summary():
     assert (summary["status"], summary["country"], summary["companies_visited"],
             summary["with_address"], summary["with_people"], summary["error"]) == (
         "success", "Switzerland", 2, 1, 1, None)
+    assert summary["write_errors"] == 0
     assert summary["outcomes"] == {"ok": 1, "no_address": 1}
     assert summary["started_at"] == NOW.isoformat()
     assert store.runs == [summary]
@@ -230,6 +231,7 @@ def test_one_failed_write_leaves_that_company_due_and_the_run_goes_on():
     assert {e["company_id"] for e in store.emails} == {"c0", "c2"}
     assert store.companies["c1"]["contacts_checked_at"] is None
     assert (summary["status"], summary["companies_visited"]) == ("success", 2)
+    assert summary["write_errors"] == 1
 
 
 def test_five_failed_writes_in_a_row_stop_the_run():
@@ -238,6 +240,7 @@ def test_five_failed_writes_in_a_row_stop_the_run():
     summary = run(store, fetcher, now=NOW)
     assert len(fetcher.visited) == 6                # c0, then c1 to c5
     assert (summary["status"], summary["error"]) == ("failed", "OSError")
+    assert summary["write_errors"] == 5
     assert store.runs == [summary]
 
 

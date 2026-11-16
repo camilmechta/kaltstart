@@ -49,7 +49,8 @@ def _run(store, fetcher, country: str, limit: int) -> int:
     """Prints counts only: the logs of this command are public."""
     summary = nightly.run(store, fetcher, country=country, limit=limit)
     print(f"Visited {summary['companies_visited']}, with an address "
-          f"{summary['with_address']}, with people {summary['with_people']}")
+          f"{summary['with_address']}, with people {summary['with_people']}, "
+          f"write errors {summary['write_errors']}")
     _print_outcomes(summary["outcomes"])
     if summary["status"] != "success":
         print(f"error: the run failed ({summary['error']})", file=sys.stderr)

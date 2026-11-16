@@ -142,7 +142,7 @@ def test_run_prints_counts_only(capsys):
     store = contact_store()
     assert main(["run"], fetcher=contact_fetcher(), store=store) == 0
     printed = capsys.readouterr().out
-    assert "Visited 2, with an address 1, with people 1" in printed
+    assert "Visited 2, with an address 1, with people 1, write errors 0" in printed
     assert "ok: 1" in printed and "no_address: 1" in printed
     for secret in ("Anna", "Muster", "@", "example.ch", "Example Robotics"):
         assert secret not in printed
