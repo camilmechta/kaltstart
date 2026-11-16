@@ -138,6 +138,15 @@ dense lists do. Running text is at most 68 characters wide.
 - **Choice card**: a whole card is the label of a radio button; selected,
   it takes a `--primary` border and `--primary-soft` background. Used for
   "who are you writing to".
+- **Role card** (profile, "Your target role"): a choice card with a Lucide
+  icon in `--accent`, the role name and a one-line hint in `--muted`;
+  selected, `--primary` border and `--primary-soft` background.
+- **Chip toggle** (profile: countries, sectors, internship or part-time): a
+  pill label around a hidden checkbox or radio; selected, `--primary`
+  border, `--primary-soft` background, `--link` text.
+- **Switch** (profile, "I can also write in German"): 40 × 22px track,
+  `--primary` when on. English is never a control: every mail can be in
+  English, so nothing is shown ticked and locked.
 - **Navigation**: logo ("**Kalt**start", "Kalt" in `--primary`), then
   Companies, My mails, Profile; on the right the pending pill
   ("2 / 5 pending") in Geist Mono. One line on desktop; on phones the links

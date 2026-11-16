@@ -7,7 +7,7 @@ from tests.api.conftest import PROFILE, csrf, save_profile, sign_up_and_in, user
 def test_the_profile_form_has_every_field(client):
     sign_up_and_in(client)
     page = client.get("/profile").text
-    for name in ("first_name", "last_name", "programme", "lang_en", "lang_de", "target_role",
+    for name in ("first_name", "last_name", "programme", "lang_de", "target_role",
                  "request", "start_date", "duration_months", "workload_percent", "link",
                  "showcase1_en", "showcase1_de", "showcase2_en", "showcase2_de", "pref_country"):
         assert f'name="{name}"' in page, name
@@ -68,3 +68,43 @@ def test_a_profile_belongs_to_its_student(client, store, auth):
     client.post("/signout", data={"csrf": csrf(client, "/profile")})
     sign_up_and_in(client, email="other@example.com")
     assert "Beispiel" not in client.get("/profile").text
+
+
+
+def test_languages_are_one_clear_switch(client):
+    sign_up_and_in(client)
+    page = client.get("/profile").text
+    assert "Every mail can be in English" in page and "I can also write in German" in page
+    assert "disabled" not in page
+
+
+@pytest.mark.parametrize("role,hint", [("product", "Roadmap"), ("growth", "Marketing"),
+                                       ("data", "Dashboards"), ("operations", "Processes"),
+                                       ("business_development", "Partners")])
+def test_target_roles_are_cards(client, role, hint):
+    sign_up_and_in(client)
+    page = client.get("/profile").text
+    assert f'type="radio" name="target_role" value="{role}"' in page
+    assert hint in page and 'class="role-card' in page
+
+
+def test_showcase_is_guided_and_the_rest_is_tucked_away(client):
+    sign_up_and_in(client)
+    page = client.get("/profile").text
+    assert "What have you done that shows you can help a startup?" in page
+    assert 'placeholder="e.g.' in page
+    assert page.count('data-show-when="lang_de"') == 2
+    second = page.split("<details", 1)[1].split("</details>", 1)[0]
+    assert 'name="showcase2_en"' in second and "Add a second one" in second
+
+
+def test_preferences_are_chips(client):
+    sign_up_and_in(client)
+    page = client.get("/profile").text
+    assert page.count('class="chip-toggle"') >= 3 + 8      # three countries and the sectors
+
+
+def test_a_second_showcase_opens_by_itself_when_filled(client, store, auth):
+    sign_up_and_in(client)
+    save_profile(client, showcase2_en="I ran the finance club's events for a year.")
+    assert "<details open" in client.get("/profile").text

@@ -56,7 +56,18 @@
   document.addEventListener("input", function (event) {
     if (event.target.matches("[data-max-words]")) count(event.target);
   });
+  // Sections shown only when a switch is on: data-toggles="x" and data-show-when="x".
+  function sync(toggle) {
+    var name = toggle.getAttribute("data-toggles");
+    document.querySelectorAll('[data-show-when="' + name + '"]').forEach(function (el) {
+      el.hidden = !toggle.checked;
+    });
+  }
+  document.addEventListener("change", function (event) {
+    if (event.target.matches("[data-toggles]")) sync(event.target);
+  });
   document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll("[data-max-words]").forEach(count);
+    document.querySelectorAll("[data-toggles]").forEach(sync);
   });
 })();

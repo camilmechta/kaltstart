@@ -335,3 +335,49 @@ input[type="checkbox"]:disabled { opacity: 0.6; cursor: not-allowed; }
 .gs-arrow { margin-left: auto; color: var(--muted); font-size: var(--text-lg); }
 .gs-step.done { opacity: 0.75; }
 .gs-step.done .gs-number { background: var(--accent-soft); color: var(--accent); }
+
+/* --- profile: switch, role cards, chips -------------------------------- */
+.field-label { font-size: var(--text-sm); font-weight: 600; color: var(--text); margin-bottom: var(--space-2); }
+legend.field-label { padding: 0; }
+.two-columns { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+@media (max-width: 560px) { .two-columns { grid-template-columns: 1fr; } }
+
+.switch { display: inline-flex; align-items: center; gap: var(--space-3); color: var(--text);
+  font-size: var(--text-md); cursor: pointer; margin-top: var(--space-2); }
+.switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.switch-track { position: relative; width: 40px; height: 22px; border-radius: var(--radius-full);
+  background: var(--surface-2); border: 1.5px solid var(--border-strong); transition: background-color 120ms; }
+.switch-track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 15px; height: 15px;
+  border-radius: var(--radius-full); background: var(--muted); transition: transform 120ms, background-color 120ms; }
+.switch input:checked + .switch-track { background: var(--primary); border-color: var(--primary); }
+.switch input:checked + .switch-track::after { transform: translateX(18px); background: var(--on-primary); }
+.switch input:focus-visible + .switch-track { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+.role-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: var(--space-3); }
+.role-card { position: relative; display: flex; flex-direction: column; gap: var(--space-1);
+  padding: var(--space-4); background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); cursor: pointer; color: var(--text);
+  transition: border-color 120ms, background-color 120ms; }
+.role-card:hover { border-color: var(--border-strong); }
+.role-card input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.role-card:has(input:checked) { border-color: var(--primary); background: var(--primary-soft); }
+.role-card:has(input:focus-visible) { outline: 2px solid var(--primary); outline-offset: 2px; }
+.role-icon { color: var(--accent); margin-bottom: var(--space-1); }
+.role-card:has(input:checked) .role-icon { color: var(--link); }
+.role-name { font-weight: 600; font-size: var(--text-md); }
+.role-hint { color: var(--muted); font-size: var(--text-sm); line-height: 18px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.chip-toggle { position: relative; cursor: pointer; }
+.chip-toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.chip-toggle span { display: inline-block; padding: 7px 14px; border-radius: var(--radius-full);
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  font-size: var(--text-md); transition: border-color 120ms, background-color 120ms, color 120ms; }
+.chip-toggle:hover span { border-color: var(--border-strong); }
+.chip-toggle input:checked + span { border-color: var(--primary); background: var(--primary-soft); color: var(--link); }
+.chip-toggle input:focus-visible + span { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+details summary { cursor: pointer; color: var(--link); font-size: var(--text-md); font-weight: 600; }
+details[open] summary { margin-bottom: var(--space-3); }
+details > * + * { margin-top: var(--space-3); }
+[hidden] { display: none !important; }
