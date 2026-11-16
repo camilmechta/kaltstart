@@ -176,6 +176,9 @@ optional company sentence with a live word counter (35). A note says that
 generating takes a slot. Refusals from rule 7.1 and from the generator
 (`MissingData`, `TooLong`) appear as one sentence naming what to do.
 
+Step 2 ends with a preview of the mail and the button "Keep this mail"
+(section 9b, point 3); only keeping takes the slot.
+
 Step 3, copy: three Copy buttons (address, subject, body); copying the
 body moves the mail to `copied`. Buttons "I sent it" and "Abandon".
 
@@ -236,7 +239,15 @@ navigation.
    app maps `operations` to `ops` and `business_development` to `bd` before
    calling `selection.choose_person`. The role is required before the first
    mail.
-3. **Preview before a slot is taken**: the owner's decision, section 10.
+3. **Preview before a slot is taken** (the owner's decision): "Generate"
+   shows the mail without reserving anything; the student may change the
+   style, language, showcase sentence or company sentence and generate again
+   as often as they like. The slot is taken only by "Keep this mail", which
+   runs `reserve_mail` and stores the mail as `generated`; the Copy buttons
+   appear after it. Rules 7.1 are checked at "Generate" too, so a student
+   does not polish a mail they cannot keep, and again at "Keep". Abandoned
+   then means a kept mail the student will not send. Previews are not
+   stored.
 4. **Who and which address** are re-derived on the server from
    `contact_people` and `contact_emails` for `suggested` and `other_on_list`;
    the form only sends which choice and, for `other_on_list`, which person.
@@ -264,7 +275,9 @@ navigation.
 
 ## 10. Open points for the owner
 
-- The address shown in the footer for removal requests (`REMOVAL_CONTACT`).
+- The address shown in the footer for removal requests (`REMOVAL_CONTACT`):
+  given by the owner before deployment; it lives only in the server's
+  configuration, never in the repository.
 - The host, chosen in the plan after checking current free offers.
 
 ## 11. Left to the builder
