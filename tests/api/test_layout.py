@@ -70,3 +70,12 @@ def test_figures_and_tags_use_the_main_font_and_inputs_are_styled():
         assert "var(--font-mono)" not in block, selector
     assert 'input[type="checkbox"], input[type="radio"] {' in css
     assert "appearance: none" in css
+
+
+def test_notices_are_soft_with_a_left_mark():
+    css = CSS.read_text()
+    block = css.split(".notice {", 1)[1].split("}", 1)[0]
+    assert "border-left: 3px solid" in block and "border: 0" in block
+    for kind in ("warning", "error", "success"):
+        rule = css.split(f".notice-{kind} {{", 1)[1].split("}", 1)[0]
+        assert "border-left-color" in rule and "background" in rule, kind

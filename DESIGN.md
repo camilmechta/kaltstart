@@ -142,9 +142,10 @@ dense lists do. Running text is at most 68 characters wide.
   Companies, My mails, Profile; on the right the pending pill
   ("2 / 5 pending") in Geist Mono. One line on desktop; on phones the links
   sit in a row under the logo.
-- **Notices**: the 72-hour reminder and refusals use a 1px coloured border
-  (`--warning` or `--error`) on `--surface`, with an icon; never a filled
-  coloured box.
+- **Notices**: no frame, a 3px left mark and a soft background: a hint or
+  a reminder in `--primary` on `--primary-soft`; a success in `--accent` on
+  `--accent-soft`; an error in `--error` on a 10 % tint of it. Never a
+  bright frame all around (the owner found the yellow one ugly).
 - **Mail preview**: `--surface`, mono labels SUBJECT and TO in `--muted`,
   the body in Geist 16px with its own line breaks.
 
