@@ -71,3 +71,12 @@ def test_the_count_does_not_claim_three_countries_when_filtered(client):
     page = client.get("/companies?country=Germany&months=12").text
     assert "in Switzerland, Germany and Austria" not in page
     assert "companies match your filters" in page
+
+
+def test_the_person_filter_in_the_page(client, store, auth):
+    sign_up_and_in(client)
+    page = client.get("/companies?months=12&person=1").text
+    rows, _ = store.companies(ListFilters(with_person=True), user_id(auth), NOW)
+    assert names(page) == [r.name for r in rows] and rows
+    assert 'name="person" value="1" checked' in page
+    assert "General address" not in page and "Careers address" not in page

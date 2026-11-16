@@ -132,11 +132,12 @@ class ListFilters:
     sizes: tuple[str, ...] = ()
     months: int = 12
     page: int = 1
+    with_person: bool = False
 
 
 def eligible(companies: Sequence[CompanyRow], with_address: set[str], excluded: set[str],
              mails: Sequence[MailRecord], filters: ListFilters, student_id: str,
-             now: datetime) -> tuple[list[CompanyRow], int]:
+             now: datetime, with_person: set[str] = frozenset()) -> tuple[list[CompanyRow], int]:
     """The list of spec 7.2: a recent round, an address, not excluded, not
     full (unless this student wrote to it); filtered, newest round first,
     one page of 50 and the total."""
@@ -160,6 +161,8 @@ def eligible(companies: Sequence[CompanyRow], with_address: set[str], excluded: 
         if filters.sectors and c.sector not in filters.sectors:
             continue
         if filters.sizes and c.size_category not in filters.sizes:
+            continue
+        if filters.with_person and c.id not in with_person:
             continue
         rows.append(c)
     rows.sort(key=lambda c: (c.round_date, c.id), reverse=True)
@@ -233,8 +236,9 @@ class InMemoryAppStore:
     def companies(self, filters: ListFilters, student_id: str,
                   now: datetime) -> tuple[list[CompanyRow], int]:
         with_address = {cid for cid, rows in self._emails.items() if rows}
+        with_person = {cid for cid, rows in self._people.items() if rows}
         return eligible(list(self._companies.values()), with_address, self._excluded,
-                        self.mail_records(), filters, student_id, now)
+                        self.mail_records(), filters, student_id, now, with_person)
 
     def sectors(self) -> list[str]:
         return sorted({c.sector for c in self._companies.values() if c.sector})

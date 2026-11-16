@@ -164,7 +164,8 @@ def register(app: FastAPI) -> None:
             page_number = 1
         filters = ListFilters(query=q.get("q", ""), countries=countries, sectors=sectors,
                               sizes=tuple(s for s in q.getlist("size") if s in SIZES),
-                              months=months, page=page_number)
+                              months=months, page=page_number,
+                              with_person=q.get("person") == "1")
         now = app.state.now()
         rows, total = store.companies(filters, request.state.user_id, now)
         records = store.mail_records()
@@ -172,7 +173,7 @@ def register(app: FastAPI) -> None:
                       last_slot=rules.last_slot(c.id, records, now)) for c in rows]
         base = [("q", filters.query)] + [("country", c) for c in countries] + \
                [("sector", s) for s in sectors] + [("size", s) for s in filters.sizes] + \
-               [("months", str(months))]
+               [("months", str(months))] + ([("person", "1")] if filters.with_person else [])
         pages = max((total + 49) // 50, 1)
         link = lambda n: "/companies?" + urlencode(base + [("page", str(n))])
         return page(request, "companies.html", items=items, total=total, filters=filters,

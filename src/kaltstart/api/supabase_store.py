@@ -137,8 +137,11 @@ class SupabaseAppStore:
 
     def companies(self, filters: ListFilters, student_id: str,
                   now: datetime) -> tuple[list[CompanyRow], int]:
+        with_person = ({r["company_id"] for r in self._read_all(
+            "contact_people", "company_id", ("company_id", "name"))}
+            if filters.with_person else set())
         return eligible(self._company_rows(now), self._with_address(), self._excluded(),
-                        self.mail_records(), filters, student_id, now)
+                        self.mail_records(), filters, student_id, now, with_person)
 
     def sectors(self) -> list[str]:
         rows = self._read_all("companies", "id,sectors", ("id",))

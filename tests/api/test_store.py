@@ -149,3 +149,13 @@ def test_people_and_emails_of_a_company():
                       people=[person])
     assert store.people("c1") == [person]
     assert store.emails("c1")[0].address == "jobs@c1.example.ch"
+
+
+def test_filter_on_companies_with_a_person():
+    store = InMemoryAppStore(invitation="x")
+    person = PersonRow("Anna Muster", "CEO", ("leadership",), "head", "https://c1.example.ch/team",
+                       date(2026, 11, 15))
+    store.add_company(company(1), emails=[EmailRow("info@c1.example.ch", "generic", "u")], people=[person])
+    store.add_company(company(2), emails=[EmailRow("info@c2.example.ch", "generic", "u")], people=[])
+    assert ids(store, ListFilters(with_person=True)) == ["c1"]
+    assert sorted(ids(store)) == ["c1", "c2"]

@@ -20,6 +20,7 @@
   <select name="months" aria-label="Round date">
     {% for m in (3, 6, 12) %}<option value="{{ m }}" {% if filters.months == m %}selected{% endif %}>Last {{ m }} months</option>{% endfor %}
   </select>
+  <label class="choice filter-check"><input type="checkbox" name="person" value="1" {% if filters.with_person %}checked{% endif %}> Only companies with a suggested person</label>
   <button class="btn btn-secondary" type="submit">Filter</button>
 </form>
 {% if items %}

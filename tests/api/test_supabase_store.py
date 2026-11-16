@@ -113,3 +113,10 @@ def test_invitation_code_is_read_from_app_settings():
     recorder = Recorder({"app_settings": [{"value": "code-123"}]})
     assert store(recorder).invitation_code() == "code-123"
     assert param(recorder.of("GET", "app_settings")[0], "key") == "eq.invitation_code"
+
+
+def test_companies_with_a_person_read_contact_people():
+    tables = dict(TABLES, contact_exclusions=[], contact_people=[{"company_id": "c2"}])
+    recorder = Recorder(tables)
+    rows, _ = store(recorder).companies(ListFilters(with_person=True), "s1", NOW)
+    assert [r.id for r in rows] == ["c2"]
