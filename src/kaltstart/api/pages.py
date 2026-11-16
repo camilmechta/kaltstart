@@ -6,11 +6,6 @@ from fastapi import FastAPI, Request
 def register(app: FastAPI) -> None:
     page, signed_in = app.state.page, app.state.signed_in
 
-    @app.get("/companies")
-    async def companies(request: Request):
-        if (gate := signed_in(request)):
-            return gate
-        return page(request, "companies.html")
 
     from kaltstart.api.forms import COUNTRIES, ROLE_LABELS, parse_profile
     from kaltstart.api.store import Profile
@@ -124,3 +119,73 @@ def register(app: FastAPI) -> None:
         if mail.status == "generated":
             store.set_status(request.state.user_id, mail_id, "copied", app.state.now())
         return Response(status_code=204)
+
+    from urllib.parse import urlencode
+    from kaltstart.api.store import ListFilters
+    from kaltstart.mailgen.phrases import amount, round_name
+    from kaltstart.mailgen.models import Round as MailRound
+
+    SIZES = {"small": "Small (pre-seed, seed)", "medium": "Medium (Series A)",
+             "large": "Large (Series B and later)"}
+
+    def contact_kind(company_id: str) -> str:
+        if store.people(company_id):
+            return "Person suggested"
+        if any(e.type == "careers" for e in store.emails(company_id)):
+            return "Careers address"
+        return "General address"
+
+    def round_text(c) -> str:
+        r = MailRound(c.stage, c.amount_eur, c.amount_native, c.currency, c.investors,
+                      c.size_category)
+        money = amount(r, "en")
+        name = round_name(c.stage, "en")
+        return f"{money} {name}" if money else name[0].upper() + name[1:]
+
+    @app.get("/companies")
+    async def companies(request: Request):
+        if (gate := signed_in(request)):
+            return gate
+        q = request.query_params
+        profile = store.profile(request.state.user_id)
+        first_visit = not q
+        countries = tuple(q.getlist("country")) or (
+            profile.preferred_countries if first_visit and profile else ())
+        sectors = tuple(q.getlist("sector")) or (
+            profile.preferred_sectors if first_visit and profile else ())
+        try:
+            months = int(q.get("months", "12"))
+        except ValueError:
+            months = 12
+        months = months if months in (3, 6, 12) else 12
+        try:
+            page_number = max(int(q.get("page", "1")), 1)
+        except ValueError:
+            page_number = 1
+        filters = ListFilters(query=q.get("q", ""), countries=countries, sectors=sectors,
+                              sizes=tuple(s for s in q.getlist("size") if s in SIZES),
+                              months=months, page=page_number)
+        now = app.state.now()
+        rows, total = store.companies(filters, request.state.user_id, now)
+        records = store.mail_records()
+        items = [dict(company=c, round=round_text(c), contact=contact_kind(c.id),
+                      last_slot=rules.last_slot(c.id, records, now)) for c in rows]
+        base = [("q", filters.query)] + [("country", c) for c in countries] + \
+               [("sector", s) for s in sectors] + [("size", s) for s in filters.sizes] + \
+               [("months", str(months))]
+        pages = max((total + 49) // 50, 1)
+        link = lambda n: "/companies?" + urlencode(base + [("page", str(n))])
+        return page(request, "companies.html", items=items, total=total, filters=filters,
+                    countries=COUNTRIES, sectors=store.sectors(), sizes=SIZES,
+                    page_number=page_number, pages=pages,
+                    previous=link(page_number - 1) if page_number > 1 else None,
+                    next_page=link(page_number + 1) if page_number < pages else None)
+
+    @app.get("/companies/{company_id}")
+    async def company_page(request: Request, company_id: str):
+        if (gate := signed_in(request)):
+            return gate
+        company = store.company(company_id)
+        if company is None:
+            return Response("Not found", status_code=404)
+        return page(request, "company.html", company=company)

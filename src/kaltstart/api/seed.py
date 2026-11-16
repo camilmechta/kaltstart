@@ -34,7 +34,7 @@ def seeded_store(now: datetime, count: int = 36) -> InMemoryAppStore:
     for n in range(count):
         country, tld, cities = _COUNTRIES[n % 3]
         stage, amount, size = rng.choice(_STAGES)
-        name = f"{_WORDS[n % len(_WORDS)]} {_KINDS[(n * 7) % len(_KINDS)]}"
+        name = f"{_WORDS[n % len(_WORDS)]} {_KINDS[(n * 7 + n // len(_WORDS)) % len(_KINDS)]}"
         host = f"{name.lower().replace(' ', '')}.example.{tld}"
         row = CompanyRow(
             id=f"dev{n:02d}", name=name, country=country, city=rng.choice(cities),

@@ -29,3 +29,10 @@ def test_the_seed_is_the_same_every_time():
     first = seeded_store(NOW).companies(ListFilters(), "dev", NOW)[0]
     second = seeded_store(NOW).companies(ListFilters(), "dev", NOW)[0]
     assert first == second
+
+
+def test_company_names_are_unique():
+    store = seeded_store(NOW)
+    rows, total = store.companies(ListFilters(), "dev", NOW)
+    names = [r.name for r in rows]
+    assert len(set(names)) == len(names) == total
