@@ -18,7 +18,7 @@ on:
         # This repository is public and so are these logs and inputs: never
         # type a person's name or an email address here. Removal on request
         # is done in the Supabase SQL editor (see the README).
-        description: Extra arguments, e.g. --max 20 (never a name or an address)
+        description: Extra arguments, e.g. --max 20 --country Germany (never a name or an address); empty means every open country
         type: string
         default: ""
 
@@ -43,7 +43,8 @@ jobs:
       - name: Run contacts
         env:
           COMMAND: ${{ github.event.inputs.command || 'run' }}
-          ARGS: ${{ github.event.inputs.args }}
+          # The countries the scraper has been measured on (decisions D61, D65).
+          ARGS: ${{ github.event.inputs.args || '--country Switzerland --country Germany' }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         # $ARGS is unquoted on purpose: the shell splits it into words.

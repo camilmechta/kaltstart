@@ -33,10 +33,13 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--out", type=Path,
                    default=Path("docs/measurements/phase-2-summary.md"))
     p = sub.add_parser("run", help="read the companies that are due and store their contacts")
-    p.add_argument("--country", default="Switzerland")
-    p.add_argument("--max", type=int, default=nightly.DEFAULT_MAX)
+    p.add_argument("--country", action="append",
+                   help="a country to read, repeatable; default Switzerland")
+    p.add_argument("--max", type=int, default=nightly.DEFAULT_MAX,
+                   help="companies per country")
     p = sub.add_parser("status", help="print counts about stored contacts")
-    p.add_argument("--country", default="Switzerland")
+    p.add_argument("--country", action="append",
+                   help="a country to count, repeatable; default Switzerland")
     return parser
 
 
@@ -45,21 +48,30 @@ def _print_outcomes(outcomes: dict) -> None:
         print(f"{outcome}: {outcomes[outcome]}")
 
 
-def _run(store, fetcher, country: str, limit: int) -> int:
-    """Prints counts only: the logs of this command are public."""
-    summary = nightly.run(store, fetcher, country=country, limit=limit)
-    print(f"Visited {summary['companies_visited']}, with an address "
-          f"{summary['with_address']}, with people {summary['with_people']}, "
-          f"write errors {summary['write_errors']}")
-    _print_outcomes(summary["outcomes"])
-    if summary["status"] != "success":
-        print(f"error: the run failed ({summary['error']})", file=sys.stderr)
-        return 1
-    return 0
+def _run(store, fetcher, countries: list[str], limit: int) -> int:
+    """One run per country, one after the other; a failed country does not
+    stop the next one. Prints counts only: the logs of this command are public."""
+    code = 0
+    for country in countries:
+        summary = nightly.run(store, fetcher, country=country, limit=limit)
+        print(f"{country}: visited {summary['companies_visited']}, with an address "
+              f"{summary['with_address']}, with people {summary['with_people']}, "
+              f"write errors {summary['write_errors']}")
+        _print_outcomes(summary["outcomes"])
+        if summary["status"] != "success":
+            print(f"error: the run for {country} failed ({summary['error']})", file=sys.stderr)
+            code = 1
+    return code
 
 
-def _status(store, country: str) -> None:
+def _status(store, countries: list[str]) -> None:
+    for country in countries:
+        _status_of(store, country)
+
+
+def _status_of(store, country: str) -> None:
     counts = nightly.status(store, country)
+    print(country)
     print(f"Eligible: {counts['eligible']}")
     print(f"Visited: {counts['visited']}")
     print(f"With an address: {counts['with_address']}")
@@ -113,10 +125,10 @@ def main(argv: list[str], *, fetcher=None, store=None) -> int:
         if args.command == "run":
             return _run(_contact_store(store),
                         fetcher or SiteFetcher(default_http_client()),
-                        args.country, args.max)
+                        args.country or ["Switzerland"], args.max)
         if args.command == "status":
             try:
-                _status(_contact_store(store), args.country)
+                _status(_contact_store(store), args.country or ["Switzerland"])
             except RuntimeError:
                 raise                   # missing environment variables: safe to print
             except Exception as exc:

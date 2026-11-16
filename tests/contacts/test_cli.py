@@ -142,7 +142,7 @@ def test_run_prints_counts_only(capsys):
     store = contact_store()
     assert main(["run"], fetcher=contact_fetcher(), store=store) == 0
     printed = capsys.readouterr().out
-    assert "Visited 2, with an address 1, with people 1, write errors 0" in printed
+    assert "Switzerland: visited 2, with an address 1, with people 1, write errors 0" in printed
     assert "ok: 1" in printed and "no_address: 1" in printed
     for secret in ("Anna", "Muster", "@", "example.ch", "Example Robotics"):
         assert secret not in printed
@@ -191,3 +191,41 @@ def test_a_database_error_in_status_prints_its_kind_only(capsys):
     captured = capsys.readouterr()
     assert "ValueError" in captured.err
     assert "@" not in captured.out + captured.err
+
+
+def test_run_reads_several_countries_one_after_the_other(capsys):
+    store, fetcher = contact_store(), contact_fetcher()
+    store.companies["c2"]["country"] = "Germany"
+    assert main(["run", "--country", "Switzerland", "--country", "Germany"],
+                fetcher=fetcher, store=store) == 0
+    assert fetcher.visited == ["https://example.ch", "https://example.de"]
+    assert [r["country"] for r in store.runs] == ["Switzerland", "Germany"]
+    printed = capsys.readouterr().out
+    assert "Switzerland: visited 1" in printed and "Germany: visited 1" in printed
+
+
+def test_a_failed_country_does_not_stop_the_next_one():
+    store, fetcher = contact_store(), contact_fetcher()
+    store.companies["c2"]["country"] = "Germany"
+    calls = []
+    original = store.candidate_companies
+
+    def candidates(country):
+        calls.append(country)
+        if country == "Switzerland":
+            raise ValueError("database refused")
+        return original(country)
+    store.candidate_companies = candidates
+    assert main(["run", "--country", "Switzerland", "--country", "Germany"],
+                fetcher=fetcher, store=store) == 1
+    assert calls == ["Switzerland", "Germany"]
+    assert fetcher.visited == ["https://example.de"]
+
+
+def test_status_of_several_countries(capsys):
+    store = contact_store()
+    store.companies["c2"]["country"] = "Germany"
+    assert main(["status", "--country", "Switzerland", "--country", "Germany"], store=store) == 0
+    printed = capsys.readouterr().out
+    assert "Switzerland" in printed and "Germany" in printed
+    assert printed.count("Eligible: 1") == 2

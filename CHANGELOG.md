@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Germany is read every night after Switzerland; `run` and `status` take
+  several `--country` options.
 - First measurement in Germany, on 20 companies: address found for 18 of the
   18 that publish one, people accuracy 10 lists of 13, coverage 50 %.
 - Migration `0003`: removal of a person also covers their addresses
