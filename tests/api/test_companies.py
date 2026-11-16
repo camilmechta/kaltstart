@@ -64,3 +64,10 @@ def test_an_excluded_company_has_no_page(client, store):
     store.exclude_company("dev01")
     assert client.get("/companies/dev01").status_code == 404
     assert client.get("/companies/nope").status_code == 404
+
+
+def test_the_count_does_not_claim_three_countries_when_filtered(client):
+    sign_up_and_in(client)
+    page = client.get("/companies?country=Germany&months=12").text
+    assert "in Switzerland, Germany and Austria" not in page
+    assert "companies match your filters" in page

@@ -2,7 +2,7 @@
 {% block title %}Companies · Kaltstart{% endblock %}
 {% block content %}
 <h1 class="title-xl">Who just raised money</h1>
-<p class="muted">{{ total }} companies in Switzerland, Germany and Austria, newest rounds first. Each takes at most 3 mails a month, so founders are not flooded.</p>
+<p class="muted">{{ total }} {{ "company matches" if total == 1 else "companies match" }} your filters, newest rounds first. Each company takes at most 3 mails a month, so founders are not flooded.</p>
 <form method="get" action="/companies" class="filters" role="search">
   <input type="search" name="q" value="{{ filters.query }}" placeholder="Search a company" aria-label="Search a company">
   <select name="country" aria-label="Country">
