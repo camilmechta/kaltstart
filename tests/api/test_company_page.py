@@ -169,3 +169,10 @@ def test_without_a_profile_the_page_asks_for_it_before_suggesting(client):
     page = client.get("/companies/c1").text
     assert "Complete your profile" in page and 'href="/profile"' in page
     assert "Why Anna" not in page
+
+
+def test_the_suggested_person_is_not_repeated_under_someone_else(client):
+    ready(client)
+    page = client.get("/companies/c1").text
+    other = page.split('name="person"', 1)[1].split("</select>", 1)[0]
+    assert "Ben Probe" in other and "Anna Muster" not in other

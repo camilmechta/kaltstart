@@ -40,12 +40,12 @@
         <p class="option-detail">{{ suggested.name.split()[0] }} was found on the company's own website, on <a href="{{ suggested.source_url }}" rel="noopener" target="_blank">this page</a>, on {{ suggested.read_at.strftime('%-d %b %Y') }}. People change jobs: check the page before you choose.</p>
       </label>
       {% endif %}
-      {% if people %}
+      {% if people|length > (1 if suggested and not profile_missing else 0) %}
       <label class="option-card">
         <input type="radio" name="choice" value="other_on_list" {% if form.get('choice') == 'other_on_list' %}checked{% endif %}>
         <span class="option-title">Someone else from their website</span>
         <select name="person" aria-label="Someone else from their website">
-          {% for p in people %}<option value="{{ loop.index0 }}" {% if form.get('person') == loop.index0|string %}selected{% endif %}>{{ p.name }}, {{ p.title }}</option>{% endfor %}
+          {% for p in people %}{% if not (suggested and not profile_missing and p.name == suggested.name) %}<option value="{{ loop.index0 }}" {% if form.get('person') == loop.index0|string %}selected{% endif %}>{{ p.name }}, {{ p.title }}</option>{% endif %}{% endfor %}
         </select>
       </label>
       {% endif %}
