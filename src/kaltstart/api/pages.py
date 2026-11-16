@@ -257,7 +257,8 @@ def register(app: FastAPI) -> None:
                     emails=emails, profile=profile, showcases=store.showcases(student),
                     style=form.get("style") or style, language=form.get("language") or language,
                     form=form, preview=preview, recipient=recipient, error=error,
-                    error_link=error_link, size_info=SIZE_INFO[company.size_category])
+                    error_link=error_link, size_info=SIZE_INFO[company.size_category],
+                    why=compose.why(person, profile, company) if person else None)
 
     def compose_mail(request, company, form):
         """(recipient, mail) or (None, (message, link, status))."""

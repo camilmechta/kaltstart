@@ -24,7 +24,8 @@
     {% if suggested %}
     <div class="card stack">
       <p>Suggested: <b>{{ suggested.name }}</b>, {{ suggested.title }}</p>
-      <p class="small muted">Read on <a href="{{ suggested.source_url }}" rel="noopener" target="_blank">{{ suggested.source_url }}</a> on {{ suggested.read_at.strftime('%-d %b %Y') }}. Check it on the page before you confirm.</p>
+      <p><b>Why {{ suggested.name.split()[0] }}?</b> {{ why }}</p>
+      <p class="small muted">{{ suggested.name.split()[0] }} was found on the company's own website, on <a href="{{ suggested.source_url }}" rel="noopener" target="_blank">this page</a>, on {{ suggested.read_at.strftime('%-d %b %Y') }}. People change jobs: check the page before you confirm.</p>
       <label class="choice"><input type="radio" name="choice" value="suggested" {% if form.get('choice') == 'suggested' %}checked{% endif %}> Yes, write to {{ suggested.name.split()[0] }}</label>
     </div>
     {% endif %}

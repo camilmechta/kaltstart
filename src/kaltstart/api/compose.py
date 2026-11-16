@@ -114,3 +114,23 @@ def to_mailgen(profile: Profile, showcases: Sequence[Showcase], company: Company
             mg.Round(company.stage, company.amount_eur, company.amount_native,
                      company.currency, company.investors, company.size_category),
             mg.Contact(recipient.address, recipient.address_type, recipient.person_name))
+
+
+_ROLE_LABELS = {"product": "Product", "growth": "Growth", "data": "Data",
+                "operations": "Operations", "business_development": "Business development"}
+# The categories of contacts.titles for each target role.
+_ROLE_CATEGORY = {"product": "product", "growth": "growth", "data": "data",
+                  "operations": "operations", "business_development": "sales"}
+
+
+def why(person: PersonRow, profile: Profile | None, company: CompanyRow) -> str:
+    """One sentence saying why this person is suggested, following the order
+    of contacts.selection.choose_person."""
+    role = profile.target_role if profile else None
+    if role and _ROLE_CATEGORY.get(role) in person.categories:
+        return (f"Their title, {person.title}, matches your target role: "
+                f"{_ROLE_LABELS[role]}.")
+    if "recruiting" in person.categories and company.size_category != "small":
+        return "At a company this size, the recruiting team handles applications."
+    return ("At a small company, the founders and the leadership read applications "
+            "themselves.")

@@ -77,3 +77,17 @@ def test_to_mailgen_builds_the_generator_inputs():
     assert (comp.name, comp.country) == (C1.name, "Switzerland")
     assert (rnd.stage, rnd.size_category) == ("Seed", "medium")
     assert (contact.address, contact.person_name) == ("anna.muster@c1.example.ch", "Anna Muster")
+
+
+def test_why_a_person_is_suggested():
+    from kaltstart.api.compose import why
+    assert why(ANNA, PROFILE, C1) == "Their title, Head of Growth, matches your target role: Growth."
+    founder = PersonRow("Ben Probe", "Co-Founder & CEO", ("leadership",), "head", "u", date(2026, 11, 15))
+    small = company(1, size="small")
+    ops = Profile(**{**PROFILE.__dict__, "target_role": "operations"})
+    assert why(founder, ops, small) == ("At a small company, the founders and the leadership "
+                                        "read applications themselves.")
+    recruiter = PersonRow("Noah Entwurf", "Talent Acquisition Manager", ("recruiting",), "manager",
+                          "u", date(2026, 11, 15))
+    assert why(recruiter, ops, company(1, size="large")) == (
+        "At a company this size, the recruiting team handles applications.")
