@@ -105,3 +105,12 @@ def test_each_size_card_carries_its_own_colour(client):
     page = client.get("/companies").text
     for size in ("small", "medium", "large"):
         assert f'class="legend-item legend-{size}"' in page, size
+
+
+def test_each_size_says_why_a_student_would_aim_at_it(client):
+    sign_up_and_in(client)
+    legend = client.get("/companies").text.split('class="legend"', 1)[1].split("</section>", 1)[0]
+    assert legend.count("Why aim here") == 3
+    for words in ("straight to a founder", "learn from the head of your field",
+                  "internship programme"):
+        assert words in legend, words

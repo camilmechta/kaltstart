@@ -46,11 +46,12 @@
 <section class="legend" aria-labelledby="legend-title">
   <h2 id="legend-title" class="legend-title">Who reads your mail</h2>
   <div class="legend-items">
-    {% for key, (label, reader, rounds, _sentence) in size_info.items() %}
+    {% for key, (label, reader, rounds, _sentence, why) in size_info.items() %}
     <div class="legend-item legend-{{ key }}">
       <span class="size size-{{ key }}">{{ label }}</span>
       <p class="legend-reader">{{ reader }}</p>
       <p class="legend-rounds">{{ rounds }}</p>
+      <p class="legend-why"><b>Why aim here:</b> {{ why }}</p>
     </div>
     {% endfor %}
   </div>

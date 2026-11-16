@@ -213,6 +213,8 @@ a.row:hover { text-decoration: none; border-color: var(--border-strong); backgro
   letter-spacing: -0.01em; }
 .legend-rounds { font-size: var(--text-sm); line-height: 18px; color: var(--muted); }
 .legend-item { border-top-width: 3px; }
+.legend-why { font-size: var(--text-sm); line-height: 20px; color: var(--text);
+  border-top: 1px solid var(--border); padding-top: var(--space-2); margin-top: var(--space-1); }
 .legend-small { border-top-color: var(--primary);
   background: linear-gradient(180deg, var(--primary-soft), var(--surface) 75%); }
 .legend-small .legend-reader { color: var(--link); }

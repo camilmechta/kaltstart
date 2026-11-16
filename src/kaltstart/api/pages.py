@@ -126,14 +126,21 @@ def register(app: FastAPI) -> None:
     from kaltstart.mailgen.models import Round as MailRound
 
     # What a size category means for a student (parent spec 6.3).
-    # (label, who reads applications, which rounds, one sentence for the company page)
+    # (label, who reads applications, which rounds, one sentence for the
+    # company page, why a student would aim at this size)
     SIZE_INFO = {
         "small": ("Small", "Founders", "Pre-seed or seed, under €7M",
-                  "A small team: the founders read applications themselves."),
+                  "A small team: the founders read applications themselves.",
+                  "Your mail goes straight to a founder: quick answers, real responsibility "
+                  "from day one, but fewer formal internships."),
         "medium": ("Medium", "Team leads", "Series A, €7M to €20M",
-                   "A team is forming: the heads of product, growth or sales hire."),
+                   "A team is forming: the heads of product, growth or sales hire.",
+                   "Fresh money and new teams: plenty of projects, and you learn from the "
+                   "head of your field."),
         "large": ("Large", "Recruiters", "Series B and later, over €20M",
-                  "A structured company: a recruiter or the HR team reads applications."),
+                  "A structured company: a recruiter or the HR team reads applications.",
+                  "An internship programme, mentoring and a known name on your CV, but "
+                  "more candidates."),
     }
     SIZES = {key: info[0] for key, info in SIZE_INFO.items()}
 
