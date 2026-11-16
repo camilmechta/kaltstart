@@ -209,6 +209,22 @@ First run: launched by hand. About 245 Swiss companies fit in one run of 90
 to 120 minutes. Thirty days later they all come due the same night; this is
 accepted (one long run a month) rather than spreading the first pass.
 
+### 5.7 Changes after the review (migration 0003, decision D63)
+
+- `contact_exclusions` gains `address_key`. A removed person is stored as
+  one `person_key` row and three `address_key` rows: the keys of
+  `last:<last name>`, `whole:<first name>` and `whole:<initial><last name>`,
+  the address forms `selection.address_owner` reads. The scraper drops any
+  address of that company whose form matches, whatever its type. A row with
+  neither key excludes the whole company.
+- Names are cleaned the same way in Python and SQL: Unicode NFC, every
+  character Python treats as a space collapsed to one space, trimmed, lower
+  case.
+- `exclude_person` returns a text saying what it removed, and warns when no
+  stored person has the name; the owner copies the name from
+  `contact_people`.
+- `contact_runs` gains `write_errors`, as section 10 asks.
+
 ## 7. Removal on request
 
 The owner receives a request and acts by hand (chosen by the owner).

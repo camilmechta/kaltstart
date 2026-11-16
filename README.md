@@ -188,16 +188,26 @@ workflow input would be printed in a public log.
 
 1. In Supabase, open the table `companies`, search the company by name and
    copy its `id`.
-2. In the SQL editor, run one of these lines with that `id`:
+2. For a person, list the names stored for that company and copy the name
+   exactly as it appears there (the scraper removes titles such as "Dr."):
+
+```sql
+select name from contact_people where company_id = '00000000-0000-0000-0000-000000000000';
+```
+
+3. Run one of these lines with that `id`:
 
 ```sql
 select exclude_person('00000000-0000-0000-0000-000000000000', 'Anna Muster');
 select exclude_company('00000000-0000-0000-0000-000000000000');
 ```
 
-Write the person's name as the company's site writes it, accents included;
-capital letters and extra spaces do not matter. The rows are deleted at once and the scraper never adds them again. The
-exclusion list keeps a key computed from a person's name, not the name.
+`exclude_person` answers with what it removed, or with a warning when no
+stored person has that name; the exclusion is saved in both cases. It also
+removes the person's addresses (`anna.muster@`, `muster@`, `anna@`,
+`amuster@`), whatever type they were stored as, and the scraper never adds
+the person or those addresses again. The exclusion list keeps keys computed
+from the name, not the name.
 
 ## Data
 

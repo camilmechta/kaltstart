@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Migration `0003`: removal of a person also covers their addresses
+  whatever their type, name keys are computed alike in Python and SQL,
+  `exclude_person` reports what it removed, and each run counts its
+  database write errors.
 - First full contact run on the 236 eligible Swiss companies: 161 with an
   address stored, 110 with a person suggested. The nightly run is live.
 - Contact storage: tables `contact_emails`, `contact_people`,
