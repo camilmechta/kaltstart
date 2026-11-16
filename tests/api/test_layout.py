@@ -46,3 +46,11 @@ def test_the_fonts_are_served_with_their_licence(client):
         response = client.get(f"/static/fonts/{name}")
         assert response.status_code == 200 and response.content[:4] == b"wOF2", name
     assert "SIL Open Font License" in client.get("/static/fonts/OFL.txt").text
+
+
+def test_assets_carry_a_version_so_browsers_reload_them(client):
+    import hashlib
+    page = client.get("/signin").text
+    digest = hashlib.sha256(CSS.read_bytes()).hexdigest()[:10]
+    assert f"/static/app.css?v={digest}" in page
+    assert "/static/app.js?v=" in page

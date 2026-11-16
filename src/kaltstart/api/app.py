@@ -2,6 +2,7 @@
 
 Every rule is checked here or in the store, never only in the browser."""
 
+import hashlib
 import hmac
 import logging
 import os
@@ -29,13 +30,18 @@ class Page:
 
     def __init__(self, env: Environment, sessions: Sessions, removal_contact: str) -> None:
         self._env, self._sessions, self._removal = env, sessions, removal_contact
+        # A fingerprint of each asset in its address: a new design reaches
+        # every browser at once instead of waiting for its cache to expire.
+        self._versions = {name: hashlib.sha256((HERE / "static" / name).read_bytes()).hexdigest()[:10]
+                          for name in ("app.css", "app.js")}
 
     def __call__(self, request: Request, name: str, *, status: int = 200, **context) -> HTMLResponse:
         state = request.state
         html = self._env.get_template(name).render(
             request=request, user_id=getattr(state, "user_id", None),
             csrf=state.session["csrf"], pending=getattr(state, "pending", 0),
-            removal_contact=self._removal, path=request.url.path, **context)
+            removal_contact=self._removal, path=request.url.path, versions=self._versions,
+            **context)
         response = HTMLResponse(html, status_code=status)
         self._sessions.save(response, state.session)
         return response
