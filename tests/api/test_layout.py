@@ -79,3 +79,26 @@ def test_notices_are_soft_with_a_left_mark():
     for kind in ("warning", "error", "success"):
         rule = css.split(f".notice-{kind} {{", 1)[1].split("}", 1)[0]
         assert "border-left-color" in rule and "background" in rule, kind
+
+
+JS = CSS.with_name("app.js")
+
+
+def test_motion_stops_when_the_system_asks_for_less():
+    css = CSS.read_text()
+    rule = css.split("@media (prefers-reduced-motion: reduce)", 1)[1].split("}\n", 2)
+    assert "animation: none" in "".join(rule[:2])
+    for name in ("@keyframes reveal", "@keyframes unlock", "@keyframes pop", "@keyframes draw"):
+        assert name in css, name
+
+
+def test_the_script_plays_the_landing_example_once_and_animates_copy():
+    js = JS.read_text()
+    assert "IntersectionObserver" in js and "matchMedia(\"(prefers-reduced-motion: reduce)\")" in js
+    assert "copied-check" in js and "pop" in js
+
+
+def test_the_landing_example_is_ready_to_play(client):
+    page = client.get("/").text
+    example = page.split("product-example", 1)[1]
+    assert "data-play" in example and example.count('class="type-line"') >= 4

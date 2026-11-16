@@ -31,8 +31,11 @@
     var source = document.getElementById(button.getAttribute("data-copy"));
     if (!source || !navigator.clipboard) return;
     navigator.clipboard.writeText(source.innerText).then(function () {
-      var label = button.textContent;
-      button.textContent = "Copied";
+      var label = button.getAttribute("data-label") || button.textContent;
+      button.setAttribute("data-label", label);
+      button.innerHTML = '<svg class="copied-check" width="14" height="14" viewBox="0 0 24 24" fill="none" ' +
+        'stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" ' +
+        'aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg>Copied';
       setTimeout(function () { button.textContent = label; }, 2000);
       // Copying the body tells the server the mail moved to "copied".
       var notify = button.getAttribute("data-copied-form");
@@ -67,10 +70,31 @@
     });
   }
   document.addEventListener("change", function (event) {
-    if (event.target.matches("input[type=checkbox], input[type=radio]")) sync();
+    if (!event.target.matches("input[type=checkbox], input[type=radio]")) return;
+    sync();
+    // A short press on the card or chip that was just chosen.
+    var card = event.target.closest(".chip-toggle, .role-card, .option-card");
+    if (card && event.target.checked) {
+      card.classList.remove("pop");
+      void card.offsetWidth;
+      card.classList.add("pop");
+    }
   });
   document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll("[data-max-words]").forEach(count);
     sync();
+    // The landing example plays once, when it comes into view.
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!reduce && "IntersectionObserver" in window) {
+      document.querySelectorAll("[data-play]").forEach(function (el) {
+        el.classList.add("will-play");
+        var seen = new IntersectionObserver(function (entries) {
+          if (!entries[0].isIntersecting) return;
+          el.classList.add("playing");
+          seen.disconnect();
+        }, { threshold: 0.25 });
+        seen.observe(el);
+      });
+    }
   });
 })();

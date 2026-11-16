@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Web app motion: the generated mail unfolds and its address lights up, a
+  check draws on Copy, chosen cards press, rows lift, and the landing
+  example plays once; all stop under reduced motion.
 - Web app, after an outside design review: an invented example of the
   product on the landing page and an honest headline, a folding size legend,
   style cards and no stepper on the company page, "Kept" status pills and

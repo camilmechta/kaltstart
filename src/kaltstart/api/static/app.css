@@ -191,7 +191,7 @@ a.row:hover { text-decoration: none; border-color: var(--border-strong); backgro
   vertical-align: top; }
 .status-positive_reply, .status-human_reply { color: var(--success); }
 
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 
 /* --- livelier: second colour, sizes, kicker, steps, choice cards ------- */
 .kicker { font-size: var(--text-sm); font-weight: 600; color: var(--accent);
@@ -429,3 +429,32 @@ details.legend[open] > summary.legend-title { margin-bottom: var(--space-2); }
 .status-pill.status-human_reply, .status-pill.status-positive_reply { background: color-mix(in srgb, var(--success) 14%, transparent); color: var(--success); }
 .copy-row .btn { white-space: nowrap; min-width: 104px; justify-content: center; }
 #generate fieldset { margin-bottom: var(--space-4); }
+
+/* --- motion: only to show that something happened (DESIGN.md, Motion) ---- */
+@keyframes reveal { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes unlock { from { background-color: color-mix(in srgb, var(--primary) 32%, transparent); }
+  to { background-color: transparent; } }
+@keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(0.96); } 100% { transform: scale(1); } }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+
+.reveal { animation: reveal 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.unlock { animation: unlock 1400ms ease-out 250ms both; border-radius: var(--radius-sm);
+  padding: 0 4px; margin-left: -4px; display: inline-block; }
+.pop { animation: pop 180ms ease-out; }
+.copied-check { vertical-align: -2px; margin-right: 4px; }
+.copied-check path { stroke-dasharray: 24; stroke-dashoffset: 24; animation: draw 280ms ease-out forwards; }
+.switch-track::after { transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1), background-color 120ms; }
+a.row { transition: border-color 120ms, background-color 120ms, transform 160ms ease-out; }
+a.row:hover { transform: translateY(-2px); }
+details.legend[open] .legend-items { animation: reveal 220ms ease-out both; }
+
+/* The landing example plays once, when it comes into view (app.js). Without
+   the script, or with reduced motion, it is simply shown. */
+.example-body .type-line { display: block; }
+.example-body .type-line + .type-line { margin-top: 1em; }
+[data-play].will-play .play-item, [data-play].will-play .type-line { opacity: 0; }
+[data-play].playing .play-item { animation: reveal 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(var(--i) * 140ms); }
+[data-play].playing .type-line { animation: reveal 380ms ease-out both;
+  animation-delay: calc(900ms + var(--j) * 380ms); }
+.chip-toggle { display: inline-block; }

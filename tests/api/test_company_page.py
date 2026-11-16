@@ -214,3 +214,9 @@ def test_the_page_says_the_address_comes_with_the_mail(client):
     assert "You will see the address and your mail. Nothing is kept yet." in page
     after = post(client, "preview", choice="suggested").text
     assert "Their address" in after
+
+
+def test_the_generated_mail_unfolds_and_its_address_lights_up(client):
+    ready(client)
+    page = post(client, "preview", choice="team").text
+    assert 'class="mail-preview reveal"' in page and 'class="mail-address unlock"' in page

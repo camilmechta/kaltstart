@@ -176,9 +176,23 @@ dense lists do. Helper text under fields and in cards is 15px, never less
 
 ## Motion
 
-Only to confirm an action: 120ms colour transitions on hover and focus, the
-"Copied" change. Nothing moves on page load. `prefers-reduced-motion` turns
-transitions off.
+Motion shows that something happened; it never decorates (owner's choice,
+2026-11-16). Every effect is CSS, under 300ms except the landing example,
+never blocks a click, and stops entirely under `prefers-reduced-motion`.
+
+- **Generated mail**: the preview unfolds (`reveal`, 260ms, 8px up) and the
+  address lights up once in a `--primary` tint that fades (`unlock`, 1.4s).
+- **Copy**: the button reads "Copied" with a check that draws itself
+  (`draw`, 280ms), back after 2 seconds.
+- **Choices**: a chosen card or chip gives a short press (`pop`, 180ms,
+  scale 0.96); the German switch slides with a slight overshoot.
+- **List**: a company row lifts 2px on hover; the size legend unfolds.
+- **Landing example**: plays once when it comes into view: the three steps
+  appear one after the other, then the mail line by line. Without the
+  script, or with reduced motion, it is simply shown.
+
+Never: blocks fading in on every scroll, counting numbers, animated
+backgrounds, glows.
 
 ## Theme switch
 
