@@ -72,7 +72,15 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
         if request.state.user_id:
             request.state.pending = rules.pending_count(request.state.user_id,
                                                         store.mail_records(), now())
-        return await call_next(request)
+        try:
+            return await call_next(request)
+        except Exception as exc:
+            # The route and the kind of error only: a message may quote a name,
+            # an address or a mail, and logs must never hold them.
+            log.error("error on %s %s: %s", request.method, request.url.path,
+                      type(exc).__name__)
+            return HTMLResponse("<!doctype html><title>Kaltstart</title><p>Something went wrong. "
+                                "Please try again in a moment.</p>", status_code=500)
 
     @app.exception_handler(HTTPException)
     async def http_error(request: Request, exc: HTTPException):

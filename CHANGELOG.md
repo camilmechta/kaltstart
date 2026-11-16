@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Web app (`kaltstart.api`): sign-up with an invitation code, profile, company
+  list with filters, company page with a free preview and "Keep this mail",
+  My mails with statuses and reminders, account deletion; `--dev` mode with
+  invented data; a `Dockerfile`. Migration `0004` for students and mails.
 - Mails are built around the student's showcase sentence (up to 60 words);
   the sentence about the company is an optional bonus. A mail holds at most
   200 words.

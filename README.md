@@ -14,7 +14,7 @@ reviews and sends the mail from their own mailbox; the app never sends anything.
 | 1. Ingestion | Tech.eu funding rounds to Supabase | Done |
 | 2. Contacts | Contact scraper, stored and read every night (Switzerland) | Done for Switzerland; Germany and Austria to be measured |
 | 3. Mails | Mail generator, English and German | Done; Phase 4 connects it |
-| 4. Front end | Server and web app | Not started |
+| 4. Front end | Server and web app | Built; to be deployed |
 | 5. Test | Test with 20 students | Not started |
 
 See [PRD.md](PRD.md) for scope and success metrics and
@@ -132,6 +132,33 @@ of at most 60 characters. Every mail is built around the student's
 showcase sentence from their profile; a motivated student may add a sentence
 of their own about the company. The twelve reference mails are in
 [tests/mailgen/golden](tests/mailgen/golden).
+
+### Web app
+
+The app students use: sign-up with an invitation code, a profile, the list
+of companies that just raised, a company page where the student chooses who
+to write to, previews the mail for free and keeps it, then copies it into
+their own mailbox, and "My mails" to follow it. Server-rendered pages
+(FastAPI and Jinja2), styled after [DESIGN.md](DESIGN.md). The app never
+sends a mail.
+
+Try it on your machine with invented companies and fake accounts, without
+any key (invitation code `dev`):
+
+```
+python -m kaltstart.api --dev
+```
+
+Deploy it with the `Dockerfile` on any host that runs a container, with
+these environment variables: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`,
+`SUPABASE_ANON_KEY`, `SESSION_SECRET` (a long random string) and
+`REMOVAL_CONTACT` (the address shown for removal requests). Before the first
+sign-up, apply `supabase/migrations/0004_students.sql` in the Supabase SQL
+editor and set the invitation code there:
+
+```sql
+insert into app_settings values ('invitation_code', '<the code>');
+```
 
 ## Installation
 

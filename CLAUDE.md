@@ -32,6 +32,10 @@ python -m kaltstart.contacts run [--country Switzerland --country Germany --coun
 python -m kaltstart.contacts status [--country ...]
 ```
 
+Web app (Phase 4): `python -m kaltstart.api --dev` runs it locally with
+invented data and fake accounts; production runs the `Dockerfile` with the
+environment variables listed in the README.
+
 ## Constraints
 
 - No call to any AI API at runtime.
@@ -86,7 +90,8 @@ docs/                       specification and plans
 
 `ingestion/` is done (Phase 1). `contacts/` runs every night for the three
 countries (Phase 2). `mailgen/` is a pure function with six Jinja2
-templates (Phase 3); `api/` comes with Phase 4.
+templates (Phase 3). `api/` is the web app (Phase 4): FastAPI pages, the
+reservation rules, Supabase Auth through the server.
 
 ## Maintenance
 
