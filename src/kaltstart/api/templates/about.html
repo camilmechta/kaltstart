@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}About · Kaltstart{% endblock %}
+{% block main_class %}container column{% endblock %}
+{% block content %}
+<p class="kicker">About</p>
+<h1 class="title-xl">A cold start, made warmer</h1>
+<div class="stack" style="margin-top:24px">
+  <p>Kaltstart helps students of the University of St. Gallen write to startups in Switzerland, Germany and Austria that have just raised money: the moment they are most likely to hire.</p>
+  <div class="card stack">
+    <h2 class="title-lg">How it works</h2>
+    <p><b>1. Pick a company.</b> Every company in the list raised money in the last twelve months.</p>
+    <p><b>2. Choose who you write to.</b> We suggest a person read on the company's own website, with the page we found them on, so you can check it. You can also pick someone else, type a name, or write to the team.</p>
+    <p><b>3. Keep your mail and send it yourself.</b> Kaltstart writes a short mail around your showcase sentence. You copy it into your own mailbox. Kaltstart never sends anything.</p>
+  </div>
+  <div class="card stack">
+    <h2 class="title-lg">Fair to founders</h2>
+    <p>Each company receives at most 3 mails from Kaltstart students in 30 days, and each student writes to a company only once.</p>
+  </div>
+  <div class="card stack">
+    <h2 class="title-lg">Where the data comes from</h2>
+    <p>Funding rounds: <a href="https://funding.tech.eu" rel="noopener" target="_blank">Tech.eu Funding Explorer</a>, licence CC BY 4.0.</p>
+    <p>Addresses and people: read on each company's own website only, from the pages it publishes (legal notice, team, contact). Never from social networks.</p>
+    <p>To be removed from Kaltstart, as a person or a company, write to <a href="mailto:{{ removal_contact }}">{{ removal_contact }}</a>.</p>
+  </div>
+</div>
+{% endblock %}

@@ -10,8 +10,7 @@
   {% if company.investors %}<span class="muted"> · with {{ company.investors[0] }}{% if company.investors|length > 1 %} and others{% endif %}</span>{% endif %}</p>
 {% if company.description %}<p style="margin-top:12px">{{ company.description }}</p>{% endif %}
 <p class="small muted" style="margin-top:8px">
-  {% if company.website %}<a href="{{ company.website }}" rel="noopener" target="_blank">Website</a> · {% endif %}
-  {% if company.source_url %}<a href="{{ company.source_url }}" rel="noopener" target="_blank">Source: Tech.eu</a>{% endif %}
+  {% if company.website %}<a href="{{ company.website }}" rel="noopener" target="_blank">Visit their website</a>{% endif %}
 </p>
 
 {% if error %}

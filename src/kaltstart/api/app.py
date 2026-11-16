@@ -125,6 +125,10 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
         request.state.session.update(access=tokens.access, refresh=tokens.refresh)
         return redirect(request, target)
 
+    @app.get("/about")
+    async def about(request: Request):
+        return page(request, "about.html")
+
     @app.get("/signup")
     async def signup_form(request: Request):
         return page(request, "signup.html")
