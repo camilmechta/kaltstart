@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% from "_status_actions.html" import actions %}
+{% block title %}My mails · Kaltstart{% endblock %}
+{% block content %}
+<h1 class="title-xl">My mails</h1>
+<p class="muted">{{ pending }} of 5 mails are waiting for a status. At 5, mark some as sent or abandoned to keep new ones.</p>
+{% for mail, days in reminders %}
+<div class="notice notice-warning" style="margin-top:16px">
+  Your mail to <b>{{ companies[mail.company_id] }}</b> was kept {{ days }} days ago: did you send it?
+  <div class="actions">{{ actions(mail, 'generated', '/mails') }}</div>
+</div>
+{% endfor %}
+{% if rows %}
+<table class="table" style="margin-top:24px">
+  <thead><tr><th>Company</th><th>To</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+  {% for mail, shown in rows %}
+  <tr>
+    <td><a href="/mails/{{ mail.id }}">{{ companies[mail.company_id] }}</a><div class="small muted">{{ mail.subject }}</div></td>
+    <td>{{ mail.person_name or ('Careers' if mail.address_type == 'careers' else 'Team') }}</td>
+    <td class="status-{{ shown }}">{{ labels[shown] }}</td>
+    <td>{{ actions(mail, shown, '/mails') }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="card" style="margin-top:24px">No mail yet. <a href="/companies">Find a company that just raised</a>.</p>
+{% endif %}
+{% endblock %}
