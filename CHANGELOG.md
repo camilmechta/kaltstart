@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- First measurement in Austria, on 20 companies: address found for 15 of the
+  18 that publish one, no wrong address, people accuracy 9 lists of 10.
 - Germany is read every night after Switzerland; `run` and `status` take
   several `--country` options.
 - First measurement in Germany, on 20 companies: address found for 18 of the
