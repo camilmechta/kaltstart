@@ -20,7 +20,8 @@ class ContactStore(Protocol):
     def company_ids_with_people(self) -> set[str]: ...
 
     def exclusions(self) -> list[dict]:
-        """Rows `{"company_id", "person_key"}`; a null key excludes the whole company."""
+        """Rows `{"company_id", "person_key", "address_key"}`; a row with
+        neither key excludes the whole company."""
 
     def replace_contacts(self, company_id: str, emails: list[dict],
                          people: list[dict]) -> None:

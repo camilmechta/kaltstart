@@ -41,6 +41,16 @@ def _is_due(company: dict, now: datetime) -> bool:
     return next_at is None or datetime.fromisoformat(next_at) <= now
 
 
+def _read_exclusions(rows: list[dict]) -> tuple[set[str], frozenset[str], frozenset[str]]:
+    """`(excluded company ids, person keys, address keys)`. A row with neither
+    a person key nor an address key excludes the whole company."""
+    excluded_ids = {row["company_id"] for row in rows
+                    if row["person_key"] is None and row.get("address_key") is None}
+    person_keys = frozenset(row["person_key"] for row in rows if row["person_key"])
+    address_keys = frozenset(row["address_key"] for row in rows if row.get("address_key"))
+    return excluded_ids, person_keys, address_keys
+
+
 def due_companies(candidates: list[dict], recent_ids: set[str], excluded_ids: set[str],
                   now: datetime, limit: int) -> list[dict]:
     """Eligible companies that are due: never visited first, the oldest
@@ -58,8 +68,7 @@ def due_companies(candidates: list[dict], recent_ids: set[str], excluded_ids: se
 def status(store: ContactStore, country: str, now: datetime | None = None) -> dict:
     """Counts about the companies of a country. Numbers only."""
     now = now or datetime.now(timezone.utc)
-    excluded_ids = {row["company_id"] for row in store.exclusions()
-                    if row["person_key"] is None}
+    excluded_ids, _people, _addresses = _read_exclusions(store.exclusions())
     recent_ids = store.company_ids_with_round_since(
         (now - timedelta(days=RECENT_ROUND_DAYS)).date())
     candidates = store.candidate_companies(country)
@@ -98,9 +107,7 @@ def run(store: ContactStore, fetcher, *, country: str = "Switzerland",
                "country": country, "companies_visited": 0, "with_address": 0,
                "with_people": 0, "outcomes": {}, "error": None}
     try:
-        exclusions = store.exclusions()
-        excluded_ids = {row["company_id"] for row in exclusions if row["person_key"] is None}
-        person_keys = frozenset(row["person_key"] for row in exclusions if row["person_key"])
+        excluded_ids, person_keys, address_keys = _read_exclusions(store.exclusions())
         recent_ids = store.company_ids_with_round_since(
             (now - timedelta(days=RECENT_ROUND_DAYS)).date())
         stored = store.company_ids_with_contacts()
@@ -116,7 +123,7 @@ def run(store: ContactStore, fetcher, *, country: str = "Switzerland",
             result = scrape_company(
                 {"company_id": company_id, "name": company["name"],
                  "website": company["website"], "size_category": "small"}, fetcher)
-            emails, people = without_excluded(result, person_keys)
+            emails, people = without_excluded(result, person_keys, address_keys)
             outcome = "ok" if emails else (result.failure or "no_address")
             attempts, next_at, rows = next_state(outcome, company["contacts_attempts"], now)
             try:

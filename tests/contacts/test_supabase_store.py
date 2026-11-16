@@ -135,10 +135,12 @@ def test_ids_with_contacts_merges_both_tables():
 
 
 def test_exclusions_and_run_record():
-    rows = [{"company_id": "c1", "person_key": None}]
+    rows = [{"company_id": "c1", "person_key": None, "address_key": None}]
     recorder = Recorder(lambda request: httpx.Response(200, json=rows))
     store = make_store(recorder)
     assert store.exclusions() == rows
+    assert param(recorder.of("GET", "contact_exclusions")[0], "select") == (
+        "company_id,person_key,address_key")
     store.record_contact_run({"status": "success", "outcomes": {"ok": 1}})
     assert body(recorder.of("POST", "contact_runs")[0]) == {
         "status": "success", "outcomes": {"ok": 1}}

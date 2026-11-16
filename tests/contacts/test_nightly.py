@@ -255,3 +255,23 @@ def test_the_run_summary_holds_no_name_address_or_page():
     text = repr(run(store, fetcher, now=NOW))
     for secret in ("Anna", "Muster", "Probe", "@", "example.ch", "Example Robotics"):
         assert secret not in text
+
+
+def test_address_keys_drop_the_address_and_do_not_exclude_the_company():
+    from kaltstart.contacts.exclusions import name_address_keys
+    store, fetcher = two_companies()
+    fetcher.sites["https://example.ch"] = site(
+        "example.ch", team=BEN + "<p>anna.muster@example.ch</p><p>info@example.ch</p>")
+    store.excluded += [{"company_id": "c1", "person_key": None, "address_key": key}
+                       for key in name_address_keys("c1", "Anna Muster")]
+    run(store, fetcher, now=NOW)
+    assert "https://example.ch" in fetcher.visited
+    assert [e["address"] for e in store.emails] == ["info@example.ch"]
+    assert [p["name"] for p in store.people] == ["Ben Probe"]
+
+
+def test_a_row_with_an_address_key_is_not_a_company_exclusion_in_status():
+    from kaltstart.contacts.nightly import status
+    store, _ = two_companies()
+    store.excluded.append({"company_id": "c1", "person_key": None, "address_key": "k"})
+    assert status(store, "Switzerland", now=NOW)["eligible"] == 2

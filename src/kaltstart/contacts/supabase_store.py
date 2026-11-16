@@ -64,7 +64,7 @@ class SupabaseContactStore:
         return self._company_ids("contact_people", ("company_id", "name"))
 
     def exclusions(self) -> list[dict]:
-        return self._read_all("contact_exclusions", "company_id,person_key", ("id",))
+        return self._read_all("contact_exclusions", "company_id,person_key,address_key", ("id",))
 
     def replace_contacts(self, company_id: str, emails: list[dict],
                          people: list[dict]) -> None:
