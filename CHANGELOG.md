@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Web app after the owner's first try: a second colour, size tags and legend,
+  an About page with the data credit, numbered steps and choice cards on the
+  company page, the reason a person is suggested, and a filter on companies
+  that name people.
 - Web app (`kaltstart.api`): sign-up with an invitation code, profile, company
   list with filters, company page with a free preview and "Keep this mail",
   My mails with statuses and reminders, account deletion; `--dev` mode with
