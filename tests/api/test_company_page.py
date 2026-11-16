@@ -176,3 +176,12 @@ def test_the_suggested_person_is_not_repeated_under_someone_else(client):
     page = client.get("/companies/c1").text
     other = page.split('name="person"', 1)[1].split("</select>", 1)[0]
     assert "Ben Probe" in other and "Anna Muster" not in other
+
+
+def test_the_page_says_the_address_comes_with_the_mail(client):
+    ready(client)
+    page = client.get("/companies/c1").text
+    assert "You get the address as soon as you click Generate my mail." in page
+    assert "You will see the address and your mail. Nothing is kept yet." in page
+    after = post(client, "preview", choice="suggested").text
+    assert "Their address" in after

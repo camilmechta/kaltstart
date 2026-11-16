@@ -381,3 +381,4 @@ details summary { cursor: pointer; color: var(--link); font-size: var(--text-md)
 details[open] summary { margin-bottom: var(--space-3); }
 details > * + * { margin-top: var(--space-3); }
 [hidden] { display: none !important; }
+.mail-address { font-weight: 600; color: var(--text); }

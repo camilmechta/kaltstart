@@ -19,12 +19,21 @@ def test_the_profile_form_has_every_field(client):
 def test_saving_the_profile(client, store, auth):
     sign_up_and_in(client)
     response = save_profile(client)
-    assert response.status_code == 303 and response.headers["location"] == "/profile?saved=1"
+    assert response.status_code == 303 and response.headers["location"] == "/companies?saved=1"
     profile = store.profile(user_id(auth))
     assert (profile.first_name, profile.target_role, profile.duration_months) == ("Lea", "growth", 3)
     assert profile.preferred_countries == ("Switzerland", "Germany")
     assert store.showcases(user_id(auth))[0].text_en == PROFILE["showcase1_en"]
-    assert "Lea" in client.get("/profile?saved=1").text
+    assert "Lea" in client.get("/profile").text
+
+
+def test_after_saving_the_student_lands_on_the_companies(client, store, auth):
+    sign_up_and_in(client)
+    save_profile(client)
+    page = client.get("/companies?saved=1").text
+    assert "Profile saved. Now pick a company to write to." in page
+    # The preferences still pre-set the filters on this first view.
+    assert '<option value="Switzerland" selected>' in page
 
 
 @pytest.mark.parametrize("changes,message", [

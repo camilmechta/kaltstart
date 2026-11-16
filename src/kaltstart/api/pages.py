@@ -35,7 +35,7 @@ def register(app: FastAPI) -> None:
             return profile_page(request, profile, showcases, errors, status=400)
         store.save_profile(profile)
         store.save_showcases(profile.id, showcases)
-        return redirect(request, "/profile?saved=1")
+        return redirect(request, "/companies?saved=1")
 
     @app.get("/profile/delete")
     async def delete_form(request: Request):
@@ -164,7 +164,8 @@ def register(app: FastAPI) -> None:
             return gate
         q = request.query_params
         profile = store.profile(request.state.user_id)
-        first_visit = not q
+        # "saved" only says the profile was just saved: the preferences still apply.
+        first_visit = not (set(q.keys()) - {"saved"})
         countries = tuple(q.getlist("country")) or (
             profile.preferred_countries if first_visit and profile else ())
         sectors = tuple(q.getlist("sector")) or (
@@ -201,7 +202,7 @@ def register(app: FastAPI) -> None:
                     page_number=page_number, pages=pages,
                     previous=link(page_number - 1) if page_number > 1 else None,
                     next_page=link(page_number + 1) if page_number < pages else None,
-                    get_started=get_started)
+                    get_started=get_started, saved=q.get("saved") == "1")
 
     from kaltstart.api import compose
     from kaltstart.api.forms import missing_for_mail

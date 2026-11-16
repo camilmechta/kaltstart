@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Web app, second round of the owner's feedback: a profile with role cards,
+  chips and a German switch; saving it leads to the company list; the
+  company page says the address comes with the generated mail.
 - Web app after the owner's first try: a second colour, size tags and legend,
   an About page with the data credit, numbered steps and choice cards on the
   company page, the reason a person is suggested, and a filter on companies

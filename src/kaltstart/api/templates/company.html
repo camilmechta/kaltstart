@@ -27,7 +27,7 @@
   <input type="hidden" name="csrf" value="{{ csrf }}">
   <section class="step">
     <h2 class="step-title"><span class="step-number">1</span> Who are you writing to?</h2>
-    <p class="step-help">A mail to a named person gets read more often. Pick one; the right address is chosen for you.</p>
+    <p class="step-help">A mail to a named person gets read more often. Pick one; the right address is chosen for you. You get the address as soon as you click Generate my mail.</p>
     {% if profile_missing %}
     <p class="notice notice-warning" style="margin-bottom:12px">Complete your profile so we can suggest the right person for your target role: <a href="/profile">open your profile</a>.</p>
     {% endif %}
@@ -82,7 +82,7 @@
       <textarea id="company_line" name="company_line" data-max-words="35">{{ form.get('company_line', '') }}</textarea>
       <span class="counter" data-counter-for="company_line"></span></label>
     <div class="actions"><button class="btn {{ 'btn-secondary' if preview else 'btn-primary' }}" type="submit">{{ 'Generate again' if preview else 'Generate my mail' }}</button>
-      <span class="small muted">A preview: nothing is kept yet.</span></div>
+      <span class="small muted">You will see the address and your mail. Nothing is kept yet.</span></div>
   </section>
 </form>
 
@@ -91,7 +91,7 @@
   <h2 class="step-title"><span class="step-number">3</span> Keep it, then copy it</h2>
   <p class="step-help">Read it. Change the style or your sentence and generate again as often as you like. When it is right, keep it.</p>
   <div class="mail-preview">
-    <div class="mail-label">To</div><div>{{ recipient.address }}</div>
+    <div class="mail-label">To · Their address</div><div class="mail-address">{{ recipient.address }}</div>
     <div class="mail-label" style="margin-top:8px">Subject</div><div>{{ preview.subject }}</div>
     <div class="mail-label" style="margin-top:8px">Text</div><div class="mail-body">{{ preview.body }}</div>
   </div>

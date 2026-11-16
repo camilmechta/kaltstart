@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Companies · Kaltstart{% endblock %}
 {% block content %}
+{% if saved %}<p class="notice notice-success" role="status" style="margin-bottom:24px">Profile saved. Now pick a company to write to.{% if filters.countries or filters.sectors %} Your preferences are already set as filters.{% endif %}</p>{% endif %}
 {% if get_started %}
 <section class="get-started" aria-labelledby="get-started-title">
   <h2 id="get-started-title" class="title-lg">Get started</h2>
