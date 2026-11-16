@@ -7,6 +7,13 @@ ROLES = ("product", "growth", "data", "operations", "business_development")
 REQUESTS = ("internship", "part_time")
 STYLES = ("direct", "round", "formal")
 LANGUAGES = ("en", "de")
+VARIANTS = 3
+
+# Bounds on what the student types, so that every mail fits in 150 words.
+MAX_TEXT_CHARS = 200
+MAX_TEXT_WORDS = 35
+MAX_PROGRAMME_CHARS = 70
+MAX_NAME_CHARS = 40
 
 
 @dataclass(frozen=True)
@@ -67,6 +74,14 @@ class Mail:
     language: str
     style: str
     used_company_line: bool
+
+
+class TooLong(ValueError):
+    """A text of the student is too long for a mail; `field` names it."""
+
+    def __init__(self, field: str) -> None:
+        super().__init__(f"too long: {field}")
+        self.field = field
 
 
 class MissingData(ValueError):

@@ -7,8 +7,10 @@ from kaltstart.mailgen.models import Round, Student
 
 MAX_INVESTOR_CHARS = 40
 
-_NAMED_STAGES = ("Pre-Seed", "Seed", "Series A", "Series B", "Series C")
+_NAMED_STAGES = ("Series A", "Series B", "Series C")
 _STAGE_WORDS = {
+    "Pre-Seed": ("pre-seed round", "Pre-Seed-Runde"),
+    "Seed": ("seed round", "Seed-Runde"),
     "Growth/Late": ("growth round", "Wachstumsrunde"),
     "Series D+": ("growth round", "Wachstumsrunde"),
     "Debt": ("financing", "Finanzierung"),
@@ -70,18 +72,28 @@ def _millions(value: float) -> str:
 
 
 def amount(round: Round, language: str) -> str | None:
-    """"€8M" / "8 Mio. €"; the native amount when its currency is known."""
+    """"€8M" / "8 Mio. €", "€40K" / "40 Tsd. €"; the native amount when its
+    currency is known."""
     if round.amount_native and round.currency:
         value, currency = round.amount_native, round.currency.upper()
     elif round.amount_eur:
         value, currency = round.amount_eur, "EUR"
     else:
         return None
-    number = _millions(value)
     symbol = _SYMBOLS.get(currency)
+    thousands = round_half_up(value / 1000)
+    if thousands < 1000:
+        if language == "de":
+            return f"{thousands} Tsd. {symbol or currency}"
+        return f"{symbol}{thousands}K" if symbol else f"{currency} {thousands}K"
+    number = _millions(value)
     if language == "de":
         return f"{number.replace('.', ',')} Mio. {symbol or currency}"
     return f"{symbol}{number}M" if symbol else f"{currency} {number}M"
+
+
+def round_half_up(value: float) -> int:
+    return int(value + 0.5)
 
 
 def investor_phrase(round: Round, language: str) -> str | None:

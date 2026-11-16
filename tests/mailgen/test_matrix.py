@@ -9,12 +9,13 @@ from kaltstart.mailgen.generator import MAX_BODY_WORDS, generate
 from kaltstart.mailgen.models import LANGUAGES, REQUESTS, ROLES, STYLES, Example
 from tests.mailgen.helpers import company, contact, round_, student
 
-# 200 characters of three-letter words: the most words a student text can hold
-# with ordinary words (50).
-LONG_TEXT = " ".join(["abc"] * 50)[:199] + "."
+# The longest a student text may be: 35 words within 200 characters.
+LONG_TEXT = " ".join(["abcd"] * 35)[:198] + "."
 LONG_COMPANY = "Example Robotics And Autonomous Systems X"          # 41 characters
 LONG_INVESTOR = "Example Ventures Growth Opportunities Fund"[:40]
-LONG_PROGRAMME = "Master in Banking and Finance (MBF)"
+# The longest HSG programme name, and long first and last names.
+LONG_PROGRAMME = "Master of Arts in Strategy and International Management (SIM)"
+STAGES = ("Series A", "Seed", "Grant", "Other")
 MISSING = {"none": {}, "no_amount": dict(amount_eur=None, amount_native=None),
            "no_investor": dict(investors=()),
            "neither": dict(amount_eur=None, amount_native=None, investors=())}
@@ -24,7 +25,7 @@ GAPS = re.compile(r"[{}]|\bNone\b|  | [.,!?:]|\n\n\n|led by|angeführt")
 def cases(style):
     variants = (0,) if style == "formal" else (0, 1, 2)
     return itertools.product(("small", "medium", "large"), ROLES, REQUESTS, MISSING,
-                             (True, False), variants, ("Anna Muster", None))
+                             (True, False), variants, ("Prof. Dr. Anna Maria Muster", None))
 
 
 @pytest.mark.parametrize("style", STYLES)
@@ -33,11 +34,13 @@ def test_every_combination(style, language):
     count = 0
     for size, role, kind, missing, with_line, number, person in cases(style):
         stu = student(role=role, request=kind, programme=LONG_PROGRAMME,
+                      first_name="Maria Luisa", last_name="van der Berg-Muster",
                       duration_months=6 if kind == "internship" else None,
                       workload_percent=40 if kind == "part_time" else None,
                       link="https://example.com/" + "x" * 20,
                       examples=(Example(LONG_TEXT, LONG_TEXT),))
-        values = dict(size_category=size, investors=(LONG_INVESTOR, "Other Capital"))
+        values = dict(size_category=size, investors=(LONG_INVESTOR, "Other Capital"),
+                      stage=STAGES[(ROLES.index(role) + number) % len(STAGES)])
         values.update(MISSING[missing])
         rnd = round_(**values)
         m = generate(stu, company(name=LONG_COMPANY), rnd, contact(person_name=person),

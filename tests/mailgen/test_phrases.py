@@ -56,8 +56,8 @@ def test_never_claims_a_lead():
 
 
 @pytest.mark.parametrize("stage,en,de", [
-    ("Seed", "Seed", "Seed"), ("Series A", "Series A", "Series A"),
-    ("Pre-Seed", "Pre-Seed", "Pre-Seed"), ("Growth/Late", "growth round", "Wachstumsrunde"),
+    ("Seed", "seed round", "Seed-Runde"), ("Series A", "Series A", "Series A"),
+    ("Pre-Seed", "pre-seed round", "Pre-Seed-Runde"), ("Growth/Late", "growth round", "Wachstumsrunde"),
     ("Other", "funding round", "Finanzierungsrunde"),
     ("Crowdfunding", "funding round", "Finanzierungsrunde"),
     (None, "funding round", "Finanzierungsrunde"),

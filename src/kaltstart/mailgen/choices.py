@@ -42,7 +42,7 @@ def _candidates(style: str, language: str, company: str, round: str, role: str,
         "direct": [f"{Kind} bei {company}?", f"{Kind}?"],
         "round": [f"Nach eurer {round}: {role} bei {company}", f"{role} bei {company}", at,
                   f"{Kind}?"],
-        "formal": [f"Bewerbung: {role}-{Kind} bei {company}", f"Bewerbung: {Kind} bei {company}",
+        "formal": [f"Bewerbung: {role.replace(' ', '-')}-{Kind} bei {company}", f"Bewerbung: {Kind} bei {company}",
                    f"Bewerbung: {Kind}"],
     }[style]
 
