@@ -28,7 +28,7 @@ python -m kaltstart.ingestion cities
 Contact commands, run from the `contacts` workflow for the same reason:
 
 ```
-python -m kaltstart.contacts run [--country Switzerland --country Germany] [--max 300]
+python -m kaltstart.contacts run [--country Switzerland --country Germany --country Austria] [--max 300]
 python -m kaltstart.contacts status [--country ...]
 ```
 
@@ -84,8 +84,8 @@ docs/                       specification and plans
 .github/workflows/          CI and nightly jobs
 ```
 
-`ingestion/` is done (Phase 1). `contacts/` runs every night for Switzerland
-and Germany (Phase 2); Austria waits for a measurement. The other
+`ingestion/` is done (Phase 1). `contacts/` runs every night for the three
+countries (Phase 2). The other
 directories are created in their phase.
 
 ## Maintenance

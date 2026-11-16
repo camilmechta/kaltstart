@@ -122,7 +122,8 @@ Five steps, one module each, under `src/kaltstart/contacts/`.
 - Social networks and link-in-bio hosts (LinkedIn, Facebook, Instagram, X,
   Xing, YouTube, TikTok, Linktree) are never requested, whatever points to
   them, including a website value or a home-page redirect.
-- Reads HTML only, at most 2 MB per page, with a 15-second timeout.
+- Reads HTML only, at most 5 MB per page (2 MB until decision D69), with a
+  15-second timeout.
 - Does not announce the project: no project name and no link in the
   `User-Agent` header. It uses the HTTP library's default header and does not
   imitate a browser.

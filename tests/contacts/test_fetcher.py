@@ -277,7 +277,7 @@ def test_too_many_redirects_is_unreachable():
 def test_non_html_and_oversized_pages_are_skipped():
     site = simple_site(**{
         "https://example.ch/team": (200, {"content-type": "application/pdf"}, b"%PDF-1.4"),
-        "https://example.ch/kontakt": (200, HTML, "<html>" + "x" * 3_000_000 + "</html>"),
+        "https://example.ch/kontakt": (200, HTML, "<html>" + "x" * 6_000_000 + "</html>"),
     })
     f, _ = fetcher(site)
     outcome = f.fetch_site("https://example.ch")
@@ -353,3 +353,18 @@ def test_start_page_forbidden_by_robots_does_not_fall_back():
     outcome = f.fetch_site("https://example.ch/en")
     assert outcome.status == "robots_forbidden"
     assert "https://example.ch/" not in site.urls
+
+
+def test_a_heavy_home_page_under_5_mb_is_read():
+    # Seen on real sites: home pages of 2.0 and 2.7 MB, full of inline code.
+    heavy = page("/team", text="x" * 3_000_000)
+    site = simple_site(**{"https://example.ch/": (200, HTML, heavy)})
+    f, _ = fetcher(site)
+    outcome = f.fetch_site("https://example.ch")
+    assert outcome.status == "ok"
+    assert outcome.pages[0].url == "https://example.ch/"
+
+
+def test_default_page_limit_is_5_mb():
+    from kaltstart.contacts.fetcher import MAX_PAGE_BYTES
+    assert MAX_PAGE_BYTES == 5_000_000

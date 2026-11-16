@@ -18,6 +18,8 @@ from kaltstart.contacts.pages import choose_links
 from kaltstart.contacts.site import is_social, same_site, site_host
 
 MAX_REDIRECTS = 5
+# Modern home pages carry much inline code: 2.0 and 2.7 MB were seen (decision D69).
+MAX_PAGE_BYTES = 5_000_000
 USER_AGENT_TOKEN = "python-httpx"   # the product token of the default User-Agent
 _REDIRECTS = (301, 302, 303, 307, 308)
 _FORBID_ALL = object()              # robots.txt answered with a server error: assume disallowed
@@ -36,7 +38,7 @@ def _origin(url: str) -> str:
 
 class SiteFetcher:
     def __init__(self, http: httpx.Client, min_interval_s: float = 2.0,
-                 max_pages: int = 8, max_bytes: int = 2_000_000,
+                 max_pages: int = 8, max_bytes: int = MAX_PAGE_BYTES,
                  sleep: Callable[[float], None] = time.sleep) -> None:
         self._http = http
         self._min_interval_s = min_interval_s

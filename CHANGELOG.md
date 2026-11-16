@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Austria is read every night after Switzerland and Germany. Pages up to
+  5 MB are read (2 MB before), so heavy home pages are no longer counted as
+  unreachable.
 - First measurement in Austria, on 20 companies: address found for 15 of the
   18 that publish one, no wrong address, people accuracy 9 lists of 10.
 - Germany is read every night after Switzerland; `run` and `status` take

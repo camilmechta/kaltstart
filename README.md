@@ -165,8 +165,8 @@ The schema is in `supabase/migrations/0002_contacts.sql`. The workflow
 ingestion, and either command by hand. A company's site is read when it has
 never been visited, again 30 days after a reading, and 7 days after a
 failure to reach it; after three such failures in a row its contacts are
-deleted. Switzerland and Germany are read, each with its own cap of 300
-companies per run; Austria waits for its own measurement.
+deleted. Switzerland, Germany and Austria are read, each with its own cap of
+300 companies per run.
 
 After the first full run (2026-11-15), the 236 eligible Swiss companies have
 been read: 161 have an address stored and 110 a suggested person. These are

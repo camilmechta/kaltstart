@@ -43,8 +43,8 @@ jobs:
       - name: Run contacts
         env:
           COMMAND: ${{ github.event.inputs.command || 'run' }}
-          # The countries the scraper has been measured on (decisions D61, D65).
-          ARGS: ${{ github.event.inputs.args || '--country Switzerland --country Germany' }}
+          # The countries the scraper has been measured on (decisions D61, D65, D68).
+          ARGS: ${{ github.event.inputs.args || '--country Switzerland --country Germany --country Austria' }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         # $ARGS is unquoted on purpose: the shell splits it into words.
