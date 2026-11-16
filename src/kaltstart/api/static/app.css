@@ -428,3 +428,4 @@ details.legend[open] > summary.legend-title { margin-bottom: var(--space-2); }
 .status-pill.status-sent, .status-pill.status-presumed_sent { background: var(--accent-soft); color: var(--accent); }
 .status-pill.status-human_reply, .status-pill.status-positive_reply { background: color-mix(in srgb, var(--success) 14%, transparent); color: var(--success); }
 .copy-row .btn { white-space: nowrap; min-width: 104px; justify-content: center; }
+#generate fieldset { margin-bottom: var(--space-4); }
