@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Mails are built around the student's showcase sentence (up to 60 words);
+  the sentence about the company is an optional bonus. A mail holds at most
+  200 words.
 - Mail generator (`kaltstart.mailgen`): three styles in English and German,
   an optional sentence of the student about the company, refusal naming any
   missing data, and every combination tested at its longest.

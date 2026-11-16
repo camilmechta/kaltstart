@@ -13,14 +13,13 @@ from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 from kaltstart.mailgen.choices import subject, variant as choose_variant
 from kaltstart.mailgen.models import (
-    LANGUAGES, MAX_NAME_CHARS, MAX_PROGRAMME_CHARS, MAX_TEXT_CHARS, MAX_TEXT_WORDS,
-    MAX_TWO_TEXTS_WORDS, REQUESTS,
+    LANGUAGES, MAX_BODY_WORDS, MAX_EXAMPLE_CHARS, MAX_EXAMPLE_WORDS, MAX_NAME_CHARS,
+    MAX_PROGRAMME_CHARS, MAX_TEXT_CHARS, MAX_TEXT_WORDS, REQUESTS,
     ROLES, STYLES, VARIANTS, Company, Contact, Mail, MissingData, Round, Student, TooLong)
 from kaltstart.mailgen.phrases import (
     amount, investor_phrase, request_phrase, role_name, role_paragraph, round_name,
     student_text)
 
-MAX_BODY_WORDS = 150
 _TITLES = frozenset(("dr", "prof", "mag", "ing", "dipl", "lic", "phd", "mba"))
 # Stand-ins for the student's own texts when the generated parts are checked.
 _STUDENT_TEXT = "Student text."
@@ -166,17 +165,18 @@ def _programme_line(language: str, student: Student) -> str:
 # --- checks --------------------------------------------------------------------
 
 def _bounded(student: Student, texts: dict[str, str | None]) -> None:
-    """Refuse what would not fit in 150 words, naming the field."""
+    """Refuse what would not fit in the mail, naming the field."""
     if len(student.programme.strip()) > MAX_PROGRAMME_CHARS:
         raise TooLong("programme")
     for field in ("first_name", "last_name"):
         if len(getattr(student, field).strip()) > MAX_NAME_CHARS:
             raise TooLong(field)
+    limits = {"example": (MAX_EXAMPLE_CHARS, MAX_EXAMPLE_WORDS),
+              "company_line": (MAX_TEXT_CHARS, MAX_TEXT_WORDS)}
     for field, text in texts.items():
-        if text and (len(text) > MAX_TEXT_CHARS or len(text.split()) > MAX_TEXT_WORDS):
+        chars, words = limits[field]
+        if text and (len(text) > chars or len(text.split()) > words):
             raise TooLong(field)
-    if all(texts.values()) and sum(len(t.split()) for t in texts.values()) > MAX_TWO_TEXTS_WORDS:
-        raise TooLong("company_line")
 
 
 def _missing(student: Student, contact: Contact, example: str | None) -> tuple[str, ...]:

@@ -292,6 +292,12 @@ The owner reversed the weight of the two texts of the student:
   most 50 words, else the refusal names `company_line`. With the longest
   realistic inputs the worst mail is then under 150 words in every style.
 - The reference mails cover both cases: twelve files.
+- Later the same day (decision D72) the owner asked for a longer showcase
+  sentence, accepting a longer mail: the showcase sentence may hold 60 words
+  and 400 characters, the sentence about the company keeps 35 words and 200
+  characters, the 50-word limit on the two together is dropped, and the body
+  may hold 200 words. With the longest realistic inputs the worst mail is
+  189 words.
 
 ## 11. Open points for the owner
 

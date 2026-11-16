@@ -9,11 +9,14 @@ STYLES = ("direct", "round", "formal")
 LANGUAGES = ("en", "de")
 VARIANTS = 3
 
-# Bounds on what the student types, so that every mail fits in 150 words.
+# Bounds on what the student types, so that every mail fits in 200 words
+# (decision D72). The showcase sentence may be longer than the sentence
+# about the company: it is the heart of every mail.
+MAX_BODY_WORDS = 200
+MAX_EXAMPLE_CHARS = 400
+MAX_EXAMPLE_WORDS = 60
 MAX_TEXT_CHARS = 200
 MAX_TEXT_WORDS = 35
-# The showcase sentence and the sentence about the company, together.
-MAX_TWO_TEXTS_WORDS = 50
 MAX_PROGRAMME_CHARS = 70
 MAX_NAME_CHARS = 40
 

@@ -52,7 +52,7 @@ def test_long_names_and_programme_still_fit():
                 m = mail(student=long, style=style, language=language, company_line=line,
                          variant=number, company=company(name="Example Robotics And Autonomous X"),
                          round=round_(investors=("Example Ventures Growth Opportunities", "B")))
-                assert len(m.body.split()) <= 150
+                assert len(m.body.split()) <= 200
 
 
 def test_a_programme_over_70_characters_is_refused():
@@ -119,10 +119,21 @@ def test_an_unknown_role_or_request_is_refused(changes):
         mail(student=student(**changes))
 
 
-def test_the_two_sentences_together_stay_within_50_words():
-    showcase = " ".join(["word"] * 30) + "."
-    two = student(examples=(Example(showcase, showcase),))
-    assert mail(student=two, company_line=" ".join(["line"] * 20))
+def test_a_showcase_sentence_may_hold_60_words():
+    showcase = " ".join(["word"] * 60) + "."
+    long = student(examples=(Example(showcase, showcase),))
+    m = mail(student=long, company_line=" ".join(["line"] * 35), style="round")
+    assert showcase in m.body and len(m.body.split()) <= 200
+
+
+def test_a_showcase_sentence_over_60_words_or_400_characters_is_refused():
+    for showcase in (" ".join(["word"] * 61), "x" * 401):
+        with pytest.raises(TooLong) as error:
+            mail(student=student(examples=(Example(showcase, showcase),)))
+        assert error.value.field == "example"
+
+
+def test_the_company_sentence_keeps_its_35_word_limit():
     with pytest.raises(TooLong) as error:
-        mail(student=two, company_line=" ".join(["line"] * 21))
+        mail(company_line=" ".join(["line"] * 36))
     assert error.value.field == "company_line"

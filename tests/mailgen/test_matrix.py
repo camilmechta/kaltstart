@@ -9,10 +9,10 @@ from kaltstart.mailgen.generator import MAX_BODY_WORDS, generate
 from kaltstart.mailgen.models import LANGUAGES, REQUESTS, ROLES, STYLES, Example
 from tests.mailgen.helpers import company, contact, round_, student
 
-# The longest a student text may be: 35 words within 200 characters.
-LONG_TEXT = " ".join(["abcd"] * 35)[:198] + "."
-# With the showcase at 35 words, the company sentence may hold 15 (50 together).
-LONG_LINE = " ".join(["abcd"] * 15) + "."
+# The longest texts a student may write: a 60-word showcase sentence and a
+# 35-word sentence about the company.
+LONG_TEXT = " ".join(["abcd"] * 60)[:-1] + "."
+LONG_LINE = " ".join(["abcd"] * 35)[:-1] + "."
 LONG_COMPANY = "Example Robotics And Autonomous Systems X"          # 41 characters
 LONG_INVESTOR = "Example Ventures Growth Opportunities Fund"[:40]
 # The longest HSG programme name, and long first and last names.

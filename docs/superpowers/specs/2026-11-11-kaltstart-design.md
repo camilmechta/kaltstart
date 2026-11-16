@@ -295,8 +295,8 @@ A company without any address is hidden from the student list.
 - Request: internship (start date, duration) or part-time work (start date,
   workload).
 - Signature: first name, last name, HSG degree programme, availability.
-- Length: 150 words at most for the body, 60 characters at most for the
-  subject.
+- Length: 200 words at most for the body (150 until decision D72), 60
+  characters at most for the subject.
 - Template styles: the student will be able to choose between several mail
   styles (three at most), each in English and in German. The styles will be
   defined in Phase 3 from the models provided by the project owner, of which
