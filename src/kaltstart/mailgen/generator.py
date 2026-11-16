@@ -59,7 +59,7 @@ def _opening(style: str, language: str, round: Round, company: Company, role: st
                     f"Congratulations on {deal}, great news!",
                     f"I just read about {deal}. Congrats!")[number]
         if style == "round":
-            return (f"With {deal}, {company.name} is about to scale, and {role_text} will be central.",
+            return (f"After {deal}, {company.name} is about to scale, and {role_text} will be central.",
                     f"{deal[0].upper()}{deal[1:]} is great news, and I would love to help with "
                     f"{role_text} as {company.name} scales.",
                     f"Congratulations on {deal}! A round like this usually means building out "
@@ -71,7 +71,7 @@ def _opening(style: str, language: str, round: Round, company: Company, role: st
                 f"Herzlichen Glückwunsch zu {deal}, starke Neuigkeiten!",
                 f"Ich habe gerade von {deal} gelesen. Glückwunsch!")[number]
     if style == "round":
-        return (f"Mit {_deal(round, 'de', 'eurer')} wird {company.name} jetzt skalieren, und "
+        return (f"Nach {_deal(round, 'de', 'eurer')} wird {company.name} jetzt skalieren, und "
                 f"{role_text} wird dabei zentral sein.",
                 f"{_deal(round, 'de', 'Eure')} ist eine tolle Nachricht, und bei {role_text} "
                 f"würde ich gerne mithelfen.",
