@@ -91,3 +91,21 @@ def test_second_domain_of_the_company_is_kept_when_the_name_is_given():
 def test_without_a_company_name_no_second_domain_is_kept():
     body = "<p>info@example-robotics.com</p>"
     assert extract_addresses(page(body), ["example.ch"]) == ([], 1)
+
+
+def test_a_letter_written_outside_the_mail_link_does_not_make_a_second_address():
+    # Seen on a real legal notice: the first letter sits outside the link.
+    body = '<p>E-Mail: i<a href="mailto:info@example.de">nfo@example.de</a></p>'
+    assert extract_addresses(page(body), ["example.de"]) == (["info@example.de"], 0)
+
+
+def test_two_letters_outside_the_link_too():
+    body = '<p>Mail: in<a href="mailto:info@example.de">fo@example.de</a></p>'
+    assert extract_addresses(page(body), ["example.de"]) == (["info@example.de"], 0)
+
+
+def test_two_real_addresses_where_one_ends_like_the_other_are_both_kept():
+    body = ('<p><a href="mailto:hanna@example.ch">Write to Hanna</a></p>'
+            '<p>Or to anna@example.ch</p>')
+    assert extract_addresses(page(body), ["example.ch"]) == (
+        ["hanna@example.ch", "anna@example.ch"], 0)

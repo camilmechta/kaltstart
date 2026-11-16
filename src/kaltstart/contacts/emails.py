@@ -43,6 +43,22 @@ def _decode_cloudflare(code: str) -> str | None:
     return bytes(byte ^ data[0] for byte in data[1:]).decode("utf-8", errors="ignore")
 
 
+def _split_copy(address: str, linked: list[str], text: str) -> bool:
+    """True when `address`, read in the text, is the end of a linked address
+    whose first letters the page writes outside its link: "i<a ...>nfo@x.de</a>"
+    reads as "i nfo@x.de". Two distinct addresses (anna@, hanna@) are not."""
+    local, _, domain = address.lower().partition("@")
+    for other in linked:
+        other_local, _, other_domain = other.lower().partition("@")
+        if other_domain == domain and len(other_local) > len(local) \
+                and other_local.endswith(local):
+            missing = other_local[:len(other_local) - len(local)]
+            if re.search(rf"(?<![A-Za-z0-9._%+-]){re.escape(missing)}\s+{re.escape(address)}",
+                         text, re.IGNORECASE):
+                return True
+    return False
+
+
 def _candidates(html: str) -> list[str]:
     soup = BeautifulSoup(html, "html.parser")
     found = []
@@ -56,7 +72,9 @@ def _candidates(html: str) -> list[str]:
             recipients = unquote(href[len("mailto:"):].split("?", 1)[0])
             found += [r.strip() for r in recipients.split(",")]
     text = visible_text(html)
-    found += _ADDRESS.findall(text)
+    linked = list(found)
+    found += [address for address in _ADDRESS.findall(text)
+              if not _split_copy(address, linked, text)]
     found += [f"{local}@{_DOT_ONLY.sub('.', domain)}"
               for local, domain in _DISGUISED.findall(text)]
     return found

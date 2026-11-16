@@ -107,6 +107,8 @@ website.
 
 ### Fixed
 
+- An address whose first letters a page writes outside its mail link is no
+  longer stored as a second, truncated address.
 - The nightly sync no longer crashes on a round that Tech.eu has not completed
   yet (missing date, identifier, company or page link); such rounds are
   skipped and listed in the run summary.
