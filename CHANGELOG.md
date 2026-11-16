@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- First measurement in Germany, on 20 companies: address found for 18 of the
+  18 that publish one, people accuracy 10 lists of 13, coverage 50 %.
 - Migration `0003`: removal of a person also covers their addresses
   whatever their type, name keys are computed alike in Python and SQL,
   `exclude_person` reports what it removed, and each run counts its
