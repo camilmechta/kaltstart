@@ -6,9 +6,9 @@
   <h2 id="get-started-title" class="title-lg">Get started</h2>
   <ol>
     <li class="{{ 'done' if get_started.profile_done else 'todo' }}"><span class="check" aria-hidden="true"></span>
-      {% if get_started.profile_done %}Your profile is ready.{% else %}<a href="/profile">Complete your profile</a>: your target role, your dates and one showcase sentence. Two minutes, once.{% endif %}</li>
+      <span>{% if get_started.profile_done %}Your profile is ready.{% else %}<a href="/profile">Complete your profile</a>: your target role, your dates and one showcase sentence. Two minutes, once.{% endif %}</span></li>
     <li class="todo"><span class="check" aria-hidden="true"></span>
-      Pick a company below, choose who you write to, and keep your first mail. You send it from your own mailbox.</li>
+      <span>Pick a company below, choose who you write to, and keep your first mail. You send it from your own mailbox.</span></li>
   </ol>
 </section>
 {% endif %}
