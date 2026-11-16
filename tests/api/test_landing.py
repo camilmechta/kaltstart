@@ -28,16 +28,19 @@ def test_the_sign_in_page_links_back_to_the_landing_page(client):
 def test_a_new_student_sees_how_to_get_started(client):
     sign_up_and_in(client)
     page = client.get("/companies").text
-    assert "Get started" in page and 'href="/profile"' in page
+    assert "Get started" in page
     panel = page.split('class="get-started"', 1)[1].split("</section>", 1)[0]
-    assert 'class="todo"' in panel and 'class="done"' not in panel
+    assert '<a class="gs-step todo" href="/profile">' in panel
+    assert '<a class="gs-step todo" href="#companies">' in panel
+    assert 'class="gs-number">1<' in panel and 'class="gs-number">2<' in panel
+    assert 'id="companies"' in page
 
 
 def test_the_profile_step_is_ticked_once_done(client):
     sign_up_and_in(client)
     save_profile(client)
     panel = client.get("/companies").text.split('class="get-started"', 1)[1].split("</section>", 1)[0]
-    assert panel.count('class="done"') == 1 and panel.count('class="todo"') == 1
+    assert panel.count('gs-step done') == 1 and panel.count('gs-step todo') == 1
 
 
 def test_the_panel_disappears_after_the_first_kept_mail(client, store, auth):

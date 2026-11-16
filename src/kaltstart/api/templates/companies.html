@@ -4,15 +4,23 @@
 {% if get_started %}
 <section class="get-started" aria-labelledby="get-started-title">
   <h2 id="get-started-title" class="title-lg">Get started</h2>
-  <ol>
-    <li class="{{ 'done' if get_started.profile_done else 'todo' }}"><span class="check" aria-hidden="true"></span>
-      <span>{% if get_started.profile_done %}Your profile is ready.{% else %}<a href="/profile">Complete your profile</a>: your target role, your dates and one showcase sentence. Two minutes, once.{% endif %}</span></li>
-    <li class="todo"><span class="check" aria-hidden="true"></span>
-      <span>Pick a company below, choose who you write to, and keep your first mail. You send it from your own mailbox.</span></li>
-  </ol>
+  <div class="gs-steps">
+    <a class="gs-step {{ 'done' if get_started.profile_done else 'todo' }}" href="/profile">
+      <span class="gs-number">{% if get_started.profile_done %}✓{% else %}1{% endif %}</span>
+      <span><b>{{ 'Your profile is ready' if get_started.profile_done else 'Complete your profile' }}</b>
+        <span class="gs-detail">Your target role, your dates and one showcase sentence. Two minutes, once.</span></span>
+      <span class="gs-arrow" aria-hidden="true">→</span>
+    </a>
+    <a class="gs-step todo" href="#companies">
+      <span class="gs-number">2</span>
+      <span><b>Keep your first mail</b>
+        <span class="gs-detail">Pick a company below, choose who you write to, preview and keep your mail. You send it from your own mailbox.</span></span>
+      <span class="gs-arrow" aria-hidden="true">↓</span>
+    </a>
+  </div>
 </section>
 {% endif %}
-<p class="kicker">New rounds · Switzerland · Germany · Austria</p>
+<p class="kicker" id="companies">New rounds · Switzerland · Germany · Austria</p>
 <h1 class="title-xl">Who just raised money</h1>
 <p class="muted">{{ total }} {{ "company matches" if total == 1 else "companies match" }} your filters, newest rounds first. Each company takes at most 3 mails a month, so founders are not flooded.</p>
 <form method="get" action="/companies" class="filters" role="search">

@@ -319,11 +319,15 @@ input[type="checkbox"]:disabled { opacity: 0.6; cursor: not-allowed; }
 .get-started { background: var(--surface); border: 1px solid var(--border);
   border-left: 3px solid var(--primary); border-radius: var(--radius-lg);
   padding: var(--space-5); margin-bottom: var(--space-6); }
-.get-started ol { list-style: none; padding: 0; margin: var(--space-3) 0 0; display: grid; gap: var(--space-3); }
-.get-started li { display: flex; gap: var(--space-3); align-items: flex-start; font-size: var(--text-md); }
-.get-started .check { flex: none; width: 20px; height: 20px; border-radius: var(--radius-full);
-  border: 1.5px solid var(--border-strong); margin-top: 2px; display: inline-grid; place-items: center; }
-.get-started .done { color: var(--muted); }
-.get-started .done .check { background: var(--accent); border-color: var(--accent); }
-.get-started .done .check::after { content: ""; width: 5px; height: 9px; margin-top: -2px;
-  border: solid var(--bg); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.gs-steps { display: grid; gap: var(--space-2); margin-top: var(--space-3); }
+.gs-step { display: flex; gap: var(--space-4); align-items: center; padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border); border-radius: var(--radius-lg); color: var(--text);
+  font-size: var(--text-md); transition: border-color 120ms, background-color 120ms; }
+.gs-step:hover { text-decoration: none; border-color: var(--primary); background: var(--primary-soft); }
+.gs-number { flex: none; width: 28px; height: 28px; border-radius: var(--radius-full);
+  display: inline-grid; place-items: center; font-weight: 600; font-size: var(--text-sm);
+  background: var(--primary-soft); color: var(--link); }
+.gs-detail { display: block; color: var(--muted); font-size: var(--text-sm); line-height: 20px; }
+.gs-arrow { margin-left: auto; color: var(--muted); font-size: var(--text-lg); }
+.gs-step.done { opacity: 0.75; }
+.gs-step.done .gs-number { background: var(--accent-soft); color: var(--accent); }
