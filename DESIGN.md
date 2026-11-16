@@ -36,12 +36,14 @@ reach at least 4.5:1 (checked).
 | `--primary-soft` | `#33231F` | `#FFF1E8` | Tinted backgrounds: the suggested person, a selected choice, the Small size tag, step numbers |
 | `--accent` | `#7CC4FF` | `#1D6FB8` | The cold second colour, for information only, never for actions: the Medium size tag, "Person suggested", the kicker of a page, finished steps |
 | `--accent-soft` | `#212E3C` | `#EAF4FD` | Tinted background of accent tags and notes |
+| `--violet` | `#B79CFF` | `#6B46D6` | The Large size only, so the three sizes read apart at a glance |
+| `--violet-soft` | `#29283C` | `#F1EDFD` | Tinted background of the Large size tag and card |
 | `--link` | `#FF8A45` | `#B8470A` | Links in text |
 | `--success` | `#3DD68C` | `#11804F` | Sent, positive reply |
 | `--warning` | `#F5B83D` | `#9A6400` | "Last slot", the 72-hour reminder |
 | `--error` | `#FF6B6B` | `#C72C2C` | Refusals and form errors |
 
-No glow, no glass, and one gradient only: the landing page's hero fades from `--primary-soft` to `--bg`, to give the first screen some warmth. Status colours appear as text or a 1px
+No glow, no glass. Gradients only as a light tint fading from the top: the landing page's hero (`--primary-soft` to `--bg`) and the size legend cards (each size's soft colour to `--surface`). Status colours appear as text or a 1px
 border, never as large fills. Tinted backgrounds (`--primary-soft`,
 `--accent-soft`) are used only for tags, the selected choice and the
 suggested person, so colour points at what matters.
@@ -112,8 +114,11 @@ dense lists do. Running text is at most 68 characters wide.
   `--surface-2` background, `--muted` text.
 - **Size tag**: a pill (full radius), Geist 12px weight 500, sentence case,
   with a 6px dot of its colour before the word. Small: `--primary-soft` and
-  `--link`; Medium: `--accent-soft` and `--accent`; Large: `--surface-2`
-  and `--text` with a 1px `--border-strong`. A one-line legend under the
+  `--link`; Medium: `--accent-soft` and `--accent`; Large: `--violet-soft`
+  and `--violet`.
+- **Size legend** ("Who reads your mail"): one card per size, with a 3px
+  top border in the size's colour, a light tint of it from the top, and the
+  reader ("Founders", "Team leads", "Recruiters") in that colour. A one-line legend under the
   filters says what each size means for the student.
 - **Kicker**: Geist 13px weight 600 in `--accent`, above a page title.
 - **Checkbox and radio**: drawn by the app, 18px, `--surface` with a 1.5px

@@ -98,3 +98,10 @@ def test_each_row_shows_its_size_and_the_sizes_are_explained(client):
 def test_the_list_opens_with_a_kicker(client):
     sign_up_and_in(client)
     assert 'class="kicker"' in client.get("/companies").text
+
+
+def test_each_size_card_carries_its_own_colour(client):
+    sign_up_and_in(client)
+    page = client.get("/companies").text
+    for size in ("small", "medium", "large"):
+        assert f'class="legend-item legend-{size}"' in page, size
