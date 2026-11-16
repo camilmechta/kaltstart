@@ -41,7 +41,7 @@ reach at least 4.5:1 (checked).
 | `--warning` | `#F5B83D` | `#9A6400` | "Last slot", the 72-hour reminder |
 | `--error` | `#FF6B6B` | `#C72C2C` | Refusals and form errors |
 
-No gradient, no glow, no glass. Status colours appear as text or a 1px
+No glow, no glass, and one gradient only: the landing page's hero fades from `--primary-soft` to `--bg`, to give the first screen some warmth. Status colours appear as text or a 1px
 border, never as large fills. Tinted backgrounds (`--primary-soft`,
 `--accent-soft`) are used only for tags, the selected choice and the
 suggested person, so colour points at what matters.
@@ -120,6 +120,11 @@ dense lists do. Running text is at most 68 characters wide.
   `--border-strong` border; hover border `--primary`; a checked checkbox is
   filled `--primary` with an `--on-primary` tick; a checked radio has a
   `--primary` border and dot.
+- **Landing page** (signed-out visitors): a hero with the promise, the
+  number of companies and the 3-mail rule; three "why it works" cards with
+  a Lucide icon on `--accent-soft`; three numbered "how it works" steps.
+- **Get started** (signed in, before the first kept mail): a card with an
+  orange left border and two steps, ticked in `--accent` once done.
 - **In-progress counter** (navigation): "N of 5 mails in progress", a pill
   that links to My mails, where the limit is explained.
 - **Stepper** (company page): three numbered steps in a row; the number in

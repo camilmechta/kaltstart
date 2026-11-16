@@ -19,7 +19,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from kaltstart.api import rules
 from kaltstart.api.auth import Auth
 from kaltstart.api.session import RateLimit, Sessions, csrf_ok, safe_next
-from kaltstart.api.store import AppStore
+from kaltstart.api.store import AppStore, ListFilters
 
 HERE = Path(__file__).parent
 log = logging.getLogger("kaltstart.api")
@@ -114,7 +114,10 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
 
     @app.get("/")
     async def home(request: Request):
-        return redirect(request, "/companies" if request.state.user_id else "/signin")
+        if request.state.user_id:
+            return redirect(request, "/companies")
+        _rows, total = store.companies(ListFilters(), "", now())
+        return page(request, "landing.html", total=total)
 
     @app.get("/signin")
     async def signin_form(request: Request):

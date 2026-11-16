@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Kaltstart · Write to startups the week they raise money{% endblock %}
+{% block main_class %}landing{% endblock %}
+{% macro icon(name) %}{# Lucide icons (ISC licence), inline. #}
+<svg class="feature-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+{% if name == 'clock' %}<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+{% elif name == 'user' %}<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/>
+{% else %}<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>{% endif %}
+</svg>{% endmacro %}
+{% block content %}
+<section class="hero">
+  <div class="hero-inner">
+    <p class="kicker">For HSG students · by invitation</p>
+    <h1 class="hero-title">Write to startups the week they raise money.</h1>
+    <p class="hero-sub">Kaltstart lists the startups in Switzerland, Germany and Austria that just raised, finds the right person to write to, and drafts a short, personal application around what you have done. You send it yourself.</p>
+    <div class="actions hero-actions">
+      <a class="btn btn-primary btn-large" href="/signup">Create your account</a>
+      <a class="btn btn-secondary btn-large" href="/signin">Sign in</a>
+    </div>
+    <ul class="stats">
+      <li><b>{{ total }} companies</b><span>raised money in the last 12 months</span></li>
+      <li><b>3 countries</b><span>Switzerland, Germany, Austria</span></li>
+      <li><b>3 mails</b><span>at most per company a month, so founders read them</span></li>
+    </ul>
+  </div>
+</section>
+
+<section class="section-block">
+  <div class="container-inner">
+    <h2 class="section-title">Why it works</h2>
+    <div class="features">
+      <div class="feature">{{ icon('clock') }}<h3>The right moment</h3>
+        <p>After a funding round, startups hire. Every company here raised money in the last twelve months, newest first, updated every night.</p></div>
+      <div class="feature">{{ icon('user') }}<h3>The right person</h3>
+        <p>We read each company's own website and suggest who to write to: the head of your field, a founder, or a recruiter, with the page we found them on.</p></div>
+      <div class="feature">{{ icon('mail') }}<h3>A mail that stands out</h3>
+        <p>Short and personal, built around what you have done, in English or German. You read it, keep it, and send it from your own mailbox.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section-block">
+  <div class="container-inner">
+    <h2 class="section-title">How it works</h2>
+    <ol class="how">
+      <li><span class="step-number">1</span><div><h3>Fill your profile once</h3><p>Your target role, your dates, and one showcase sentence: the thing you have done that proves you can help. Two minutes.</p></div></li>
+      <li><span class="step-number">2</span><div><h3>Pick a company and who you write to</h3><p>Filter by country, sector and size. We tell you who reads applications there and why.</p></div></li>
+      <li><span class="step-number">3</span><div><h3>Keep your mail and send it</h3><p>Preview it, change the style as often as you like, then copy it into your mailbox. Kaltstart never sends anything for you.</p></div></li>
+    </ol>
+    <div class="actions"><a class="btn btn-primary btn-large" href="/signup">Create your account</a>
+      <span class="small muted">You need the invitation code shared with HSG students.</span></div>
+  </div>
+</section>
+{% endblock %}

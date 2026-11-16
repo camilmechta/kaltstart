@@ -1,6 +1,17 @@
 {% extends "base.html" %}
 {% block title %}Companies · Kaltstart{% endblock %}
 {% block content %}
+{% if get_started %}
+<section class="get-started" aria-labelledby="get-started-title">
+  <h2 id="get-started-title" class="title-lg">Get started</h2>
+  <ol>
+    <li class="{{ 'done' if get_started.profile_done else 'todo' }}"><span class="check" aria-hidden="true"></span>
+      {% if get_started.profile_done %}Your profile is ready.{% else %}<a href="/profile">Complete your profile</a>: your target role, your dates and one showcase sentence. Two minutes, once.{% endif %}</li>
+    <li class="todo"><span class="check" aria-hidden="true"></span>
+      Pick a company below, choose who you write to, and keep your first mail. You send it from your own mailbox.</li>
+  </ol>
+</section>
+{% endif %}
 <p class="kicker">New rounds · Switzerland · Germany · Austria</p>
 <h1 class="title-xl">Who just raised money</h1>
 <p class="muted">{{ total }} {{ "company matches" if total == 1 else "companies match" }} your filters, newest rounds first. Each company takes at most 3 mails a month, so founders are not flooded.</p>

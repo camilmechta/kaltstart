@@ -7,7 +7,7 @@ def register(app: FastAPI) -> None:
     page, signed_in = app.state.page, app.state.signed_in
 
 
-    from kaltstart.api.forms import COUNTRIES, ROLE_LABELS, parse_profile
+    from kaltstart.api.forms import COUNTRIES, ROLE_LABELS, missing_for_mail, parse_profile
     from kaltstart.api.store import Profile
     store, auth, redirect, form_of = app.state.store, app.state.auth, app.state.redirect, app.state.form_of
 
@@ -180,6 +180,10 @@ def register(app: FastAPI) -> None:
         records = store.mail_records()
         items = [dict(company=c, round=round_text(c), contact=contact_kind(c.id),
                       last_slot=rules.last_slot(c.id, records, now)) for c in rows]
+        student = request.state.user_id
+        get_started = None
+        if not any(m.student_id == student for m in records):
+            get_started = {"profile_done": not missing_for_mail(profile, store.showcases(student))}
         base = [("q", filters.query)] + [("country", c) for c in countries] + \
                [("sector", s) for s in sectors] + [("size", s) for s in filters.sizes] + \
                [("months", str(months))] + ([("person", "1")] if filters.with_person else [])
@@ -189,7 +193,8 @@ def register(app: FastAPI) -> None:
                     countries=COUNTRIES, sectors=store.sectors(), sizes=SIZES, size_info=SIZE_INFO,
                     page_number=page_number, pages=pages,
                     previous=link(page_number - 1) if page_number > 1 else None,
-                    next_page=link(page_number + 1) if page_number < pages else None)
+                    next_page=link(page_number + 1) if page_number < pages else None,
+                    get_started=get_started)
 
     from kaltstart.api import compose
     from kaltstart.api.forms import missing_for_mail
