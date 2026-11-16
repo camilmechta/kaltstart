@@ -88,9 +88,11 @@ def test_each_row_shows_its_size_and_the_sizes_are_explained(client):
     sign_up_and_in(client)
     page = client.get("/companies?months=12").text
     assert 'class="size size-small"' in page or 'class="size size-medium"' in page
-    for words in ("Small", "Medium", "Large", "founders read applications themselves",
-                  "heads of product, growth or sales", "recruiter"):
-        assert words in page, words
+    legend = page.split('class="legend"', 1)[1].split("</section>", 1)[0]
+    assert "Who reads your mail" in page
+    for words in ("Small", "Founders", "Pre-seed or seed, under €7M", "Medium", "Team leads",
+                  "Series A, €7M to €20M", "Large", "Recruiters", "Series B and later, over €20M"):
+        assert words in legend, words
 
 
 def test_the_list_opens_with_a_kicker(client):

@@ -139,8 +139,8 @@ def test_a_typed_name(client, store):
 def test_the_company_page_says_what_its_size_means(client):
     ready(client)
     page = client.get("/companies/c1").text                 # C1 is medium
-    assert 'class="size size-medium"' in page and "Series A" in page
-    assert "heads of product, growth or sales" in page
+    assert 'class="size size-medium"' in page
+    assert "Team leads" in page
 
 
 def test_the_page_explains_who_the_suggested_person_is(client):

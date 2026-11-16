@@ -24,11 +24,18 @@
   <label class="choice filter-check"><input type="checkbox" name="person" value="1" {% if filters.with_person %}checked{% endif %}> Only companies that name people</label>
   <button class="btn btn-secondary" type="submit">Filter</button>
 </form>
-<div class="legend">
-  {% for key, (label, rounds, meaning) in size_info.items() %}
-  <p><span class="size size-{{ key }}">{{ label }}</span> <span class="muted">{{ rounds }}.</span> {{ meaning }}</p>
-  {% endfor %}
-</div>
+<section class="legend" aria-labelledby="legend-title">
+  <h2 id="legend-title" class="legend-title">Who reads your mail</h2>
+  <div class="legend-items">
+    {% for key, (label, reader, rounds, _sentence) in size_info.items() %}
+    <div class="legend-item">
+      <span class="size size-{{ key }}">{{ label }}</span>
+      <p class="legend-reader">{{ reader }}</p>
+      <p class="legend-rounds">{{ rounds }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
 {% if items %}
 <ul class="rows">
   {% for item in items %}{% set c = item.company %}
