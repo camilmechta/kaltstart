@@ -13,7 +13,7 @@ reviews and sends the mail from their own mailbox; the app never sends anything.
 | 0. Scoping | Spec, PRD, repository, structure | Done |
 | 1. Ingestion | Tech.eu funding rounds to Supabase | Done |
 | 2. Contacts | Contact scraper, stored and read every night (Switzerland) | Done for Switzerland; Germany and Austria to be measured |
-| 3. Mails | Mail generator, English and German | Not started |
+| 3. Mails | Mail generator, English and German | Done; Phase 4 connects it |
 | 4. Front end | Server and web app | Not started |
 | 5. Test | Test with 20 students | Not started |
 
@@ -121,6 +121,16 @@ is tracked and no longer blocks.
 Correction to run 9: one of the three lists counted wrong (a title said to
 be absent from the page) is in fact shown on the page, so the count is 7
 right lists of 9 (78 %), and 39 of 44 (89 %) over runs 5 to 9.
+
+### Mails
+
+`kaltstart.mailgen.generate` writes the subject and body of a spontaneous
+application from a student's profile, a company, its round and a contact. It
+is a pure function: no network, no database, no AI. Three styles (Direct,
+Round, Formal), each in English and German, at most 150 words and a subject
+of at most 60 characters. The student may add one sentence of their own
+about the company; it becomes the heart of the mail. The six reference mails
+are in [tests/mailgen/golden](tests/mailgen/golden).
 
 ## Installation
 

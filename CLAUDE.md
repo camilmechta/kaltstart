@@ -85,8 +85,8 @@ docs/                       specification and plans
 ```
 
 `ingestion/` is done (Phase 1). `contacts/` runs every night for the three
-countries (Phase 2). The other
-directories are created in their phase.
+countries (Phase 2). `mailgen/` is a pure function with six Jinja2
+templates (Phase 3); `api/` comes with Phase 4.
 
 ## Maintenance
 

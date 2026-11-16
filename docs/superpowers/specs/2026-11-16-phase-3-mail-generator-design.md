@@ -133,7 +133,7 @@ used by all styles.
 | Model | the owner's example | the round and what it means for the team | larger companies, HR and careers addresses |
 | German address | "Du" | "Du" | "Sie" |
 | Greeting with a confirmed person | "Hi Anna!" / "Hallo Anna!" | "Hi Anna," / "Hallo Anna," | "Dear Anna Muster," / "Guten Tag Anna Muster," |
-| Greeting without one | "Hi {company} team!" / "Hallo {company}-Team!" | same, with a comma | "Dear {company} team," / "Guten Tag," |
+| Greeting without one | "Hi {company} team!" / "Hallo zusammen!" | same, with a comma | "Dear {company} team," / "Guten Tag," |
 | Opening | short congratulation on the round | the round and the growth it implies for the target function | the round, stated soberly |
 | Core | company line, else example | company line, else example; then the role paragraph | company line, else example; then the role paragraph |
 | Close | an easy question ("Would that work?") | a request for a 15-minute call | a request for a conversation, with thanks |
@@ -159,8 +159,10 @@ Best,
 {first name} {last name}
 ```
 
-Signature in every style: first and last name, degree programme at HSG,
-and the availability in one line (parent rule).
+Signature in every style: first and last name, then "{programme}, HSG"
+(the link follows in Round and Formal). The availability is stated once, in
+the opening paragraph, and not repeated in the signature, to keep within
+150 words (builder's call during implementation).
 
 Default style (builder's call, for the Phase 4 screen):
 `suggested_style(contact, round)` returns `formal` when the contact has no
@@ -205,7 +207,8 @@ has one wording per combination.
 ### 8.2 Role paragraph
 
 One per target role (product, growth, data, operations, business
-development) and per language, at most 35 words, shared by the Round and
+development) and per language, about 20 words (shortened during
+implementation so that the longest inputs fit in 150 words), shared by the Round and
 Formal styles. Direct names the role in one phrase only.
 
 ### 8.3 Request

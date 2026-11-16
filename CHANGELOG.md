@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Mail generator (`kaltstart.mailgen`): three styles in English and German,
+  an optional sentence of the student about the company, refusal naming any
+  missing data, and every combination tested at its longest.
 - Austria is read every night after Switzerland and Germany. Pages up to
   5 MB are read (2 MB before), so heavy home pages are no longer counted as
   unreachable.
