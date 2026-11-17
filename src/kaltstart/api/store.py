@@ -125,6 +125,7 @@ class Mail:
     status_dates: dict = field(default_factory=dict)
     variant: int = 0
     size_category: str | None = None
+    redacted: bool = False          # cleared after a removal on request (D87)
 
     def record(self) -> MailRecord:
         copied = ("copied" in self.status_dates
@@ -198,9 +199,9 @@ def eligible(companies: Sequence[CompanyRow], with_address: set[str], excluded: 
 class AppStore(Protocol):
     def invitation_ok(self, code: str) -> bool: ...
     def profile(self, student_id: str) -> Profile | None: ...
-    def save_profile(self, profile: Profile) -> None: ...
+    def save_profile(self, profile: Profile, showcases: list[Showcase]) -> None: ...
     def showcases(self, student_id: str) -> list[Showcase]: ...
-    def save_showcases(self, student_id: str, showcases: list[Showcase]) -> None: ...
+    def company_names(self, company_ids: Sequence[str]) -> dict[str, str]: ...
     def companies(self, filters: ListFilters, student_id: str,
                   now: datetime) -> tuple[list[CompanyRow], int]: ...
     def sectors(self) -> list[str]: ...
@@ -253,14 +254,29 @@ class InMemoryAppStore:
     def profile(self, student_id: str) -> Profile | None:
         return self._profiles.get(student_id)
 
-    def save_profile(self, profile: Profile) -> None:
-        self._profiles[profile.id] = profile
+    def save_profile(self, profile: Profile, showcases: list[Showcase]) -> None:
+        """Both or neither (D87): everything is checked before anything changes."""
+        if any(s.position not in (1, 2) for s in showcases):
+            raise ValueError("a showcase sentence has position 1 or 2")
+        with self._lock:
+            self._profiles[profile.id] = profile
+            self._showcases[profile.id] = list(showcases)
 
     def showcases(self, student_id: str) -> list[Showcase]:
         return sorted(self._showcases.get(student_id, []), key=lambda s: s.position)
 
-    def save_showcases(self, student_id: str, showcases: list[Showcase]) -> None:
-        self._showcases[student_id] = list(showcases)
+    def company_names(self, company_ids: Sequence[str]) -> dict[str, str]:
+        """Names for the history, also of companies no longer listed."""
+        return {cid: self._companies[cid].name for cid in set(company_ids)
+                if cid in self._companies}
+
+    def redact_company(self, company_id: str, person_key: str | None = None) -> None:
+        """What the SQL removal does to kept mails (migration 0007), for tests."""
+        for index, m in enumerate(self._mails):
+            if m.company_id == company_id and (person_key is None or m.person_key == person_key):
+                self._mails[index] = replace(m, address=None, subject=None, body=None,
+                                             person_name=None, person_source_url=None,
+                                             company_line=None, redacted=True)
 
     def companies(self, filters: ListFilters, student_id: str,
                   now: datetime) -> tuple[list[CompanyRow], int]:

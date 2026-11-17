@@ -5,8 +5,15 @@
 {% block content %}
 <p class="small"><a href="/mails">← My mails</a></p>
 <h1 class="title-xl">Your mail to {{ company_name }}</h1>
-{% if kept %}<p class="notice notice-success" role="status" style="margin-top:16px">Kept. Copy it and send it from your own mailbox.</p>{% endif %}
-{% if attach_cv and mail.status in ('generated', 'copied') %}<p class="notice" style="margin-top:12px">Attach your CV before you send it. The mail says it is attached.</p>{% endif %}
+{% if kept and not mail.redacted %}<p class="notice notice-success" role="status" style="margin-top:16px">Kept. Copy it and send it from your own mailbox.</p>{% endif %}
+{% if attach_cv and not mail.redacted and mail.status in ('generated', 'copied') %}<p class="notice" style="margin-top:12px">Attach your CV before you send it. The mail says it is attached.</p>{% endif %}
+{% if mail.redacted %}
+<p class="muted" style="margin-top:12px"><span class="status-pill status-{{ shown }}">{{ labels[shown] }}</span></p>
+<div class="notice" role="status" style="margin-top:16px">
+  <p><b>Removed on request.</b> The person or the company asked to be removed from Kaltstart, so the address and the text of this mail were deleted here.</p>
+  <p class="small" style="margin-top:8px">Kaltstart cannot remove a copy you already pasted into your mailbox. If you have not sent it yet, please do not.</p>
+</div>
+{% else %}
 <p class="muted" style="margin-top:12px"><span class="status-pill status-{{ shown }}">{{ labels[shown] }}</span> Copy each part into your own mailbox. Read it once more first: one line of your own makes the difference.</p>
 <div class="mail-preview" style="margin-top:24px">
   <div class="copy-row"><div><div class="mail-label">To</div><div id="copy-to" class="mail-address{% if kept %} unlock{% endif %}">{{ mail.address or '' }}</div></div>
@@ -16,6 +23,7 @@
   <div class="copy-row"><div><div class="mail-label">Text</div><div class="mail-body" id="copy-body">{{ mail.body or '' }}</div></div>
     <button class="btn btn-secondary" type="button" data-copy="copy-body" data-copied-form="copied-form">Copy text</button></div>
 </div>
-<form id="copied-form" method="post" action="/mails/{{ mail.id }}/copied" hidden><input type="hidden" name="csrf" value="{{ csrf }}"></form>
+{% endif %}
+{% if not mail.redacted %}<form id="copied-form" method="post" action="/mails/{{ mail.id }}/copied" hidden><input type="hidden" name="csrf" value="{{ csrf }}"></form>{% endif %}
 <div class="actions">{{ actions(mail, shown, '/mails/' ~ mail.id) }}</div>
 {% endblock %}

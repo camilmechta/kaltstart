@@ -23,7 +23,8 @@
 <p class="muted">Every mail is built from this page. Two minutes, and you can change it any time.</p>
 <p class="notice" style="margin-top:16px">Only you see this page. Nothing reaches a company until you send a mail yourself, from your own mailbox.</p>
 {% if saved %}<p class="notice notice-success" role="status" style="margin-top:16px">Profile saved.</p>{% endif %}
-{% if errors %}<p class="notice notice-error" role="alert" style="margin-top:16px">Some fields need your attention.</p>{% endif %}
+{% if errors.get('_save') %}<p class="notice notice-error" role="alert" style="margin-top:16px">{{ errors['_save'] }}</p>
+{% elif errors %}<p class="notice notice-error" role="alert" style="margin-top:16px">Some fields need your attention.</p>{% endif %}
 <form method="post" action="/profile" class="stack" style="margin-top:24px">
   <input type="hidden" name="csrf" value="{{ csrf }}">
 

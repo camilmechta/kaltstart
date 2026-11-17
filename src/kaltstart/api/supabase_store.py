@@ -25,7 +25,7 @@ _PROFILE_FIELDS = ("first_name", "last_name", "programme", "degree_level", "atta
 _MAIL_COLUMNS = ("id,student_id,company_id,round_id,address,address_type,person_name,person_key,"
                  "person_choice,person_source_url,style,language,company_line,used_company_line,"
                  "subject,body,status,created_at,copied_at,sent_at,human_reply_at,"
-                 "positive_reply_at,abandoned_at,variant,size_category")
+                 "positive_reply_at,abandoned_at,variant,size_category,redacted_at")
 
 
 def _is_uuid(value: str) -> bool:
@@ -97,25 +97,22 @@ class SupabaseAppStore:
                        preferred_countries=tuple(row["preferred_countries"] or ()),
                        preferred_sectors=tuple(row["preferred_sectors"] or ()))
 
-    def save_profile(self, profile: Profile) -> None:
-        row = {"id": profile.id, "updated_at": datetime.now().astimezone().isoformat()}
+    def save_profile(self, profile: Profile, showcases: list[Showcase]) -> None:
+        """One call, one transaction (migration 0007): an error changes nothing."""
+        row = {}
         for name in _PROFILE_FIELDS:
             value = getattr(profile, name)
             row[name] = (list(value) if isinstance(value, tuple)
                          else value.isoformat() if isinstance(value, date) else value)
-        self._client.table("profiles").upsert(row).execute()
+        self._client.rpc("save_profile_and_showcases", {
+            "p_student_id": profile.id, "p_profile": row,
+            "p_showcases": [{"position": sc.position, "text_en": sc.text_en,
+                             "text_de": sc.text_de} for sc in showcases]}).execute()
 
     def showcases(self, student_id: str) -> list[Showcase]:
         rows = (self._client.table("showcases").select("position,text_en,text_de")
                 .eq("student_id", student_id).order("position").execute().data)
         return [Showcase(r["position"], r["text_en"], r["text_de"]) for r in rows]
-
-    def save_showcases(self, student_id: str, showcases: list[Showcase]) -> None:
-        self._client.table("showcases").delete().eq("student_id", student_id).execute()
-        if showcases:
-            self._client.table("showcases").insert(
-                [{"student_id": student_id, "position": s.position, "text_en": s.text_en,
-                  "text_de": s.text_de} for s in showcases]).execute()
 
     # --- companies -------------------------------------------------------------
     def _company_rows(self, now: datetime, company_id: str | None = None) -> list[CompanyRow]:
@@ -190,6 +187,14 @@ class SupabaseAppStore:
                 .eq("company_id", company_id).order("address").execute().data)
         return [EmailRow(r["address"], r["type"], r["source_url"]) for r in rows]
 
+    def company_names(self, company_ids: Sequence[str]) -> dict[str, str]:
+        """One read for a whole page; companies no longer listed keep their name."""
+        ids = sorted(set(company_ids))
+        if not ids:
+            return {}
+        rows = self._client.table("companies").select("id,name").in_("id", ids).execute().data
+        return {r["id"]: r["name"] for r in rows}
+
     def contact_summary(self, company_ids: Sequence[str]) -> dict[str, tuple[int, bool]]:
         ids = list(company_ids)
         if not ids:
@@ -235,6 +240,7 @@ class SupabaseAppStore:
                     used_company_line=row["used_company_line"], subject=row["subject"],
                     body=row["body"], status=row["status"], created_at=_dt(row["created_at"]),
                     status_dates=dates, variant=row.get("variant") or 0,
+                    redacted=bool(row.get("redacted_at")),
                     size_category=row.get("size_category"))
 
     def mails(self, student_id: str) -> list[Mail]:

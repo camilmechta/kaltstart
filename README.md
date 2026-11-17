@@ -157,7 +157,7 @@ these environment variables: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`,
 default, so that the sign-up and sign-in limits read the real client
 address). The image installs the exact versions of `requirements.txt` and
 runs as an unprivileged user. Before the first
-sign-up, apply the migrations `0004` to `0006` in the Supabase SQL editor,
+sign-up, apply the migrations `0004` to `0007` in the Supabase SQL editor,
 then create single-use invitation codes there; they are shown once:
 
 ```sql
@@ -255,3 +255,18 @@ from the name, not the name.
 
 Data: Tech.eu Funding Explorer, CC BY 4.0
 (<https://funding.tech.eu/methodology>).
+
+## Checking the SQL locally
+
+The migrations and their functions run on a throwaway local PostgreSQL, with
+invented data only, never the production database:
+
+```
+pip install -e ".[dev,sql]"
+pytest -q tests/sql
+```
+
+The local server imitates the parts of Supabase the migrations need (roles,
+`auth.users`, two pgcrypto functions); what it cannot show is listed in
+decision D87.
+

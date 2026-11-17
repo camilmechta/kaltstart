@@ -1,9 +1,13 @@
 """The pages behind sign-in: companies, company, mails, profile."""
 
+import logging
+
 from fastapi import Depends, FastAPI, Request
 from starlette.datastructures import FormData
 
 from kaltstart.api.session import safe_next
+
+log = logging.getLogger("kaltstart.api")
 
 
 def register(app: FastAPI) -> None:
@@ -36,8 +40,13 @@ def register(app: FastAPI) -> None:
         profile, showcases, errors = parse_profile(form, request.state.user_id)
         if errors:
             return profile_page(request, profile, showcases, errors, status=400)
-        store.save_profile(profile)
-        store.save_showcases(profile.id, showcases)
+        try:
+            store.save_profile(profile, showcases)
+        except Exception as exc:
+            log.error("profile save failed: %s", type(exc).__name__)
+            return profile_page(request, profile, showcases,
+                                {"_save": "Your profile could not be saved. Nothing was changed. "
+                                          "Try again in a moment."}, status=503)
         return redirect(request, "/companies?saved=1")
 
     @app.get("/profile/delete")
@@ -71,7 +80,9 @@ def register(app: FastAPI) -> None:
         return current in ORDER and new in ORDER and ORDER[new] > ORDER[current]
 
     def names_of(mails):
-        return {m.company_id: (c.name if (c := store.company(m.company_id)) else "A company")
+        """One read for all the companies of these mails (D87)."""
+        found = store.company_names([m.company_id for m in mails])
+        return {m.company_id: found.get(m.company_id, "A company no longer listed")
                 for m in mails}
 
     @app.get("/mails")
@@ -119,7 +130,7 @@ def register(app: FastAPI) -> None:
         mail = store.mail(request.state.user_id, mail_id)
         if mail is None:
             return error_page(404)
-        if mail.status == "generated":
+        if mail.status == "generated" and not mail.redacted:
             store.set_status(request.state.user_id, mail_id, "copied", app.state.now())
         return Response(status_code=204)
 

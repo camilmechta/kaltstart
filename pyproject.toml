@@ -23,6 +23,11 @@ dev = [
     "pytest",
     "pyyaml",
 ]
+# A throwaway local PostgreSQL that runs the real migrations (tests/sql, D87).
+sql = [
+    "pixeltable-pgserver",
+    "psycopg[binary]",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

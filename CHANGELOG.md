@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- After an outside review: atomic profile save, removals that also clear kept
+  mails, one read of company names on My mails, and SQL tests on a local
+  PostgreSQL (migration `0007`, D87).
 - Single-use invitation codes, created by the owner in the SQL editor and
   stored as fingerprints; the shared code is no longer accepted (D86).
 - Beta open to any university: no HSG-only wording, a Beta tag, the

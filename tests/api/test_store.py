@@ -120,16 +120,14 @@ def test_status_changes_only_on_the_students_own_mail():
 
 def test_profiles_and_showcases_belong_to_one_student():
     store = InMemoryAppStore(invitation="x")
-    store.save_profile(Profile(id="s1", first_name="Lea"))
-    store.save_showcases("s1", [Showcase(1, "I built a thing.", None)])
+    store.save_profile(Profile(id="s1", first_name="Lea"), [Showcase(1, "I built a thing.", None)])
     assert store.profile("s1").first_name == "Lea" and store.profile("s2") is None
     assert store.showcases("s2") == []
 
 
 def test_deleting_a_student_anonymises_their_mails():
     store = store_with(company(1))
-    store.save_profile(Profile(id="s1", first_name="Lea"))
-    store.save_showcases("s1", [Showcase(1, "I built a thing.", None)])
+    store.save_profile(Profile(id="s1", first_name="Lea"), [Showcase(1, "I built a thing.", None)])
     mail_id = store.reserve("s1", new_mail(), NOW)
     store.delete_student("s1")
     assert store.profile("s1") is None and store.showcases("s1") == []
