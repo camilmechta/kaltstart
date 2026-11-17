@@ -69,6 +69,21 @@
       if (input) el.hidden = !input.checked;
     });
   }
+  // Filters: a choice applies at once; typed text lights the button up until
+  // it is applied (Enter or the button). Without the script, the button applies all.
+  document.addEventListener("change", function (event) {
+    var form = event.target.closest("form[data-auto-submit]");
+    if (form && event.target.matches("select, input[type=checkbox]")) {
+      form.classList.add("is-applying");
+      form.requestSubmit();
+    }
+  });
+  document.addEventListener("input", function (event) {
+    var form = event.target.closest("form[data-auto-submit]");
+    if (form && event.target.matches("input[type=search]")) {
+      form.classList.toggle("is-dirty", event.target.value !== event.target.defaultValue);
+    }
+  });
   document.addEventListener("change", function (event) {
     if (!event.target.matches("input[type=checkbox], input[type=radio]")) return;
     sync();

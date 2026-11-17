@@ -145,3 +145,16 @@ def test_filter_with_every_choice_on_all_lists_every_company(client, store, auth
     assert names(clicked) == names(every) and names(every)
     one = client.get("/companies?q=&country=Germany&sector=&size=&months=12").text
     assert names(one) and len(names(one)) < len(names(every))
+
+
+def test_filters_apply_by_themselves_and_the_button_is_an_icon(client):
+    """Owner, 2026-11-17: no sentence, but it must be obvious how filters apply."""
+    sign_up_and_in(client)
+    page = client.get("/companies").text
+    form = page.split('class="filters"', 1)[1].split("</form>", 1)[0]
+    assert "data-auto-submit" in page.split('class="filters"', 1)[0][-200:] + form[:200]
+    button = form.split('class="btn btn-primary filter-apply"', 1)[1].split("</button>", 1)[0]
+    assert 'aria-label="Apply filters"' in button and "<svg" in button
+    from pathlib import Path
+    js = (Path(__file__).parents[2] / "src/kaltstart/api/static/app.js").read_text()
+    assert "data-auto-submit" in js and "requestSubmit" in js and "is-dirty" in js

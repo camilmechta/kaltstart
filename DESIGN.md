@@ -205,6 +205,9 @@ never blocks a click, and stops entirely under `prefers-reduced-motion`.
 - **Buttons** lift 1px on hover, the primary one with a soft orange shadow;
   **navigation links** draw an orange underline from the left.
 - **Theme switch**: the sun or moon turns in (`turn-in`, 320ms).
+- **Filters** (company list): a choice applies at once (the form dims while the
+  page loads); typed search text makes the orange icon button next to the
+  field pulse until it is applied. No sentence explains it.
 
 Never: blocks fading in on every scroll of every page, counting numbers,
 animated backgrounds, glows. Reveals happen once, on the landing page only.

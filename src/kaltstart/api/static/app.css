@@ -532,3 +532,12 @@ details.legend[open] .legend-items { animation: reveal 220ms ease-out both; }
   transition: transform 180ms ease-out; }
 .nav-links a:hover::after, .nav-links a[aria-current="page"]::after { transform: scaleX(1); }
 .nav-links a:hover { text-decoration: none; color: var(--text); }
+
+/* --- filters: applied on change; the icon button lights up for typed text --- */
+.filter-apply { width: 44px; height: 44px; padding: 0; justify-content: center; }
+.filters.is-dirty .filter-apply { animation: nudge 1.4s ease-in-out infinite; }
+@keyframes nudge { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 45%, transparent); }
+  50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--primary) 0%, transparent); } }
+.filters.is-applying { opacity: 0.6; pointer-events: none; transition: opacity 120ms; }
+.search-apply { display: flex; gap: var(--space-2); flex: 1 1 260px; min-width: 0; }
+.search-apply input { flex: 1; min-width: 0; }
