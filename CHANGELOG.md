@@ -106,6 +106,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Workflows use `actions/checkout` 7.0.1 and `actions/setup-python` 7.1.0,
+  still pinned to exact commits, `sql.yml` included. The `websockets` 17.4
+  update is declined: the Supabase `realtime` client requires a version
+  below 16.
 - The contact scraper reads people with their job title instead of founders
   only, keeps leaders, function heads and managers, and recruiters, and
   proposes the person matching the student's target role. Two criteria
