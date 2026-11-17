@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Sending limits: at most 6, 9 or 15 mails per company and funding round by
+  size, 10 kept mails per student a week, and a copied mail keeps its slot
+  even when abandoned; every limit is set in one place (`rules.LIMITS`).
+  Mails to one company vary in subject, wording and order; "N places left"
+  replaces "Last slot".
 - Web app motion: the generated mail unfolds and its address lights up, a
   check draws on Copy, chosen cards press, rows lift, and the landing
   example plays once; all stop under reduced motion.
