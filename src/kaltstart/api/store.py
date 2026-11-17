@@ -196,7 +196,7 @@ def eligible(companies: Sequence[CompanyRow], with_address: set[str], excluded: 
 
 
 class AppStore(Protocol):
-    def invitation_code(self) -> str: ...
+    def invitation_ok(self, code: str) -> bool: ...
     def profile(self, student_id: str) -> Profile | None: ...
     def save_profile(self, profile: Profile) -> None: ...
     def showcases(self, student_id: str) -> list[Showcase]: ...
@@ -244,8 +244,11 @@ class InMemoryAppStore:
         return list(self._mails)
 
     # --- AppStore -----------------------------------------------------------
-    def invitation_code(self) -> str:
-        return self._invitation
+    def invitation_ok(self, code: str) -> bool:
+        """The in-memory store (tests, --dev) has one reusable code."""
+        import hmac
+        code = (code or "").strip()
+        return bool(code) and hmac.compare_digest(code.encode(), self._invitation.encode())
 
     def profile(self, student_id: str) -> Profile | None:
         return self._profiles.get(student_id)

@@ -183,8 +183,7 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
             return page(request, "signup.html", status=429,
                         error="Too many attempts. Try again in an hour.")
         code = form.get("code", "")
-        expected = store.invitation_code()
-        ok = bool(expected) and hmac.compare_digest(code.encode(), expected.encode())
+        ok = store.invitation_ok(code)
         if not ok:
             wrong_codes.allow("all")
         if ok:

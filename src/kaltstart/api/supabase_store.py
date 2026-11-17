@@ -73,10 +73,13 @@ class SupabaseAppStore:
                 return out
 
     # --- settings and students -----------------------------------------------
-    def invitation_code(self) -> str:
-        rows = (self._client.table("app_settings").select("value")
-                .eq("key", "invitation_code").execute().data)
-        return rows[0]["value"] if rows else ""
+    def invitation_ok(self, code: str) -> bool:
+        """Whether an unused single-use code matches (D86); nothing is used yet:
+        the database uses the code when the account is created."""
+        code = (code or "").strip()
+        if not code:
+            return False
+        return self._client.rpc("invitation_code_ok", {"p_code": code}).execute().data is True
 
     def profile(self, student_id: str) -> Profile | None:
         rows = self._client.table("profiles").select("*").eq("id", student_id).execute().data

@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Single-use invitation codes, created by the owner in the SQL editor and
+  stored as fingerprints; the shared code is no longer accepted (D86).
 - Beta open to any university: no HSG-only wording, a Beta tag, the
   student's university in the profile and in every mail; migration `0005`;
   mails hold at most 210 words (D85).

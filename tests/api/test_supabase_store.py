@@ -109,10 +109,15 @@ def test_delete_student_anonymises_mails_then_removes_the_rest():
     assert recorder.of("DELETE", "showcases") and recorder.of("DELETE", "profiles")
 
 
-def test_invitation_code_is_read_from_app_settings():
-    recorder = Recorder({"app_settings": [{"value": "code-123"}]})
-    assert store(recorder).invitation_code() == "code-123"
-    assert param(recorder.of("GET", "app_settings")[0], "key") == "eq.invitation_code"
+def test_an_invitation_code_is_checked_by_the_database():
+    yes = Recorder(rpc=True)
+    assert store(yes).invitation_ok(" ks-abc ") is True
+    request = yes.requests[0]
+    assert request.url.path.endswith("/rpc/invitation_code_ok")
+    assert json.loads(request.content) == {"p_code": "ks-abc"}
+    assert store(Recorder(rpc=False)).invitation_ok("KS-ABC") is False
+    empty = Recorder(rpc=True)
+    assert store(empty).invitation_ok("  ") is False and empty.requests == []
 
 
 def test_companies_with_a_person_read_contact_people():

@@ -95,3 +95,14 @@ def test_after_sign_up_a_sign_in_button_is_shown(client):
     page = client.post("/signup", data={"email": "new@example.com", "password": "longenough1",
                                         "code": "dev", "csrf": csrf(client, "/signup")}).text
     assert 'class="btn btn-primary" href="/signin"' in page
+
+
+def test_the_app_asks_the_store_whether_a_code_is_valid(client, store):
+    from tests.api.conftest import csrf
+    asked = []
+    store.invitation_ok = lambda code: asked.append(code) or code == "KS-ONE"
+    client.post("/signup", data={"email": "x@example.com", "password": "a-long-password",
+                                 "code": "KS-ONE", "csrf": csrf(client, "/signup")})
+    wrong = client.post("/signup", data={"email": "y@example.com", "password": "a-long-password",
+                                         "code": "KS-TWO", "csrf": csrf(client, "/signup")})
+    assert asked == ["KS-ONE", "KS-TWO"] and wrong.status_code == 400
