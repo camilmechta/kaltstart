@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `render.yaml`: the web app on Render's free plan in Frankfurt, deployed
+  from `main` once the checks pass, with no secret in the file (D82).
 - CV: a profile switch, on by default, adds "My CV is attached." to every
   mail and a reminder on the mail page; Kaltstart never stores a CV. Mails
   hold at most 205 words (D81).

@@ -21,6 +21,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest",
+    "pyyaml",
 ]
 
 [tool.setuptools.packages.find]

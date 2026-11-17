@@ -1,0 +1,27 @@
+# Render Blueprint for the Kaltstart web app (decision D82).
+# Free plan in Frankfurt; a deploy starts only when the GitHub checks of the
+# commit on main pass. No secret is written here: Render asks for the values
+# marked "sync: false" when the Blueprint is created, and generates the
+# session secret itself.
+services:
+  - type: web
+    name: kaltstart
+    runtime: docker
+    plan: free
+    region: frankfurt
+    branch: main
+    autoDeployTrigger: checksPass
+    healthCheckPath: /about
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: REMOVAL_CONTACT
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: PROXY_HOPS
+        value: "1"
