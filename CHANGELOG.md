@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Profile: Bachelor or Master, then the programme; a line under each section
+  says why it is asked. Mails name the degree. The preview says the hidden
+  part is the e-mail address. Fixed: "I sent it" downloaded a file (D80).
 - Repository protections: Dependabot updates for libraries and actions, a
   separate `security` workflow running `pip-audit`, actions pinned to exact
   commits, read-only workflows (D79).

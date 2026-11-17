@@ -22,6 +22,7 @@ class Profile:
     first_name: str = ""
     last_name: str = ""
     programme: str = ""
+    degree_level: str | None = None       # "bachelor" or "master"
     languages: tuple[str, ...] = ("en",)
     target_role: str | None = None
     request: str | None = None

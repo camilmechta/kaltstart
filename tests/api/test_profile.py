@@ -124,3 +124,27 @@ def test_dates_follow_the_kind_of_request(client):
     page = client.get("/profile").text
     assert 'data-show-when="request=internship"' in page
     assert 'data-show-when="request=part_time" hidden' in page
+
+
+def test_the_degree_is_bachelor_or_master_then_the_programme(client, store, auth):
+    sign_up_and_in(client)
+    page = client.get("/profile").text
+    for level in ("bachelor", "master"):
+        assert f'name="degree_level" value="{level}"' in page
+    assert 'placeholder="e.g. Business Innovation"' in page
+    assert 'data-show-when="degree_level=master"' in page and "Master in" in page
+    response = save_profile(client, degree_level="")
+    assert response.status_code == 400 and "Choose Bachelor or Master." in response.text
+    save_profile(client, degree_level="bachelor")
+    assert store.profile(user_id(auth)).degree_level == "bachelor"
+
+
+def test_the_profile_says_why_it_asks(client):
+    sign_up_and_in(client)
+    page = client.get("/profile").text
+    for words in ("Only you see this page.",
+                  "Your name and degree sign every mail",
+                  "added at the end of your mails",
+                  "decides whom we suggest at each company",
+                  "so the company knows when you are free"):
+        assert words in page, words

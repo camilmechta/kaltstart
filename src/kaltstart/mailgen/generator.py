@@ -134,8 +134,26 @@ def _greeting(style: str, language: str, contact: Contact, company: Company) -> 
     return f"Hallo {first}{end}" if first else f"Hallo zusammen{end}"
 
 
+def _degree(student: Student) -> str | None:
+    """ "Master in Business Innovation", when the level is known."""
+    if student.level not in ("bachelor", "master"):
+        return None
+    return f"{student.level.capitalize()} in {student.programme.strip()}"
+
+
 def _intro(style: str, language: str, student: Student) -> str:
     request = request_phrase(student, language)
+    degree = _degree(student)
+    if degree:
+        if language == "en":
+            if style == "formal":
+                return (f"I am completing a {degree} at the University of St. Gallen (HSG) "
+                        f"and am applying for {request}.")
+            return f"I'm doing a {degree} at HSG and am looking for {request}."
+        if style == "formal":
+            return (f"Ich absolviere einen {degree} an der Universität St. Gallen (HSG) und "
+                    f"bewerbe mich um {request}.")
+        return f"Ich mache einen {degree} an der HSG und suche {request}."
     if language == "en":
         if style == "formal":
             return (f"I study {student.programme} at the University of St. Gallen (HSG) "
@@ -185,7 +203,7 @@ _SIGN_OFF = {
 
 
 def _programme_line(language: str, student: Student) -> str:
-    return f"{student.programme}, HSG"
+    return f"{_degree(student) or student.programme}, HSG"
 
 
 # --- checks --------------------------------------------------------------------

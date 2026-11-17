@@ -219,7 +219,7 @@ def test_the_preview_never_shows_the_address(client):
     for choice in ("suggested", "team"):
         page = post(client, "preview", choice=choice).text
         assert "@c1.example.ch" not in page, choice
-        assert "Shown once you keep this mail" in page
+        assert "their e-mail address is shown once you keep this mail" in page
         assert 'class="mail-preview reveal"' in page
 
 

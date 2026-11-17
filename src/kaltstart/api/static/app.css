@@ -458,3 +458,14 @@ details.legend[open] .legend-items { animation: reveal 220ms ease-out both; }
 [data-play].playing .type-line { animation: reveal 380ms ease-out both;
   animation-delay: calc(900ms + var(--j) * 380ms); }
 .chip-toggle { display: inline-block; }
+
+/* --- profile: "Master in" before the programme ------------------------------ */
+.input-prefixed { display: flex; align-items: stretch; border: 1px solid var(--border);
+  border-radius: var(--radius-md); background: var(--surface); overflow: hidden; }
+.input-prefixed:focus-within { outline: 2px solid var(--primary); outline-offset: 2px; }
+.input-prefixed.field-error { border-color: var(--error); }
+.input-prefix { display: flex; align-items: center; padding: 0 12px; background: var(--surface-2);
+  color: var(--muted); font-size: var(--text-base); white-space: nowrap; border-right: 1px solid var(--border); }
+.input-prefix[hidden] { display: none; }
+.input-prefixed input { border: 0; border-radius: 0; flex: 1; min-width: 0; }
+.input-prefixed input:focus { outline: none; box-shadow: none; }

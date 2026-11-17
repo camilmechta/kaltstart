@@ -61,3 +61,20 @@ def test_reviewed_wordings():
     assert "The news caught my attention." in mail("formal", "en", 1, person=None).body
     assert "Wäre das für dich interessant?" in mail("direct", "de", 1).body
     assert "Wäre das für euch interessant?" in mail("direct", "de", 1, person=None).body
+
+
+def test_the_degree_level_is_said_in_the_mail():
+    from kaltstart.mailgen.models import Example
+    base = dict(examples=(Example(SHOWCASE, "Ich habe unseren Newsletter auf 4000 Leser gebracht."),),
+                level="master")
+    en = generate(student(**base), company(), round_(), contact(person_name="Anna Muster"),
+                  style="direct", language="en", variant=0).body
+    assert "I'm doing a Master in Business Innovation at HSG and am looking for" in en
+    assert en.rstrip().endswith("Master in Business Innovation, HSG\nhttps://example.com/lea") \
+        or "Master in Business Innovation, HSG" in en
+    formal = generate(student(**base), company(), round_(), contact(), style="formal",
+                      language="en", variant=0).body
+    assert "I am completing a Master in Business Innovation at the University of St. Gallen (HSG)" in formal
+    de = generate(student(**{**base, "level": "bachelor"}), company(), round_(),
+                  contact(person_name="Anna Muster"), style="direct", language="de", variant=0).body
+    assert "Ich mache einen Bachelor in Business Innovation an der HSG und suche" in de

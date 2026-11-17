@@ -250,3 +250,9 @@ def test_the_container_runs_unprivileged_with_pinned_dependencies():
     assert 'forwarded-allow-ips="*"' not in docker
     lock = (ROOT / "requirements.txt").read_text()
     assert "fastapi==" in lock and "supabase==" in lock and "pytest" not in lock
+
+
+def test_the_supabase_profile_keeps_the_degree_level():
+    from kaltstart.api.supabase_store import _PROFILE_FIELDS
+    assert "degree_level" in _PROFILE_FIELDS
+    assert "degree_level text check (degree_level in ('bachelor', 'master'))" in SQL

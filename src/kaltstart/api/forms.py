@@ -38,6 +38,9 @@ def parse_profile(form, student_id: str) -> tuple[Profile, list[Showcase], dict[
             errors[name] = f"{label} is required."
         elif len(value) > MAX_NAME_CHARS:
             errors[name] = f"{label}: at most {MAX_NAME_CHARS} characters."
+    level = form.get("degree_level") or ""
+    if level not in ("bachelor", "master"):
+        errors["degree_level"] = "Choose Bachelor or Master."
     if not programme:
         errors["programme"] = "Degree programme is required."
     elif len(programme) > MAX_PROGRAMME_CHARS:
@@ -83,6 +86,7 @@ def parse_profile(form, student_id: str) -> tuple[Profile, list[Showcase], dict[
 
     profile = Profile(
         id=student_id, first_name=first, last_name=last, programme=programme,
+        degree_level=level if level in ("bachelor", "master") else None,
         languages=languages, target_role=role if role in ROLES else None,
         request=request if request in REQUESTS else None, start_date=start,
         duration_months=months if request == "internship" else None,
@@ -98,6 +102,7 @@ def missing_for_mail(profile: Profile | None, showcases: list[Showcase]) -> list
         return ["your profile"]
     missing = [label for value, label in (
         (profile.first_name, "first name"), (profile.last_name, "last name"),
+        (profile.degree_level, "Bachelor or Master"),
         (profile.programme, "degree programme"), (profile.target_role, "target role"),
         (profile.request, "internship or part-time"), (profile.start_date, "start date"))
         if not value]

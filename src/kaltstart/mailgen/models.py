@@ -43,6 +43,7 @@ class Student:
     link: str | None
     examples: tuple[Example, ...]
     chosen_example: int = 0
+    level: str | None = None            # "bachelor" or "master"; None: not given
 
 
 @dataclass(frozen=True)

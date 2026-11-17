@@ -15,6 +15,7 @@ create table profiles (
   first_name text not null default '',
   last_name text not null default '',
   programme text not null default '',
+  degree_level text check (degree_level in ('bachelor', 'master')),
   languages text[] not null default '{en}',
   target_role text check (target_role in
     ('product', 'growth', 'data', 'operations', 'business_development')),

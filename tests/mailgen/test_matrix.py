@@ -36,7 +36,7 @@ def test_every_combination(style, language):
     count = 0
     for size, role, kind, missing, with_line, number, person in cases(style):
         stu = student(role=role, request=kind, programme=LONG_PROGRAMME,
-                      first_name="Maria Luisa", last_name="van der Berg-Muster",
+                      first_name="Maria Luisa", last_name="van der Berg-Muster", level="master",
                       duration_months=6 if kind == "internship" else None,
                       workload_percent=40 if kind == "part_time" else None,
                       link="https://example.com/" + "x" * 20,
