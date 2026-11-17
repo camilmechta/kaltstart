@@ -25,7 +25,7 @@ GAPS = re.compile(r"[{}]|\bNone\b|  | [.,!?:]|\n\n\n|led by|angeführt")
 
 
 def cases(style):
-    variants = (0,) if style == "formal" else (0, 1, 2)
+    variants = (0, 1, 2, 3, 4, 5)       # every wording of every axis, both orders
     return itertools.product(("small", "medium", "large"), ROLES, REQUESTS, MISSING,
                              (True, False), variants, ("Prof. Dr. Anna Maria Muster", None))
 
@@ -56,4 +56,4 @@ def test_every_combination(style, language):
         if language == "de":
             assert "ß" not in m.body + m.subject, case
         count += 1
-    assert count == (480 if style == "formal" else 1440)   # person greeted or not included
+    assert count == 2880   # 3 sizes x 5 roles x 2 requests x 4 missing x 2 lines x 6 variants x 2 persons

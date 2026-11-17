@@ -11,11 +11,11 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
-from kaltstart.mailgen.choices import subject, variant as choose_variant
+from kaltstart.mailgen.choices import axes, subject, variant as choose_variant
 from kaltstart.mailgen.models import (
     LANGUAGES, MAX_BODY_WORDS, MAX_EXAMPLE_CHARS, MAX_EXAMPLE_WORDS, MAX_NAME_CHARS,
     MAX_PROGRAMME_CHARS, MAX_TEXT_CHARS, MAX_TEXT_WORDS, REQUESTS,
-    ROLES, STYLES, VARIANTS, Company, Contact, Mail, MissingData, Round, Student, TooLong)
+    ROLES, STYLES, Company, Contact, Mail, MissingData, Round, Student, TooLong)
 from kaltstart.mailgen.phrases import (
     amount, investor_phrase, request_phrase, role_name, role_paragraph, round_name,
     student_text)
@@ -25,10 +25,18 @@ _TITLES = frozenset(("dr", "prof", "mag", "ing", "dipl", "lic", "phd", "mba"))
 _STUDENT_TEXT = "Student text."
 # The showcase sentence of the profile is the heart of every mail; its lead-in
 # says why the reader is told it (decision D71).
+# Three wordings each, so that mails to one company differ (wording 0 is the
+# one of the reference mails).
 _LEAD_INS = {
-    ("en", "direct"): "A bit about me:", ("en", "round"): "What I bring:",
-    ("en", "formal"): "One example of my work:", ("de", "direct"): "Kurz zu mir:",
-    ("de", "round"): "Was ich mitbringe:", ("de", "formal"): "Ein Beispiel aus meiner Arbeit:",
+    ("en", "direct"): ("A bit about me:", "What I have done so far:", "One thing I am proud of:"),
+    ("en", "round"): ("What I bring:", "What I have done so far:", "A recent example:"),
+    ("en", "formal"): ("One example of my work:", "My most relevant experience:",
+                       "A recent example of my work:"),
+    ("de", "direct"): ("Kurz zu mir:", "Was ich bisher gemacht habe:", "Worauf ich stolz bin:"),
+    ("de", "round"): ("Was ich mitbringe:", "Was ich bisher gemacht habe:",
+                      "Ein aktuelles Beispiel:"),
+    ("de", "formal"): ("Ein Beispiel aus meiner Arbeit:", "Meine wichtigste Erfahrung:",
+                       "Ein aktuelles Beispiel meiner Arbeit:"),
 }
 _LINK = "https://example.com/link"
 
@@ -78,7 +86,9 @@ def _opening(style: str, language: str, round: Round, company: Company, role: st
                     f"{role_text} as {company.name} scales.",
                     f"Congratulations on {deal}! A round like this usually means building out "
                     f"the {role_text} team, which is where I want to help.")[number]
-        return f"Congratulations on {deal}."
+        return (f"Congratulations on {deal}.",
+                f"Congratulations on {deal}; it caught my attention.",
+                f"I read with interest about {deal}.")[number]
     if style == "direct":
         deal = _deal(round, "de", "eurer")
         return (f"Glückwunsch zu {deal}!",
@@ -91,7 +101,10 @@ def _opening(style: str, language: str, round: Round, company: Company, role: st
                 f"{role_text} würde ich gerne mithelfen.",
                 f"Glückwunsch zu {_deal(round, 'de', 'eurer')}! So eine Runde bedeutet meist, "
                 f"den Bereich {role_text} auszubauen, und genau dort möchte ich helfen.")[number]
-    return f"Herzlichen Glückwunsch zu {_deal(round, 'de', 'Ihrer')}."
+    deal = _deal(round, "de", "Ihrer")
+    return (f"Herzlichen Glückwunsch zu {deal}.",
+            f"Herzlichen Glückwunsch zu {deal}; das hat meine Aufmerksamkeit geweckt.",
+            f"Mit Interesse habe ich von {deal} gelesen.")[number]
 
 
 # --- the other blocks ----------------------------------------------------------
@@ -134,21 +147,33 @@ def _intro(style: str, language: str, student: Student) -> str:
     return f"Ich studiere {student.programme} an der HSG und suche {request}."
 
 
-def _close(style: str, language: str, role: str, team: bool) -> str:
+def _close(style: str, language: str, role: str, team: bool, number: int = 0) -> str:
     role_text = _role_words(role, language)
     if language == "en":
+        help_text = f"I'd love to help with {role_text}, or with whatever helps most."
         return {
-            "direct": f"I'd love to help with {role_text}, or with whatever helps most. Would that work?",
-            "round": "Could we talk for 15 minutes?",
-            "formal": "I would welcome a short call. Thank you for your time.",
-        }[style]
+            "direct": (f"{help_text} Would that work?", f"{help_text} Could that be useful to you?",
+                       f"{help_text} Shall we talk?"),
+            "round": ("Could we talk for 15 minutes?",
+                      "Would you have 15 minutes this week or next?",
+                      "Could we find 15 minutes for a short call?"),
+            "formal": ("I would welcome a short call. Thank you for your time.",
+                       "I would be glad to discuss this in a short call. Thank you for your time.",
+                       "I look forward to hearing from you. Thank you for your consideration."),
+        }[style][number]
+    help_text = (f"Ich würde gerne im Bereich {role_text} mithelfen, oder dort, wo es am "
+                 "meisten bringt.")
+    you = "Habt ihr" if team else "Hast du"
     return {
-        "direct": f"Ich würde gerne im Bereich {role_text} mithelfen, oder dort, wo es am meisten bringt. "
-                  "Würde das passen?",
-        "round": ("Habt ihr 15 Minuten für ein kurzes Gespräch?" if team
-                  else "Hast du 15 Minuten für ein kurzes Gespräch?"),
-        "formal": "Über ein kurzes Gespräch freue ich mich. Vielen Dank für Ihre Zeit.",
-    }[style]
+        "direct": (f"{help_text} Würde das passen?", f"{help_text} Wäre das für euch interessant?",
+                   f"{help_text} Wollen wir kurz sprechen?"),
+        "round": (f"{you} 15 Minuten für ein kurzes Gespräch?",
+                  f"{you} nächste Woche 15 Minuten?",
+                  "Können wir 15 Minuten telefonieren?"),
+        "formal": ("Über ein kurzes Gespräch freue ich mich. Vielen Dank für Ihre Zeit.",
+                   "Ich freue mich über die Gelegenheit zu einem kurzen Gespräch. Vielen Dank.",
+                   "Ich freue mich auf Ihre Rückmeldung. Vielen Dank für Ihre Zeit."),
+    }[style][number]
 
 
 _SIGN_OFF = {
@@ -229,8 +254,8 @@ def generate(student: Student, company: Company, round: Round, contact: Contact,
         raise ValueError(f"unknown role: {student.role}")
     if student.request not in REQUESTS:
         raise ValueError(f"unknown request: {student.request}")
-    if variant is not None and variant not in range(VARIANTS):
-        raise ValueError(f"variant must be 0, 1 or 2: {variant}")
+    if variant is not None and (not isinstance(variant, int) or variant < 0):
+        raise ValueError(f"variant must be a count from 0: {variant}")
     line = company_line.strip() if company_line and company_line.strip() else None
     example = _example_text(student, language)
     _bounded(student, {"company_line": line, "example": example})
@@ -238,13 +263,14 @@ def generate(student: Student, company: Company, round: Round, contact: Contact,
     if missing:
         raise MissingData(missing)
 
-    number = choose_variant(student.id, company.id) if variant is None else variant
-    if style == "formal":
-        number = 0
+    # variant is how many mails were already kept for this company and round:
+    # each axis takes its own wording from it (spec of 2026-11-16, section 4).
+    k = choose_variant(student.id, company.id) if variant is None else variant
+    subject_n, opening_n, lead_in_n, close_n, order = axes(k)
     team = _person(contact) is None
     link = (student.link or "").strip() or None
     # A name ending in a full stop ("Example Holdings Inc.") must not double it.
-    opening = _opening(style, language, round, company, student.role, number).replace("..", ".")
+    opening = _opening(style, language, round, company, student.role, opening_n).replace("..", ".")
     parts = dict(
         greeting=_greeting(style, language, contact, company),
         opening=opening,
@@ -252,13 +278,14 @@ def generate(student: Student, company: Company, round: Round, contact: Contact,
         # The student's own sentence about the company, when given, replaces the
         # generic paragraph about the role (decision D71).
         role_paragraph=None if line else role_paragraph(student.role, language, style == "formal"),
-        close=_close(style, language, student.role, team),
+        close=_close(style, language, student.role, team, close_n),
+        intro_first=order == 0,
         sign_off=_SIGN_OFF[(language, style)],
         name=f"{student.first_name.strip()} {student.last_name.strip()}",
         programme_line=_programme_line(language, student),
     )
     template = _ENV.get_template(f"{style}_{language}.j2")
-    lead_in = _LEAD_INS[(language, style)]
+    lead_in = _LEAD_INS[(language, style)][lead_in_n]
     _check(template.render(showcase=f"{lead_in} {_STUDENT_TEXT}",
                            company_line=line and _STUDENT_TEXT, link=link and _LINK,
                            **parts).strip(), style, language)
@@ -269,5 +296,5 @@ def generate(student: Student, company: Company, round: Round, contact: Contact,
         raise TooLong("body")
     return Mail(
         subject=subject(style, language, company.name, round_name(round.stage, language),
-                        role_name(student.role, language), student.request),
+                        role_name(student.role, language), student.request, subject_n),
         body=body, language=language, style=style, used_company_line=line is not None)

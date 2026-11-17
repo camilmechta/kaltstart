@@ -1,8 +1,16 @@
 {{ greeting }}
 
+{% if intro_first %}
 {{ opening }} {{ intro }}
 
 {{ showcase }}
+{% else %}
+{{ opening }}
+
+{{ showcase }}
+
+{{ intro }}
+{% endif %}
 
 {{ company_line or role_paragraph }}
 
