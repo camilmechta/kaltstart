@@ -69,7 +69,7 @@ def test_the_preview_shows_the_mail_and_stores_nothing(client, store):
     page = post(client, "preview", choice="suggested")
     assert page.status_code == 200
     assert "Hi Anna!" in page.text and "Keep this mail" in page.text
-    assert "anna.muster@c1.example.ch" in page.text
+    assert "anna.muster@c1.example.ch" not in page.text      # shown once kept (D77)
     assert store.all_mails() == []
 
 
@@ -207,19 +207,27 @@ def test_the_suggested_person_is_not_repeated_under_someone_else(client):
     assert "Ben Probe" in other and "Anna Muster" not in other
 
 
-def test_the_page_says_the_address_comes_with_the_mail(client):
+def test_the_page_says_the_address_comes_when_the_mail_is_kept(client):
     ready(client)
     page = client.get("/companies/c1").text
-    assert "You get the address as soon as you click Generate my mail." in page
-    assert "You will see the address and your mail. Nothing is kept yet." in page
-    after = post(client, "preview", choice="suggested").text
-    assert "Their address" in after
+    assert "You get the address when you keep your mail." in page
+    assert "A free preview: nothing is kept yet, and the address shows once you keep it." in page
 
 
-def test_the_generated_mail_unfolds_and_its_address_lights_up(client):
+def test_the_preview_never_shows_the_address(client):
     ready(client)
-    page = post(client, "preview", choice="team").text
-    assert 'class="mail-preview reveal"' in page and 'class="mail-address unlock"' in page
+    for choice in ("suggested", "team"):
+        page = post(client, "preview", choice=choice).text
+        assert "@c1.example.ch" not in page, choice
+        assert "Shown once you keep this mail" in page
+        assert 'class="mail-preview reveal"' in page
+
+
+def test_the_kept_mail_reveals_its_address(client, store):
+    ready(client)
+    response = post(client, "keep", choice="team")
+    page = client.get(response.headers["location"]).text
+    assert 'class="mail-address unlock"' in page and "@c1.example.ch" in page
 
 
 

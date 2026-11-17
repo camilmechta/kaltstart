@@ -180,8 +180,9 @@ Motion shows that something happened; it never decorates (owner's choice,
 2026-11-16). Every effect is CSS, under 300ms except the landing example,
 never blocks a click, and stops entirely under `prefers-reduced-motion`.
 
-- **Generated mail**: the preview unfolds (`reveal`, 260ms, 8px up) and the
-  address lights up once in a `--primary` tint that fades (`unlock`, 1.4s).
+- **Generated mail**: the preview unfolds (`reveal`, 260ms, 8px up). The
+  address is not in the preview: it appears once the mail is kept, and
+  lights up there once in a `--primary` tint that fades (`unlock`, 1.4s).
 - **Copy**: the button reads "Copied" with a check that draws itself
   (`draw`, 280ms), back after 2 seconds.
 - **Choices**: a chosen card or chip gives a short press (`pop`, 180ms,

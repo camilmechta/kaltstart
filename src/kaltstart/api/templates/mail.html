@@ -8,7 +8,7 @@
 {% if kept %}<p class="notice notice-success" role="status" style="margin-top:16px">Kept. Copy it and send it from your own mailbox.</p>{% endif %}
 <p class="muted" style="margin-top:12px"><span class="status-pill status-{{ shown }}">{{ labels[shown] }}</span> Copy each part into your own mailbox. Read it once more first: one line of your own makes the difference.</p>
 <div class="mail-preview" style="margin-top:24px">
-  <div class="copy-row"><div><div class="mail-label">To</div><div id="copy-to">{{ mail.address or '' }}</div></div>
+  <div class="copy-row"><div><div class="mail-label">To</div><div id="copy-to" class="mail-address{% if kept %} unlock{% endif %}">{{ mail.address or '' }}</div></div>
     <button class="btn btn-secondary" type="button" data-copy="copy-to">Copy</button></div>
   <div class="copy-row"><div><div class="mail-label">Subject</div><div id="copy-subject">{{ mail.subject or '' }}</div></div>
     <button class="btn btn-secondary" type="button" data-copy="copy-subject">Copy</button></div>
