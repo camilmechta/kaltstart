@@ -120,3 +120,28 @@ def test_companies_with_a_person_read_contact_people():
     recorder = Recorder(tables)
     rows, _ = store(recorder).companies(ListFilters(with_person=True), "s1", NOW)
     assert [r.id for r in rows] == ["c2"]
+
+
+def test_reserve_sends_the_variant_the_size_and_the_limits():
+    from kaltstart.api.rules import LIMITS
+    ok = Recorder(rpc={"ok": True, "id": "m1"})
+    mail = NewMail("c1", "r1", "info@one.example.ch", "generic", None, None, "team", None,
+                   "direct", "en", None, False, "Subject", "Body", variant=4,
+                   size_category="small")
+    store(ok).reserve("s1", mail, NOW)
+    row = json.loads(ok.requests[0].content)["p_row"]
+    assert (row["variant"], row["size_category"]) == (4, "small")
+    assert row["limits"] == LIMITS.as_json()
+    speed = Recorder(rpc={"ok": False, "reason": "student_speed", "frees_on": "2026-11-20"})
+    assert store(speed).reserve("s1", mail, NOW) == Refusal("student_speed", date(2026, 11, 20))
+
+
+def test_mail_records_know_the_round_and_whether_the_text_was_copied():
+    rows = [{"id": "m1", "student_id": "s1", "company_id": "c1", "person_key": None,
+             "status": "abandoned", "created_at": "2026-11-10T10:00:00+00:00",
+             "round_id": "r1", "copied_at": "2026-11-10T11:00:00+00:00"},
+            {"id": "m2", "student_id": "s2", "company_id": "c1", "person_key": None,
+             "status": "abandoned", "created_at": "2026-11-10T10:00:00+00:00",
+             "round_id": "r1", "copied_at": None}]
+    records = store(Recorder(tables={"mails": rows})).mail_records()
+    assert [(r.round_id, r.copied) for r in records] == [("r1", True), ("r1", False)]

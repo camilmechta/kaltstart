@@ -159,3 +159,13 @@ def test_filter_on_companies_with_a_person():
     store.add_company(company(2), emails=[EmailRow("info@c2.example.ch", "generic", "u")], people=[])
     assert ids(store, ListFilters(with_person=True)) == ["c1"]
     assert sorted(ids(store)) == ["c1", "c2"]
+
+
+def test_the_in_memory_store_applies_the_round_cap_and_keeps_the_variant():
+    from dataclasses import replace
+    store = store_with(company(1))
+    mail = replace(new_mail(), size_category="small", variant=2)
+    for n in range(6):
+        assert isinstance(store.reserve(f"s{n}", mail, NOW - timedelta(days=40 * (6 - n))), str)
+    assert store.reserve("s9", mail, NOW) == Refusal("round_full", None)
+    assert {m.variant for m in store.mails("s0")} == {2}

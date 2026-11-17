@@ -65,7 +65,12 @@ create table mails (
   sent_at timestamptz,
   human_reply_at timestamptz,
   positive_reply_at timestamptz,
-  abandoned_at timestamptz
+  abandoned_at timestamptz,
+  -- How many mails were kept before for this company and round: picks the
+  -- wordings, so that mails to one company differ.
+  variant int not null default 0,
+  -- Size category of the round, which sets the round cap.
+  size_category text check (size_category in ('small', 'medium', 'large'))
 );
 create index mails_company_idx on mails (company_id, created_at desc);
 create index mails_student_idx on mails (student_id, created_at desc);
@@ -75,29 +80,51 @@ alter table profiles enable row level security;
 alter table showcases enable row level security;
 alter table mails enable row level security;
 
--- Keeping a mail: the four rules of spec 7.1 checked and the row inserted in
--- one transaction, one company at a time, so that two students clicking on
--- the last slot cannot both get it. kaltstart.api.rules holds the same rules.
+-- Keeping a mail: the rules of kaltstart.api.rules checked and the row
+-- inserted in one transaction, one company at a time, so that two students
+-- clicking on the last slot cannot both get it. The limits come from the
+-- server (rules.LIMITS, in p_row->'limits'): changing one needs no migration.
+-- An abandoned mail frees its slot only if its text was never copied.
 create function reserve_mail(p_student_id uuid, p_company_id text,
                              p_person_key text, p_row jsonb)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare
+  v_limits jsonb := p_row->'limits';
+  v_cap_days int := (v_limits->>'cap_days')::int;
+  v_speed_days int := (v_limits->>'speed_days')::int;
+  v_round_cap int := (v_limits->'round_cap'->>(p_row->>'size_category'))::int;
   v_taken int;
   v_oldest timestamptz;
   v_id uuid;
 begin
+  if v_limits is null then
+    raise exception 'reserve_mail needs the limits of the server';
+  end if;
   perform pg_advisory_xact_lock(hashtext(p_company_id));
 
   select count(*), min(created_at) into v_taken, v_oldest from mails
-    where company_id = p_company_id and status <> 'abandoned'
-      and created_at > now() - interval '30 days';
-  if v_taken >= 3 then
+    where company_id = p_company_id
+      and (status <> 'abandoned' or copied_at is not null)
+      and created_at > now() - make_interval(days => v_cap_days);
+  if v_taken >= (v_limits->>'company_cap')::int then
     return jsonb_build_object('ok', false, 'reason', 'company_full',
-                              'frees_on', (v_oldest + interval '30 days')::date);
+                              'frees_on', (v_oldest + make_interval(days => v_cap_days))::date);
+  end if;
+  if v_round_cap is not null and (select count(*) from mails
+        where company_id = p_company_id and round_id = p_row->>'round_id'
+          and (status <> 'abandoned' or copied_at is not null)) >= v_round_cap then
+    return jsonb_build_object('ok', false, 'reason', 'round_full', 'frees_on', null);
+  end if;
+  select count(*), min(created_at) into v_taken, v_oldest from mails
+    where student_id = p_student_id
+      and created_at > now() - make_interval(days => v_speed_days);
+  if v_taken >= (v_limits->>'speed')::int then
+    return jsonb_build_object('ok', false, 'reason', 'student_speed',
+                              'frees_on', (v_oldest + make_interval(days => v_speed_days))::date);
   end if;
   if (select count(*) from mails where student_id = p_student_id
         and status in ('generated', 'copied')
-        and created_at > now() - interval '7 days') >= 5 then
+        and created_at > now() - interval '7 days') >= (v_limits->>'pending')::int then
     return jsonb_build_object('ok', false, 'reason', 'student_pending', 'frees_on', null);
   end if;
   if exists (select 1 from mails where student_id = p_student_id
@@ -112,13 +139,14 @@ begin
 
   insert into mails (student_id, company_id, round_id, address, address_type, person_name,
                      person_key, person_choice, person_source_url, style, language,
-                     company_line, used_company_line, subject, body)
+                     company_line, used_company_line, subject, body, variant, size_category)
   values (p_student_id, p_company_id, p_row->>'round_id', p_row->>'address',
           p_row->>'address_type', p_row->>'person_name', p_person_key,
           p_row->>'person_choice', p_row->>'person_source_url', p_row->>'style',
           p_row->>'language', p_row->>'company_line',
           coalesce((p_row->>'used_company_line')::boolean, false),
-          p_row->>'subject', p_row->>'body')
+          p_row->>'subject', p_row->>'body',
+          coalesce((p_row->>'variant')::int, 0), p_row->>'size_category')
   returning id into v_id;
   return jsonb_build_object('ok', true, 'id', v_id);
 end;

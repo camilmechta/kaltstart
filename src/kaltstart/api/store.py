@@ -95,6 +95,8 @@ class NewMail:
     used_company_line: bool
     subject: str
     body: str
+    variant: int = 0                    # mails kept before for this company and round
+    size_category: str | None = None    # of the round: sets the round cap
 
 
 @dataclass(frozen=True)
@@ -118,6 +120,8 @@ class Mail:
     status: str
     created_at: datetime
     status_dates: dict = field(default_factory=dict)
+    variant: int = 0
+    size_category: str | None = None
 
     def record(self) -> MailRecord:
         copied = ("copied" in self.status_dates
@@ -264,7 +268,8 @@ class InMemoryAppStore:
         # lock of reserve_mail: the check and the insert cannot interleave.
         with self._lock:
             refused = rules.refusal(student_id, mail.company_id, mail.person_key,
-                                    self.mail_records(), now)
+                                    self.mail_records(), now, round_id=mail.round_id,
+                                    size=mail.size_category)
             if refused:
                 return refused
             mail_id = str(uuid.uuid4())

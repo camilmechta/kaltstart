@@ -34,7 +34,7 @@ def test_reserve_mail_locks_counts_and_names_its_reasons():
     assert "pg_advisory_xact_lock(hashtext(p_company_id))" in SQL
     for reason in ("company_full", "student_pending", "company_done", "person_done"):
         assert f"'{reason}'" in SQL
-    assert "interval '30 days'" in SQL and "interval '7 days'" in SQL
+    assert "make_interval(days => v_cap_days)" in SQL and "interval '7 days'" in SQL
 
 
 def test_invitation_code_trigger():
@@ -56,3 +56,22 @@ def test_new_functions_are_not_public():
                      "exclude_company(p_company_id text)",
                      "exclude_person(p_company_id text, p_person_name text)"):
         assert f"revoke all on function {function} from public, anon, authenticated;" in SQL, function
+
+
+def test_reserve_mail_applies_the_limits_passed_by_the_server():
+    body = SQL.split("create function reserve_mail", 1)[1].split("$$;", 1)[0]
+    for reason in ("'round_full'", "'student_speed'"):
+        assert reason in body, reason
+    # The limits come from the server (kaltstart.api.rules.LIMITS), not constants.
+    for key in ("company_cap", "cap_days", "round_cap", "speed", "speed_days", "pending"):
+        assert f"'{key}'" in body, key
+    assert "copied_at is not null" in body
+    # Without limits every comparison would be null and nothing refused.
+    assert "if v_limits is null then" in body and "raise exception" in body
+    assert "p_row->>'size_category'" in body
+    assert "variant" in body.split("insert into mails", 1)[1]
+
+
+def test_mails_store_the_variant_and_the_size():
+    assert "variant int not null default 0" in SQL
+    assert "size_category text" in SQL.split("create table mails", 1)[1].split(");", 1)[0]
