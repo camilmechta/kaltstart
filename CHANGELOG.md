@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Names read on sites are cleaned of degrees and schools, and lines that are
+  not a person's are dropped, in the scraper and when the app shows people;
+  German titles get an English meaning (D84).
 - `render.yaml`: the web app on Render's free plan in Frankfurt, deployed
   from `main` once the checks pass, with no secret in the file (D82).
 - CV: a profile switch, on by default, adds "My CV is attached." to every

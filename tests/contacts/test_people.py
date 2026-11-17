@@ -407,3 +407,12 @@ def test_a_team_card_that_links_to_a_profile_is_read():
 def test_a_caption_that_introduces_somebody_is_not_a_name(line):
     assert names(f"<div><h4>How we build robots</h4><p><strong>{line}</strong></p></div>",
                  kind="home") == []
+
+
+def test_a_degree_and_a_school_before_the_name_are_not_part_of_it():
+    assert names(card("MSc ETH Lina Beispiel", "Co-Founder, Chief Executive Officer")) == [
+        ("Lina Beispiel", "Co-Founder, Chief Executive Officer")]
+
+
+def test_a_question_read_as_a_name_is_dropped():
+    assert names("<p>Was Einkauf, Technik und Geschäftsführung wissen wollen.</p>") == []

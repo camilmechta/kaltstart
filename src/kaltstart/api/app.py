@@ -59,6 +59,8 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
     env = Environment(loader=FileSystemLoader(HERE / "templates"),
                       autoescape=select_autoescape(["html"]), trim_blocks=True, lstrip_blocks=True)
     env.filters["web_link"] = web_link
+    from kaltstart.contacts.names import title_hint
+    env.filters["title_hint"] = title_hint
     sessions = Sessions(session_secret)
     page = Page(env, sessions, removal_contact)
     # Sign-up: 10 tries an hour per address, and sign-up closes for an hour

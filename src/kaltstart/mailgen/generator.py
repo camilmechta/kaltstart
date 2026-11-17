@@ -20,7 +20,10 @@ from kaltstart.mailgen.phrases import (
     amount, investor_phrase, request_phrase, role_name, role_paragraph, round_name,
     student_text)
 
-_TITLES = frozenset(("dr", "prof", "mag", "ing", "dipl", "lic", "phd", "mba"))
+_TITLES = frozenset(("dr", "prof", "mag", "ing", "dipl", "lic", "phd", "mba",
+                     # degrees and schools a site may write before a name (D84)
+                     "msc", "bsc", "ma", "ba", "emba", "med", "mas", "cas", "llm", "mlaw",
+                     "eth", "epfl", "hsg", "uzh", "tum", "lmu", "wu", "rwth", "fh"))
 # Stand-ins for the student's own texts when the generated parts are checked.
 _STUDENT_TEXT = "Student text."
 # The showcase sentence of the profile is the heart of every mail; its lead-in

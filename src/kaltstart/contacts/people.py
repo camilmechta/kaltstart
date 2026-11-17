@@ -18,6 +18,7 @@ from urllib.parse import urlsplit
 
 from bs4 import BeautifulSoup, Tag
 
+from kaltstart.contacts.names import clean_name
 from kaltstart.contacts.models import FoundPerson, Page
 from kaltstart.contacts.titles import (
     LEADERSHIP, ROLE_THEN_NAME, TITLE_WORD, Title, classify_title)
@@ -506,7 +507,10 @@ def extract_people(page: Page, company_name: str | None = None) -> list[FoundPer
                     break
         if found and _outside_the_team(block, company_key):
             continue
-        for name, title_text, title in found:
+        for raw, title_text, title in found:
+            name = clean_name(raw)
+            if name is None:              # a sentence or a heading, not a person
+                continue
             people.setdefault(name, FoundPerson(
                 name, title_text, title.categories, title.level, page.url))
     return list(people.values())

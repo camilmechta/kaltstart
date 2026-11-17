@@ -27,7 +27,7 @@
       {% if suggested and not profile_missing %}
       <label class="option-card suggested-card">
         <input type="radio" name="choice" value="suggested" {% if form.get('choice') == 'suggested' %}checked{% endif %}>
-        <span class="option-title">{{ suggested.name }}, {{ suggested.title }}</span> <span class="tag">Suggested</span>
+        <span class="option-title">{{ suggested.name }}, {{ suggested.title }}{% if suggested.title|title_hint %} ({{ suggested.title|title_hint }}){% endif %}</span> <span class="tag">Suggested</span>
         <p class="option-detail"><b>Why {{ suggested.name.split()[0] }}?</b> {{ why }}</p>
         <p class="option-detail">{{ suggested.name.split()[0] }} was found on the company's own website, on {% if suggested.source_url|web_link %}<a href="{{ suggested.source_url|web_link }}" rel="noopener noreferrer" target="_blank">this page</a>{% else %}a page of its site{% endif %}, on {{ suggested.read_at.strftime('%-d %b %Y') }}. People change jobs: check the page before you choose.</p>
       </label>
@@ -37,7 +37,7 @@
         <input type="radio" name="choice" value="other_on_list" {% if form.get('choice') == 'other_on_list' %}checked{% endif %}>
         <span class="option-title">Someone else from their website</span>
         <select name="person" aria-label="Someone else from their website">
-          {% for p in people %}{% if not (suggested and not profile_missing and p.name == suggested.name) %}<option value="{{ loop.index0 }}" {% if form.get('person') == loop.index0|string %}selected{% endif %}>{{ p.name }}, {{ p.title }}</option>{% endif %}{% endfor %}
+          {% for p in people %}{% if not (suggested and not profile_missing and p.name == suggested.name) %}<option value="{{ loop.index0 }}" {% if form.get('person') == loop.index0|string %}selected{% endif %}>{{ p.name }}, {{ p.title }}{% if p.title|title_hint %} ({{ p.title|title_hint }}){% endif %}</option>{% endif %}{% endfor %}
         </select>
       </label>
       {% endif %}

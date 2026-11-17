@@ -12,9 +12,10 @@ from typing import Callable, Sequence
 from supabase import Client, create_client
 
 from kaltstart.api.rules import LIMITS, MailRecord, Refusal
+from kaltstart.contacts.names import clean_name
 from kaltstart.api.store import (
     RECENT_ROUND_DAYS, STATUSES, CompanyRow, EmailRow, ListFilters, Mail, NewMail, PersonRow,
-    Profile, Showcase, eligible)
+    Profile, Showcase, eligible, shown_people)
 
 PAGE_SIZE = 1000
 _PROFILE_FIELDS = ("first_name", "last_name", "programme", "degree_level", "attach_cv", "languages",
@@ -176,8 +177,9 @@ class SupabaseAppStore:
         rows = (self._client.table("contact_people")
                 .select("name,title,categories,level,source_url,read_at")
                 .eq("company_id", company_id).order("name").execute().data)
-        return [PersonRow(r["name"], r["title"], tuple(r["categories"] or ()), r["level"],
-                          r["source_url"], _d(r["read_at"])) for r in rows]
+        return shown_people([PersonRow(r["name"], r["title"], tuple(r["categories"] or ()),
+                                       r["level"], r["source_url"], _d(r["read_at"]))
+                             for r in rows])
 
     def emails(self, company_id: str) -> list[EmailRow]:
         rows = (self._client.table("contact_emails").select("address,type,source_url")
@@ -188,8 +190,9 @@ class SupabaseAppStore:
         ids = list(company_ids)
         if not ids:
             return {}
-        people = (self._client.table("contact_people").select("company_id")
+        people = (self._client.table("contact_people").select("company_id,name")
                   .in_("company_id", ids).execute().data)
+        people = [r for r in people if clean_name(r.get("name"))]
         careers = (self._client.table("contact_emails").select("company_id")
                    .in_("company_id", ids).eq("type", "careers").execute().data)
         counts = {c: 0 for c in ids}

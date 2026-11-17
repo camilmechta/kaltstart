@@ -143,6 +143,21 @@ class ListFilters:
     with_person: bool = False
 
 
+def shown_people(rows: Sequence[PersonRow]) -> list[PersonRow]:
+    """The people as students see them: names cleaned of degrees and schools,
+    and lines that are not a person's dropped (D84). Applied on reading, so
+    the rows stored before the rule are cleaned too."""
+    from dataclasses import replace as _replace
+    from kaltstart.contacts.names import clean_name
+    shown, seen = [], set()
+    for row in rows:
+        name = clean_name(row.name)
+        if name and name not in seen:
+            seen.add(name)
+            shown.append(_replace(row, name=name))
+    return shown
+
+
 def eligible(companies: Sequence[CompanyRow], with_address: set[str], excluded: set[str],
              mails: Sequence[MailRecord], filters: ListFilters, student_id: str,
              now: datetime, with_person: set[str] = frozenset()) -> tuple[list[CompanyRow], int]:
@@ -259,7 +274,7 @@ class InMemoryAppStore:
         return self._companies.get(company_id)
 
     def people(self, company_id: str) -> list[PersonRow]:
-        return list(self._people.get(company_id, []))
+        return shown_people(self._people.get(company_id, []))
 
     def emails(self, company_id: str) -> list[EmailRow]:
         return list(self._emails.get(company_id, []))

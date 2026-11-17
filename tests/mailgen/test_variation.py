@@ -96,3 +96,9 @@ def test_the_cv_is_mentioned_when_the_student_attaches_it(style, language, perso
     assert sentence in with_cv and sentence not in without
     paragraphs = with_cv.split("\n\n")
     assert sentence in paragraphs[-2] or sentence in paragraphs[-3]      # just before the end
+
+
+def test_a_degree_or_a_school_is_never_greeted_as_a_first_name():
+    body = generate(student(), company(), round_(), contact(person_name="MSc Eth Lina Beispiel"),
+                    style="direct", language="en", variant=0).body
+    assert body.startswith("Hi Lina!")

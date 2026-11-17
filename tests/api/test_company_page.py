@@ -294,3 +294,17 @@ def test_a_full_round_does_not_send_the_student_to_my_mails(client, store):
         reserve(store, f"other{n}", 40 * (9 - n))
     ready(client)
     assert "Open My mails" not in post(client, "preview", choice="team").text
+
+
+def test_people_are_cleaned_when_shown_and_german_titles_explained(client, store):
+    from dataclasses import replace
+    from kaltstart.api.store import PersonRow
+    store.add_company(replace(C1, id="c3", name="Clean Co"), emails=EMAILS, people=[
+        PersonRow("MSc ETH Lina Beispiel", "Geschäftsführerin", ("leadership",), "head",
+                  "https://c1.example.ch/team", NOW),
+        PersonRow("Was Einkauf", "Technik und Geschäftsführung wissen wollen.", ("leadership",),
+                  "head", "https://c1.example.ch/team", NOW)])
+    ready(client)
+    page = client.get("/companies/c3").text
+    assert "MSc ETH" not in page and "Was Einkauf" not in page
+    assert "Lina Beispiel, Geschäftsführerin (Managing director)" in page
