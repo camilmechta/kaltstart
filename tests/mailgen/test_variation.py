@@ -52,3 +52,12 @@ def test_a_negative_variant_is_refused():
     with pytest.raises(ValueError):
         mail("direct", "en", -1)
 
+
+
+def test_reviewed_wordings():
+    formal_de = mail("formal", "de", 1, person=None).body
+    assert "Die Nachricht hat meine Aufmerksamkeit geweckt." in formal_de
+    assert "Über die Gelegenheit zu einem kurzen Gespräch würde ich mich freuen." in formal_de
+    assert "The news caught my attention." in mail("formal", "en", 1, person=None).body
+    assert "Wäre das für dich interessant?" in mail("direct", "de", 1).body
+    assert "Wäre das für euch interessant?" in mail("direct", "de", 1, person=None).body

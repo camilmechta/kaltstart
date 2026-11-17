@@ -21,7 +21,7 @@ FORMAL_DE = "Ich habe Ihren Roboterarm in einem Uni-Labor genutzt und gesehen, w
 CASES = [(style, language, with_line, 0) for style in STYLES for language in LANGUAGES
          for with_line in (True, False)] + \
         [(style, language, False, k) for style in STYLES for language in LANGUAGES
-         for k in (1, 2)]
+         for k in (1, 2, 3)]
 
 
 def name(style: str, language: str, with_line: bool, k: int = 0) -> str:

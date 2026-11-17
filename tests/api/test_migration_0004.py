@@ -34,7 +34,7 @@ def test_reserve_mail_locks_counts_and_names_its_reasons():
     assert "pg_advisory_xact_lock(hashtext(p_company_id))" in SQL
     for reason in ("company_full", "student_pending", "company_done", "person_done"):
         assert f"'{reason}'" in SQL
-    assert "make_interval(days => v_cap_days)" in SQL and "interval '7 days'" in SQL
+    assert "make_interval(days => v_cap_days)" in SQL and "make_interval(days => v_speed_days)" in SQL
 
 
 def test_invitation_code_trigger():
@@ -75,3 +75,14 @@ def test_reserve_mail_applies_the_limits_passed_by_the_server():
 def test_mails_store_the_variant_and_the_size():
     assert "variant int not null default 0" in SQL
     assert "size_category text" in SQL.split("create table mails", 1)[1].split(");", 1)[0]
+
+
+def test_reserve_mail_also_locks_the_student():
+    body = SQL.split("create function reserve_mail", 1)[1].split("$$;", 1)[0]
+    student = body.index("pg_advisory_xact_lock(hashtext(p_student_id::text))")
+    assert student < body.index("pg_advisory_xact_lock(hashtext(p_company_id))")
+
+
+def test_the_pending_window_comes_from_the_server_too():
+    body = SQL.split("create function reserve_mail", 1)[1].split("$$;", 1)[0]
+    assert "interval '7 days'" not in body and "'presumed_sent_days'" in body

@@ -100,6 +100,9 @@ begin
   if v_limits is null then
     raise exception 'reserve_mail needs the limits of the server';
   end if;
+  -- The student first, then the company, always in this order: the speed and
+  -- pending limits hold even with two tabs keeping two companies at once.
+  perform pg_advisory_xact_lock(hashtext(p_student_id::text));
   perform pg_advisory_xact_lock(hashtext(p_company_id));
 
   select count(*), min(created_at) into v_taken, v_oldest from mails
@@ -124,7 +127,8 @@ begin
   end if;
   if (select count(*) from mails where student_id = p_student_id
         and status in ('generated', 'copied')
-        and created_at > now() - interval '7 days') >= (v_limits->>'pending')::int then
+        and created_at > now() - make_interval(days => (v_limits->>'presumed_sent_days')::int))
+        >= (v_limits->>'pending')::int then
     return jsonb_build_object('ok', false, 'reason', 'student_pending', 'frees_on', null);
   end if;
   if exists (select 1 from mails where student_id = p_student_id

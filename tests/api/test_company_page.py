@@ -279,3 +279,10 @@ def test_the_second_kept_mail_to_a_company_uses_the_next_variant(client, store, 
     mine = [m for m in store.all_mails() if m.student_id == user_id(auth)][0]
     assert mine.variant == 1 and mine.size_category == C1.size_category
     assert mine.subject != "Example internship?" and isinstance(first, str)
+
+
+def test_a_full_round_does_not_send_the_student_to_my_mails(client, store):
+    for n in range(9):
+        reserve(store, f"other{n}", 40 * (9 - n))
+    ready(client)
+    assert "Open My mails" not in post(client, "preview", choice="team").text

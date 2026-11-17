@@ -318,8 +318,9 @@ def register(app: FastAPI) -> None:
                                 app.state.now(), round_id=company.round_id,
                                 size=company.size_category)
         if refused:
-            return None, (refusal_text(refused), "/mails" if refused.reason != "company_full"
-                          else None, 409)
+            # A full company or round: the way out is another company, not My mails.
+            return None, (refusal_text(refused), None if refused.reason in
+                          ("company_full", "round_full") else "/mails", 409)
         style = form.get("style") if form.get("style") in ("direct", "round", "formal") else "direct"
         language = form.get("language") if form.get("language") in ("en", "de") else "en"
         try:

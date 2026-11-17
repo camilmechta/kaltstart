@@ -25,11 +25,13 @@ class Limits:
     speed: int = 10                         # kept mails per student ...
     speed_days: int = 7                     # ... in this many rolling days
     pending: int = PENDING_LIMIT            # mails in progress per student
+    presumed_sent_days: int = PRESUMED_SENT_DAYS   # a mail in progress counts as sent after
 
     def as_json(self) -> dict:
         return {"company_cap": self.company_cap, "cap_days": self.cap_days,
                 "round_cap": dict(self.round_cap), "speed": self.speed,
-                "speed_days": self.speed_days, "pending": self.pending}
+                "speed_days": self.speed_days, "pending": self.pending,
+                "presumed_sent_days": self.presumed_sent_days}
 
 
 LIMITS = Limits()
@@ -59,7 +61,7 @@ def _age(mail: MailRecord, now: datetime) -> timedelta:
 
 
 def shown_status(mail: MailRecord, now: datetime) -> str:
-    if mail.status in _PENDING and _age(mail, now) >= timedelta(days=PRESUMED_SENT_DAYS):
+    if mail.status in _PENDING and _age(mail, now) >= timedelta(days=LIMITS.presumed_sent_days):
         return "presumed_sent"
     return mail.status
 

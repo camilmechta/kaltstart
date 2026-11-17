@@ -142,3 +142,7 @@ def test_variant_counts_every_mail_of_the_round():
              kept(5, company="c2")]
     assert variant_for("c1", "r1", mails) == 3
     assert variant_for("c1", "r3", mails) == 0
+
+
+def test_the_presumed_sent_window_is_a_limit_too():
+    assert LIMITS.presumed_sent_days == 7 and LIMITS.as_json()["presumed_sent_days"] == 7

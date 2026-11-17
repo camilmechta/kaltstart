@@ -87,7 +87,7 @@ def _opening(style: str, language: str, round: Round, company: Company, role: st
                     f"Congratulations on {deal}! A round like this usually means building out "
                     f"the {role_text} team, which is where I want to help.")[number]
         return (f"Congratulations on {deal}.",
-                f"Congratulations on {deal}; it caught my attention.",
+                f"Congratulations on {deal}. The news caught my attention.",
                 f"I read with interest about {deal}.")[number]
     if style == "direct":
         deal = _deal(round, "de", "eurer")
@@ -103,7 +103,7 @@ def _opening(style: str, language: str, round: Round, company: Company, role: st
                 f"den Bereich {role_text} auszubauen, und genau dort möchte ich helfen.")[number]
     deal = _deal(round, "de", "Ihrer")
     return (f"Herzlichen Glückwunsch zu {deal}.",
-            f"Herzlichen Glückwunsch zu {deal}; das hat meine Aufmerksamkeit geweckt.",
+            f"Herzlichen Glückwunsch zu {deal}. Die Nachricht hat meine Aufmerksamkeit geweckt.",
             f"Mit Interesse habe ich von {deal} gelesen.")[number]
 
 
@@ -165,13 +165,14 @@ def _close(style: str, language: str, role: str, team: bool, number: int = 0) ->
                  "meisten bringt.")
     you = "Habt ihr" if team else "Hast du"
     return {
-        "direct": (f"{help_text} Würde das passen?", f"{help_text} Wäre das für euch interessant?",
+        "direct": (f"{help_text} Würde das passen?",
+                   f"{help_text} Wäre das für {'euch' if team else 'dich'} interessant?",
                    f"{help_text} Wollen wir kurz sprechen?"),
         "round": (f"{you} 15 Minuten für ein kurzes Gespräch?",
                   f"{you} nächste Woche 15 Minuten?",
                   "Können wir 15 Minuten telefonieren?"),
         "formal": ("Über ein kurzes Gespräch freue ich mich. Vielen Dank für Ihre Zeit.",
-                   "Ich freue mich über die Gelegenheit zu einem kurzen Gespräch. Vielen Dank.",
+                   "Über die Gelegenheit zu einem kurzen Gespräch würde ich mich freuen. Vielen Dank.",
                    "Ich freue mich auf Ihre Rückmeldung. Vielen Dank für Ihre Zeit."),
     }[style][number]
 
