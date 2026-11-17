@@ -262,3 +262,15 @@ def test_the_supabase_profile_keeps_the_cv_choice():
     from kaltstart.api.supabase_store import _PROFILE_FIELDS
     assert "attach_cv" in _PROFILE_FIELDS
     assert "attach_cv boolean not null default true" in SQL
+
+
+def test_the_proxy_check_shows_the_chain_but_no_address(client):
+    response = client.get("/_proxy-check", headers={
+        "X-Forwarded-For": "8.8.4.4, 10.0.0.2", "CF-Connecting-IP": "8.8.4.4"})
+    data = response.json()
+    assert response.status_code == 200
+    assert data["forwarded_entries"] == 2
+    assert data["entry_equals_cf_connecting_ip"] == [True, False]
+    assert data["entry_is_private"] == [False, True]
+    assert data["headers"]["cf-connecting-ip"] is True and data["headers"]["true-client-ip"] is False
+    assert "8.8.4.4" not in response.text and "10.0.0.2" not in response.text
