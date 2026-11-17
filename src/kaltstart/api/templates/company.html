@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}{{ company.name }} · Kaltstart{% endblock %}
+{% block main_class %}container column{% endblock %}
+{% block content %}
+<p class="small"><a href="/companies">← Companies</a></p>
+<h1 class="title-xl">{{ company.name }}</h1>
+<p class="muted">{{ company.sector or '' }}{% if company.sector %} · {% endif %}{{ company.city or '' }}{% if company.city %} · {% endif %}{{ company.country }}</p>
+<p style="margin-top:12px"><span class="size size-{{ company.size_category }}">{{ size_info[0] }}</span> <span class="small"><b>{{ size_info[1] }}</b> read applications here.</span> <span class="small muted">{{ size_info[3] }}</span></p>
+{% if places_left in (1, 2) %}<p class="notice notice-warning" style="margin-top:12px">{{ places_left }} place{{ '' if places_left == 1 else 's' }} left: Kaltstart limits how many students write to each company, so founders read every mail.</p>{% endif %}
+<p style="margin-top:12px"><span class="amount">{{ round }}</span> <span class="tag">{{ company.round_date.strftime('%b %Y') }}</span>
+  {% if company.investors %}<span class="muted"> · with {{ company.investors[0] }}{% if company.investors|length > 1 %} and others{% endif %}</span>{% endif %}</p>
+{% if company.description %}<p style="margin-top:12px">{{ company.description }}</p>{% endif %}
+<p class="small muted" style="margin-top:8px">
+  {% if company.website|web_link %}<a href="{{ company.website|web_link }}" rel="noopener noreferrer" target="_blank">Visit their website</a>{% endif %}
+</p>
+
+
+<form method="post" action="/companies/{{ company.id }}/preview#preview">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <section class="step">
+    <h2 class="step-title"><span class="step-number">1</span> Who are you writing to?</h2>
+    <p class="step-help">A mail to a named person gets read more often. Pick one; the right address is chosen for you. You get the address when you keep your mail.</p>
+    {% if profile_missing %}
+    <p class="notice notice-warning" style="margin-bottom:12px">Complete your profile so we can suggest the right person for your target role: <a href="/profile">open your profile</a>.</p>
+    {% endif %}
+    <div class="choices">
+      {% if suggested and not profile_missing %}
+      <label class="option-card suggested-card">
+        <input type="radio" name="choice" value="suggested" {% if form.get('choice') == 'suggested' %}checked{% endif %}>
+        <span class="option-title">{{ suggested.name }}, {{ suggested.title }}</span> <span class="tag">Suggested</span>
+        <p class="option-detail"><b>Why {{ suggested.name.split()[0] }}?</b> {{ why }}</p>
+        <p class="option-detail">{{ suggested.name.split()[0] }} was found on the company's own website, on {% if suggested.source_url|web_link %}<a href="{{ suggested.source_url|web_link }}" rel="noopener noreferrer" target="_blank">this page</a>{% else %}a page of its site{% endif %}, on {{ suggested.read_at.strftime('%-d %b %Y') }}. People change jobs: check the page before you choose.</p>
+      </label>
+      {% endif %}
+      {% if people|length > (1 if suggested and not profile_missing else 0) %}
+      <label class="option-card">
+        <input type="radio" name="choice" value="other_on_list" {% if form.get('choice') == 'other_on_list' %}checked{% endif %}>
+        <span class="option-title">Someone else from their website</span>
+        <select name="person" aria-label="Someone else from their website">
+          {% for p in people %}{% if not (suggested and not profile_missing and p.name == suggested.name) %}<option value="{{ loop.index0 }}" {% if form.get('person') == loop.index0|string %}selected{% endif %}>{{ p.name }}, {{ p.title }}</option>{% endif %}{% endfor %}
+        </select>
+      </label>
+      {% endif %}
+      <label class="option-card">
+        <input type="radio" name="choice" value="typed" {% if form.get('choice') == 'typed' %}checked{% endif %}>
+        <span class="option-title">A person you found yourself</span>
+        <p class="option-detail">Their name is used for this mail only.</p>
+        <input type="text" name="typed_name" value="{{ form.get('typed_name', '') }}" maxlength="40" placeholder="First and last name" aria-label="A person you found yourself">
+      </label>
+      <label class="option-card">
+        <input type="radio" name="choice" value="team" {% if form.get('choice') == 'team' %}checked{% endif %}>
+        <span class="option-title">No name, write to the team</span>
+        <p class="option-detail">Your mail opens with "Hi {{ company.name }} team".</p>
+      </label>
+    </div>
+  </section>
+
+  <section class="step" id="generate">
+    <h2 class="step-title"><span class="step-number">2</span> Your mail</h2>
+    <p class="step-help">Built around your showcase sentence. Add one line about {{ company.name }} if you know them: it makes the mail stand out.</p>
+    <fieldset>
+      <legend class="field-label">Style</legend>
+      <div class="role-cards style-cards">
+        {% for value, label, hint in (('direct', 'Direct', 'Short and warm, ends on an easy question. Best for founders and small teams.'),
+                                      ('round', 'Round', 'Starts from their round and asks for a 15-minute call. Good for heads of a team and recruiters.'),
+                                      ('formal', 'Formal', '"Dear …", sober and polite. For large companies and HR addresses.')) %}
+        <label class="role-card style-card">
+          <input type="radio" name="style" value="{{ value }}" {% if style == value %}checked{% endif %}>
+          <span class="role-name">{{ label }}</span>
+          <span class="role-hint">{{ hint }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </fieldset>
+    <div class="two-columns">
+      <fieldset>
+        <legend class="field-label">Language</legend>
+        <div class="chips">
+          {% for value, label in (('en', 'English'), ('de', 'German')) %}<label class="chip-toggle"><input type="radio" name="language" value="{{ value }}" {% if language == value %}checked{% endif %}><span>{{ label }}</span></label>{% endfor %}
+        </div>
+      </fieldset>
+      {% if showcases|length > 1 %}
+      <fieldset>
+        <legend class="field-label">Showcase sentence</legend>
+        <div class="chips">
+          {% for s in showcases %}<label class="chip-toggle"><input type="radio" name="showcase" value="{{ s.position }}" {% if form.get('showcase', '1') == s.position|string %}checked{% endif %}><span>Sentence {{ s.position }}</span></label>{% endfor %}
+        </div>
+      </fieldset>
+      {% else %}<input type="hidden" name="showcase" value="1">{% endif %}
+    </div>
+    <label>Optional, for motivated students: one sentence of your own about {{ company.name }} (what you tried, saw or would build)
+      <textarea id="company_line" name="company_line" data-max-words="35">{{ form.get('company_line', '') }}</textarea>
+      <span class="counter" data-counter-for="company_line"></span></label>
+    <div aria-live="polite" {% if not preview %}id="preview"{% endif %}>
+    {% if error %}<p class="notice notice-error" role="alert">{{ error }}{% if error_link %} <a href="{{ error_link }}">{{ 'Open your profile' if error_link == '/profile' else 'Open My mails' }}</a>{% endif %}</p>{% endif %}
+    </div>
+    <div class="actions"><button class="btn {{ 'btn-secondary' if preview else 'btn-primary' }}" type="submit">{{ 'Generate again' if preview else 'Generate my mail' }}</button>
+      <span class="small muted">A free preview: nothing is kept yet, and the address shows once you keep it.</span></div>
+  </section>
+</form>
+
+{% if preview %}
+<section class="step" id="preview">
+  <h2 class="step-title"><span class="step-number">3</span> Keep it, then copy it</h2>
+  <p class="step-help">Read it. Change the style or your sentence and generate again as often as you like. When it is right, keep it.</p>
+  <div class="mail-preview reveal">
+    <div class="mail-label">To</div><div>{{ recipient.person_name or (company.name ~ ' team') }} <span class="muted">· their e-mail address is shown once you keep this mail</span></div>
+    <div class="mail-label" style="margin-top:8px">Subject</div><div>{{ preview.subject }}</div>
+    <div class="mail-label" style="margin-top:8px">Text</div><div class="mail-body">{{ preview.body }}</div>
+  </div>
+  <form method="post" action="/companies/{{ company.id }}/keep#generate">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    {% for name in ('choice', 'person', 'typed_name', 'style', 'language', 'showcase', 'company_line') %}
+    <input type="hidden" name="{{ name }}" value="{{ form.get(name, '') }}">
+    {% endfor %}
+    <div class="actions"><button class="btn btn-primary" type="submit">Keep this mail</button>
+      <span class="small muted">Keeping takes one of the 3 slots of {{ company.name }} for 30 days.</span></div>
+  </form>
+</section>
+{% endif %}
+{% endblock %}

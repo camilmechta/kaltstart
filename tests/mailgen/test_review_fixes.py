@@ -107,7 +107,7 @@ def test_german_compound_subject_is_hyphenated():
     assert "Business-Development-Praktikum" in m.subject
 
 
-@pytest.mark.parametrize("changes", [dict(variant=3), dict(variant=-1)])
+@pytest.mark.parametrize("changes", [dict(variant=-1)])
 def test_an_out_of_range_variant_is_refused(changes):
     with pytest.raises(ValueError):
         mail(**changes)

@@ -7,6 +7,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- CV: a profile switch, on by default, adds "My CV is attached." to every
+  mail and a reminder on the mail page; Kaltstart never stores a CV. Mails
+  hold at most 205 words (D81).
+- Profile: Bachelor or Master, then the programme; a line under each section
+  says why it is asked. Mails name the degree. The preview says the hidden
+  part is the e-mail address. Fixed: "I sent it" downloaded a file (D80).
+- Repository protections: Dependabot updates for libraries and actions, a
+  separate `security` workflow running `pip-audit`, actions pinned to exact
+  commits, read-only workflows (D79).
+- Security fixes after the final review of the web app: real client address
+  behind the host's proxy, limits on sign-in and on wrong invitation codes,
+  sign-out revokes the session, CSRF token rotation, safe links from data,
+  security headers, non-blocking routes, fewer database calls on the list,
+  pinned dependencies and an unprivileged container (D78).
+- The preview of a mail hides the address; it shows once the mail is kept.
+- Sending limits: at most 6, 9 or 15 mails per company and funding round by
+  size, 10 kept mails per student a week, and a copied mail keeps its slot
+  even when abandoned; every limit is set in one place (`rules.LIMITS`).
+  Mails to one company vary in subject, wording and order; "N places left"
+  replaces "Last slot".
+- Web app motion: the generated mail unfolds and its address lights up, a
+  check draws on Copy, chosen cards press, rows lift, and the landing
+  example plays once; all stop under reduced motion.
+- Web app, after an outside design review: an invented example of the
+  product on the landing page and an honest headline, a folding size legend,
+  style cards and no stepper on the company page, "Kept" status pills and
+  rows on My mails, matching sign-in and sign-up pages, larger helper text.
+  The default style is Round when the suggested person is a recruiter.
+- Web app, second round of the owner's feedback: a profile with role cards,
+  chips and a German switch; saving it leads to the company list; the
+  company page says the address comes with the generated mail.
+- Web app after the owner's first try: a second colour, size tags and legend,
+  an About page with the data credit, numbered steps and choice cards on the
+  company page, the reason a person is suggested, and a filter on companies
+  that name people.
+- Web app (`kaltstart.api`): sign-up with an invitation code, profile, company
+  list with filters, company page with a free preview and "Keep this mail",
+  My mails with statuses and reminders, account deletion; `--dev` mode with
+  invented data; a `Dockerfile`. Migration `0004` for students and mails.
 - Mails are built around the student's showcase sentence (up to 60 words);
   the sentence about the company is an optional bonus. A mail holds at most
   200 words.

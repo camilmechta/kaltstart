@@ -9,10 +9,10 @@ STYLES = ("direct", "round", "formal")
 LANGUAGES = ("en", "de")
 VARIANTS = 3
 
-# Bounds on what the student types, so that every mail fits in 200 words
+# Bounds on what the student types, so that every mail fits in 205 words
 # (decision D72). The showcase sentence may be longer than the sentence
 # about the company: it is the heart of every mail.
-MAX_BODY_WORDS = 200
+MAX_BODY_WORDS = 205
 MAX_EXAMPLE_CHARS = 400
 MAX_EXAMPLE_WORDS = 60
 MAX_TEXT_CHARS = 200
@@ -43,6 +43,8 @@ class Student:
     link: str | None
     examples: tuple[Example, ...]
     chosen_example: int = 0
+    level: str | None = None            # "bachelor" or "master"; None: not given
+    attach_cv: bool = False             # the student attaches their CV to the mail
 
 
 @dataclass(frozen=True)

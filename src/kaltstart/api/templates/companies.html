@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Companies · Kaltstart{% endblock %}
+{% block content %}
+{% if saved %}<p class="notice notice-success" role="status" style="margin-bottom:24px">Profile saved. Now pick a company to write to.{% if filters.countries or filters.sectors %} Your preferences are already set as filters.{% endif %}</p>{% endif %}
+{% if get_started %}
+<section class="get-started" aria-labelledby="get-started-title">
+  <h2 id="get-started-title" class="title-lg">Get started</h2>
+  <div class="gs-steps">
+    <a class="gs-step {{ 'done' if get_started.profile_done else 'todo' }}" href="/profile">
+      <span class="gs-number">{% if get_started.profile_done %}✓{% else %}1{% endif %}</span>
+      <span><b>{{ 'Your profile is ready' if get_started.profile_done else 'Complete your profile' }}</b>
+        <span class="gs-detail">Your target role, your dates and one showcase sentence. Two minutes, once.</span></span>
+      <span class="gs-arrow" aria-hidden="true">→</span>
+    </a>
+    <a class="gs-step todo" href="#companies">
+      <span class="gs-number">2</span>
+      <span><b>Keep your first mail</b>
+        <span class="gs-detail">Pick a company below, choose who you write to, preview and keep your mail. You send it from your own mailbox.</span></span>
+      <span class="gs-arrow" aria-hidden="true">↓</span>
+    </a>
+  </div>
+</section>
+{% endif %}
+<p class="kicker" id="companies">New rounds · Switzerland · Germany · Austria</p>
+<h1 class="title-xl">Who just raised money</h1>
+<p class="muted">{{ total }} {{ "company matches" if total == 1 else "companies match" }} your filters, newest rounds first. Each company takes at most 3 mails a month, so founders are not flooded.</p>
+<form method="get" action="/companies" class="filters" role="search">
+  <input type="search" name="q" value="{{ filters.query }}" placeholder="Search a company" aria-label="Search a company">
+  <select name="country" aria-label="Country">
+    <option value="">All countries</option>
+    {% for c in countries %}<option value="{{ c }}" {% if c in filters.countries %}selected{% endif %}>{{ c }}</option>{% endfor %}
+  </select>
+  <select name="sector" aria-label="Sector">
+    <option value="">All sectors</option>
+    {% for s in sectors %}<option value="{{ s }}" {% if s in filters.sectors %}selected{% endif %}>{{ s }}</option>{% endfor %}
+  </select>
+  <select name="size" aria-label="Size">
+    <option value="">All sizes</option>
+    {% for value, label in sizes.items() %}<option value="{{ value }}" {% if value in filters.sizes %}selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select>
+  <select name="months" aria-label="Round date">
+    {% for m in (3, 6, 12) %}<option value="{{ m }}" {% if filters.months == m %}selected{% endif %}>Last {{ m }} months</option>{% endfor %}
+  </select>
+  <label class="choice filter-check"><input type="checkbox" name="person" value="1" {% if filters.with_person %}checked{% endif %}> Only companies that name people</label>
+  <button class="btn btn-secondary" type="submit">Filter</button>
+</form>
+<details class="legend" {% if get_started %}open{% endif %}>
+  <summary class="legend-title">Who reads your mail: Small, Medium or Large</summary>
+  <div class="legend-items">
+    {% for key, (label, reader, rounds, _sentence, why) in size_info.items() %}
+    <div class="legend-item legend-{{ key }}">
+      <span class="size size-{{ key }}">{{ label }}</span>
+      <p class="legend-reader">{{ reader }}</p>
+      <p class="legend-rounds">{{ rounds }}</p>
+      <p class="legend-why"><b>Why aim here:</b> {{ why }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</details>
+{% if items %}
+<ul class="rows">
+  {% for item in items %}{% set c = item.company %}
+  <li><a class="row" href="/companies/{{ c.id }}">
+    <div><span class="row-title">{{ c.name }}</span><div class="row-detail"><span class="size size-{{ c.size_category }}">{{ size_info[c.size_category][0] }}</span> {{ c.sector or '' }}</div></div>
+    <div><span class="amount">{{ item.round }}</span><div class="row-detail">{{ c.round_date.strftime('%b %Y') }}</div></div>
+    <div class="row-detail">{{ c.city or '' }}{% if c.city %} · {% endif %}{{ c.country }}</div>
+    <div class="row-detail">{% if item.places_left in (1, 2) %}<span class="last-slot">{{ item.places_left }} place{{ '' if item.places_left == 1 else 's' }} left</span> · {% endif %}<span class="{{ 'contact-person' if item.named else '' }}">{{ item.contact }}</span></div>
+  </a></li>
+  {% endfor %}
+</ul>
+<div class="pager">
+  {% if previous %}<a href="{{ previous }}">← Previous</a>{% endif %}
+  <span>Page {{ page_number }} of {{ pages }}</span>
+  {% if next_page %}<a href="{{ next_page }}">Next →</a>{% endif %}
+</div>
+{% else %}
+<p class="card">No company matches these filters. <a href="/companies?months=12">Show all</a>.</p>
+{% endif %}
+{% endblock %}

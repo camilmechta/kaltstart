@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Delete my account · Kaltstart{% endblock %}
+{% block main_class %}container narrow{% endblock %}
+{% block content %}
+<h1 class="title-xl">Delete my account</h1>
+<form method="post" action="/profile/delete" class="card stack">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <p>Your profile, your showcase sentences and your account are removed. Mails you kept stay counted for the companies, without your name or their text. This cannot be undone.</p>
+  <div class="actions">
+    <button class="btn btn-primary" type="submit">Delete my account</button>
+    <a class="btn btn-secondary" href="/profile">Keep my account</a>
+  </div>
+</form>
+{% endblock %}

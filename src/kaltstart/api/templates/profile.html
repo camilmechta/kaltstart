@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Profile · Kaltstart{% endblock %}
+{% block main_class %}container column{% endblock %}
+{% macro error(name) %}{% if errors.get(name) %}<p class="error-text" role="alert">{{ errors[name] }}</p>{% endif %}{% endmacro %}
+{% macro cls(name) %}{% if errors.get(name) %}field-error{% endif %}{% endmacro %}
+{% macro role_icon(role) %}{# Lucide icons (ISC licence), inline. #}
+<svg class="role-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+{% if role == 'product' %}<path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
+{% elif role == 'growth' %}<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>
+{% elif role == 'data' %}<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>
+{% elif role == 'operations' %}<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9 7 7M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/>
+{% else %}<rect width="20" height="14" x="2" y="7" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>{% endif %}
+</svg>{% endmacro %}
+{% set role_hints = {'product': 'Roadmap, user research, new features',
+                     'growth': 'Marketing, acquisition, campaigns',
+                     'data': 'Dashboards, analyses, decisions backed by data',
+                     'operations': 'Processes, tools, making things run at scale',
+                     'business_development': 'Partners, sales, new markets'} %}
+{% set german = 'de' in profile.languages %}
+{% block content %}
+<p class="kicker">Your profile</p>
+<h1 class="title-xl">Tell us who you are, once</h1>
+<p class="muted">Every mail is built from this page. Two minutes, and you can change it any time.</p>
+<p class="notice" style="margin-top:16px">Only you see this page. Nothing reaches a company until you send a mail yourself, from your own mailbox.</p>
+{% if saved %}<p class="notice notice-success" role="status" style="margin-top:16px">Profile saved.</p>{% endif %}
+{% if errors %}<p class="notice notice-error" role="alert" style="margin-top:16px">Some fields need your attention.</p>{% endif %}
+<form method="post" action="/profile" class="stack" style="margin-top:24px">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+
+  <div class="card stack">
+    <h2 class="title-lg">You</h2>
+    <p class="field-help" style="margin-top:0">Your name and degree sign every mail, so the company knows who is writing.</p>
+    <div class="two-columns">
+      <label>First name <input class="{{ cls('first_name') }}" type="text" name="first_name" value="{{ profile.first_name }}" autocomplete="given-name" maxlength="40">{{ error('first_name') }}</label>
+      <label>Last name <input class="{{ cls('last_name') }}" type="text" name="last_name" value="{{ profile.last_name }}" autocomplete="family-name" maxlength="40">{{ error('last_name') }}</label>
+    </div>
+    {% set level = profile.degree_level %}
+    <fieldset>
+      <legend class="field-label">Your degree at HSG</legend>
+      <div class="chips">
+        {% for value, label in (('bachelor', 'Bachelor'), ('master', 'Master')) %}<label class="chip-toggle"><input type="radio" name="degree_level" value="{{ value }}" {% if level == value %}checked{% endif %}><span>{{ label }}</span></label>{% endfor %}
+      </div>
+      {{ error('degree_level') }}
+      <div class="input-prefixed {{ cls('programme') }}" style="margin-top:12px">
+        <span class="input-prefix" data-show-when="degree_level=bachelor" {% if level != 'bachelor' %}hidden{% endif %}>Bachelor in</span>
+        <span class="input-prefix" data-show-when="degree_level=master" {% if level != 'master' %}hidden{% endif %}>Master in</span>
+        <input type="text" name="programme" value="{{ profile.programme }}" placeholder="e.g. Business Innovation" maxlength="70" aria-label="Your programme">
+      </div>
+      {{ error('programme') }}
+    </fieldset>
+    <label>Link: LinkedIn, website or portfolio (optional)<span class="field-help">If you add one, it is added at the end of your mails, so they can see who you are.</span> <input class="{{ cls('link') }}" type="url" name="link" value="{{ profile.link or '' }}" placeholder="https://">{{ error('link') }}</label>
+    <div>
+      <p class="field-label">Your CV</p>
+      <p class="field-help" style="margin:0 0 4px">Kaltstart never stores your CV: you attach it yourself in your mailbox. With this on, each mail says it is attached and the mail page reminds you.</p>
+      <label class="switch"><input type="checkbox" name="attach_cv" {% if profile.attach_cv %}checked{% endif %}><span class="switch-track" aria-hidden="true"></span> I attach my CV to my mails</label>
+    </div>
+    <div>
+      <p class="field-label">Languages</p>
+      <p class="field-help">Every mail can be in English. Switch on German to write in German to companies in Germany, Austria and German-speaking Switzerland.</p>
+      <label class="switch"><input type="checkbox" name="lang_de" data-toggles="lang_de" {% if german %}checked{% endif %}><span class="switch-track" aria-hidden="true"></span> I can also write in German</label>
+    </div>
+  </div>
+
+  <div class="card stack">
+    <h2 class="title-lg">What you are looking for</h2>
+    <fieldset>
+      <legend class="field-label">Your target role</legend>
+      <p class="field-help" style="margin:0 0 8px">It decides whom we suggest at each company (the head of your field) and the sentence about what you want to do.</p>
+      <div class="role-cards">
+        {% for value, label in roles.items() %}
+        <label class="role-card">
+          <input type="radio" name="target_role" value="{{ value }}" {% if profile.target_role == value %}checked{% endif %}>
+          {{ role_icon(value) }}
+          <span class="role-name">{{ label }}</span>
+          <span class="role-hint">{{ role_hints[value] }}</span>
+        </label>
+        {% endfor %}
+      </div>
+      {{ error('target_role') }}
+    </fieldset>
+    <fieldset>
+      <legend class="field-label">I am looking for</legend>
+      <div class="chips">
+        <label class="chip-toggle"><input type="radio" name="request" value="internship" {% if profile.request != 'part_time' %}checked{% endif %}><span>An internship</span></label>
+        <label class="chip-toggle"><input type="radio" name="request" value="part_time" {% if profile.request == 'part_time' %}checked{% endif %}><span>Part-time work</span></label>
+      </div>
+      {{ error('request') }}
+    </fieldset>
+    {% set part_time = profile.request == 'part_time' %}
+    <p class="field-help" style="margin:0">Your dates go into the mail, so the company knows when you are free.</p>
+    <div class="two-columns">
+      <label>From <input class="{{ cls('start_date') }}" type="date" name="start_date" value="{{ profile.start_date or '' }}">{{ error('start_date') }}</label>
+      <label data-show-when="request=internship" {% if part_time %}hidden{% endif %}>For how many months <input class="{{ cls('duration_months') }}" type="number" min="1" max="24" name="duration_months" value="{{ profile.duration_months or '' }}">{{ error('duration_months') }}</label>
+      <label data-show-when="request=part_time" {% if not part_time %}hidden{% endif %}>Workload in per cent <input class="{{ cls('workload_percent') }}" type="number" min="10" max="100" step="10" name="workload_percent" value="{{ profile.workload_percent or '' }}">{{ error('workload_percent') }}</label>
+    </div>
+  </div>
+
+  <div class="card stack">
+    <h2 class="title-lg">Your showcase sentence</h2>
+    <p class="muted">What have you done that shows you can help a startup? One or two sentences, ideally with a number. It is the heart of every mail, introduced by "A bit about me:".</p>
+    {% set s1 = showcase.get(1) %}
+    <label>In English
+      <textarea class="{{ cls('showcase1_en') }}" id="showcase1_en" name="showcase1_en" data-max-words="60" placeholder="e.g. I grew our student association's newsletter from 0 to 4,000 readers in one year.">{{ s1.text_en if s1 and s1.text_en else '' }}</textarea>
+      <span class="counter" data-counter-for="showcase1_en"></span>{{ error('showcase1_en') }}</label>
+    <div data-show-when="lang_de" {% if not german %}hidden{% endif %}>
+      <label>The same in German
+        <textarea class="{{ cls('showcase1_de') }}" id="showcase1_de" name="showcase1_de" data-max-words="60" placeholder="z. B. Ich habe den Newsletter unseres Studierendenvereins in einem Jahr auf 4000 Leser gebracht.">{{ s1.text_de if s1 and s1.text_de else '' }}</textarea>
+        <span class="counter" data-counter-for="showcase1_de"></span>{{ error('showcase1_de') }}</label>
+    </div>
+    {% set s2 = showcase.get(2) %}
+    <details {% if (s2 and (s2.text_en or s2.text_de)) or errors.get('showcase2_en') or errors.get('showcase2_de') %}open{% endif %}>
+      <summary>Add a second one (optional)</summary>
+      <p class="field-help">Another achievement, for companies where it fits better. You choose which one to use for each mail.</p>
+      <label>In English
+        <textarea class="{{ cls('showcase2_en') }}" id="showcase2_en" name="showcase2_en" data-max-words="60">{{ s2.text_en if s2 and s2.text_en else '' }}</textarea>
+        <span class="counter" data-counter-for="showcase2_en"></span>{{ error('showcase2_en') }}</label>
+      <div data-show-when="lang_de" {% if not german %}hidden{% endif %}>
+        <label>The same in German
+          <textarea class="{{ cls('showcase2_de') }}" id="showcase2_de" name="showcase2_de" data-max-words="60">{{ s2.text_de if s2 and s2.text_de else '' }}</textarea>
+          <span class="counter" data-counter-for="showcase2_de"></span>{{ error('showcase2_de') }}</label>
+      </div>
+    </details>
+  </div>
+
+  <div class="card stack">
+    <h2 class="title-lg">Preferences</h2>
+    <p class="field-help">They only pre-set the filters of the company list. Leave them empty to see everything.</p>
+    <fieldset>
+      <legend class="field-label">Countries</legend>
+      <div class="chips">
+        {% for country in countries %}<label class="chip-toggle"><input type="checkbox" name="pref_country" value="{{ country }}" {% if country in profile.preferred_countries %}checked{% endif %}><span>{{ country }}</span></label>{% endfor %}
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend class="field-label">Sectors</legend>
+      <div class="chips">
+        {% for sector in sectors %}<label class="chip-toggle"><input type="checkbox" name="pref_sector" value="{{ sector }}" {% if sector in profile.preferred_sectors %}checked{% endif %}><span>{{ sector }}</span></label>{% endfor %}
+      </div>
+    </fieldset>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary btn-large" type="submit">Save my profile</button>
+    <a class="btn-quiet" href="/profile/delete">Delete my account</a>
+  </div>
+</form>
+{% endblock %}

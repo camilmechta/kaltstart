@@ -73,6 +73,8 @@ def clean_website(raw: str | None) -> str | None:
         return None
     if not _SCHEME_RE.match(value):
         value = f"https://{value}"
+    elif not value.lower().startswith(("http://", "https://")):
+        return None                 # javascript:, ftp:, data:...: not a website
     if re.search(r"\s", value):
         return None
     try:

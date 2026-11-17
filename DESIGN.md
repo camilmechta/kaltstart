@@ -1,7 +1,9 @@
 # Kaltstart design system
 
-Direction **Ignition** (chosen by the owner, 2026-11-16): graphite and one
-ignition orange. A cold start that catches fire. The app should feel fast
+Direction **Ignition** (chosen by the owner, 2026-11-16): graphite, an
+ignition orange, and since the owner's first try of the app a second, cold
+colour (ice blue) for information, so the app reads livelier and airier. A
+cold start that catches fire. The app should feel fast
 and startup-like, different from the blue of most tech sites, with a premium
 touch that comes from restraint: one colour for actions, fine borders,
 figures in a monospace, dense rows.
@@ -31,21 +33,29 @@ reach at least 4.5:1 (checked).
 | `--primary` | `#FF7A2F` | `#FF7A2F` | The one action colour: primary buttons, focus ring, the "Kalt" of the logo |
 | `--on-primary` | `#140A03` | `#140A03` | Text on primary buttons (7.5:1) |
 | `--primary-dim` | `#7A4220` | `#FFD9C2` | Hover border of a row, selected chip background |
+| `--primary-soft` | `#33231F` | `#FFF1E8` | Tinted backgrounds: the suggested person, a selected choice, the Small size tag, step numbers |
+| `--accent` | `#7CC4FF` | `#1D6FB8` | The cold second colour, for information only, never for actions: the Medium size tag, "Person suggested", the kicker of a page, finished steps |
+| `--accent-soft` | `#212E3C` | `#EAF4FD` | Tinted background of accent tags and notes |
+| `--violet` | `#B79CFF` | `#6B46D6` | The Large size only, so the three sizes read apart at a glance |
+| `--violet-soft` | `#29283C` | `#F1EDFD` | Tinted background of the Large size tag and card |
 | `--link` | `#FF8A45` | `#B8470A` | Links in text |
 | `--success` | `#3DD68C` | `#11804F` | Sent, positive reply |
 | `--warning` | `#F5B83D` | `#9A6400` | "Last slot", the 72-hour reminder |
 | `--error` | `#FF6B6B` | `#C72C2C` | Refusals and form errors |
 
-No gradient, no glow, no glass. Status colours appear as text or a 1px
-border, never as large fills.
+No glow, no glass. Gradients only as a light tint fading from the top: the landing page's hero (`--primary-soft` to `--bg`) and the size legend cards (each size's soft colour to `--surface`). Status colours appear as text or a 1px
+border, never as large fills. Tinted backgrounds (`--primary-soft`,
+`--accent-soft`) are used only for tags, the selected choice and the
+suggested person, so colour points at what matters.
 
 ## Typography
 
-- **Geist** for everything, **Geist Mono** for figures and labels:
-  amounts, stages, counters, dates in tables, the SUBJECT/TO labels of a
-  mail. Both are under the SIL Open Font License and are served from the
-  app itself (no third-party font service), in woff2, weights 400, 500,
-  600, 700 for Geist and 400, 500 for Geist Mono.
+- **Geist** for everything, figures included, with tabular figures so
+  amounts and dates line up. **Geist Mono** is kept in the files but no
+  longer used on screen: the owner found the monospaced labels harsh
+  (2026-11-16). Both fonts are under the SIL Open Font License and are
+  served from the app itself (no third-party font service), as variable
+  woff2 files with their licence.
 - Figures use `font-variant-numeric: tabular-nums`.
 - Headings: weight 700, letter spacing -0.03em at 26px and above, -0.02em
   below.
@@ -61,7 +71,8 @@ border, never as large fills.
 | `--text-2xl` | 36 / 40 | Sign-in page title only |
 
 Body text is never below 16px; rows use 15px titles and 13px details, as
-dense lists do. Running text is at most 68 characters wide.
+dense lists do. Helper text under fields and in cards is 15px, never less
+(outside review, 2026-11-16). Running text is at most 68 characters wide.
 
 ## Spacing and layout
 
@@ -69,9 +80,9 @@ dense lists do. Running text is at most 68 characters wide.
   `--space-4` 16, `--space-5` 24, `--space-6` 32, `--space-7` 48,
   `--space-8` 64.
 - Content width 1120px, centred, with a 16px side gutter on phones; no
-  horizontal scroll at 360px.
-- A row of the company list: 12px vertical and 14px horizontal padding,
-  6px between rows. On phones the columns stack in the row.
+  horizontal scroll at 360px. Pages open with 48px above the title.
+- A row of the company list: 16px vertical and 18px horizontal padding,
+  8px between rows. On phones the columns stack in the row.
 - The company page is one column of at most 720px.
 
 ## Shape and depth
@@ -100,15 +111,65 @@ dense lists do. Running text is at most 68 characters wide.
   of the limit, `--error` above it.
 - **Company row**: `--surface`, 1px `--border`, 10px radius; hover border
   `--border-strong` and background `--surface-2`; the whole row is the link.
-- **Tag** (stage, country): Geist Mono 11px upper case, `--surface-2`
-  background, `--muted` text, 6px radius.
+- **Tag** (month, "Suggested"): a pill, Geist 12px weight 500,
+  `--surface-2` background, `--muted` text.
+- **Size tag**: a pill (full radius), Geist 12px weight 500, sentence case,
+  with a 6px dot of its colour before the word. Small: `--primary-soft` and
+  `--link`; Medium: `--accent-soft` and `--accent`; Large: `--violet-soft`
+  and `--violet`.
+- **Size legend** ("Who reads your mail"): one card per size, with a 3px
+  top border in the size's colour, a light tint of it from the top, and the
+  reader ("Founders", "Team leads", "Recruiters") in that colour. It sits
+  under the filters in a `<details>`, open until the student keeps a first
+  mail, folded after.
+- **Kicker**: Geist 13px weight 600 in `--accent`, above a page title.
+- **Checkbox and radio**: drawn by the app, 18px, `--surface` with a 1.5px
+  `--border-strong` border; hover border `--primary`; a checked checkbox is
+  filled `--primary` with an `--on-primary` tick; a checked radio has a
+  `--primary` border and dot.
+- **Landing page** (signed-out visitors): a hero with the promise, the
+  number of companies and the 3-mail rule; "What you get", an invented
+  example built from the app's own components (a company row, the suggested
+  person card, a mail preview) labelled 1 to 3; three numbered "how it
+  works" steps. No icon-card trio: it read as a template.
+- **Get started** (signed in, before the first kept mail): a card with an
+  orange left border and two steps, ticked in `--accent` once done.
+- **In-progress counter** (navigation): "N of 5 mails in progress", a pill
+  that links to My mails, where the limit is explained.
+- **Company page steps**: numbered section headings only (no separate
+  stepper, which repeated them); step 3 appears once a mail is generated.
+  Errors show next to the Generate button, in an `aria-live` region.
+- **Style card**: the role-card component with the style name and what it
+  does, three in a row.
+- **Status pill** (My mails): a pill with a 6px dot. Kept and Copied in
+  `--primary-soft`/`--link`; Sent in `--accent-soft`/`--accent`; replies in
+  a `--success` tint. My mails uses company rows, not a table.
+- **Choice card**: a whole card is the label of a radio button; selected,
+  it takes a `--primary` border and `--primary-soft` background. Used for
+  "who are you writing to".
+- **Role card** (profile, "Your target role"): a choice card with a Lucide
+  icon in `--accent`, the role name and a one-line hint in `--muted`;
+  selected, `--primary` border and `--primary-soft` background.
+- **Chip toggle** (profile: countries, sectors, internship or part-time): a
+  pill label around a hidden checkbox or radio; selected, `--primary`
+  border, `--primary-soft` background, `--link` text.
+- **Switch** (profile, "I can also write in German"): 40 × 22px track,
+  `--primary` when on. English is never a control: every mail can be in
+  English, so nothing is shown ticked and locked.
+- **Header actions** (top right): a round 36px theme switch with a sun or a
+  moon icon; signed out, "Sign in" and a small primary "Create account"
+  button with a person icon; signed in, "Sign out". The footer no longer
+  holds the switch.
+- **Landing, last part**: "How it works" as three cards, then a separate
+  final card with the call to create an account.
 - **Navigation**: logo ("**Kalt**start", "Kalt" in `--primary`), then
   Companies, My mails, Profile; on the right the pending pill
   ("2 / 5 pending") in Geist Mono. One line on desktop; on phones the links
   sit in a row under the logo.
-- **Notices**: the 72-hour reminder and refusals use a 1px coloured border
-  (`--warning` or `--error`) on `--surface`, with an icon; never a filled
-  coloured box.
+- **Notices**: no frame, a 3px left mark and a soft background: a hint or
+  a reminder in `--primary` on `--primary-soft`; a success in `--accent` on
+  `--accent-soft`; an error in `--error` on a 10 % tint of it. Never a
+  bright frame all around (the owner found the yellow one ugly).
 - **Mail preview**: `--surface`, mono labels SUBJECT and TO in `--muted`,
   the body in Geist 16px with its own line breaks.
 
@@ -121,9 +182,32 @@ dense lists do. Running text is at most 68 characters wide.
 
 ## Motion
 
-Only to confirm an action: 120ms colour transitions on hover and focus, the
-"Copied" change. Nothing moves on page load. `prefers-reduced-motion` turns
-transitions off.
+Motion shows that something happened; it never decorates (owner's choice,
+2026-11-16). Every effect is CSS, under 300ms except the landing example,
+never blocks a click, and stops entirely under `prefers-reduced-motion`.
+
+- **Generated mail**: the preview unfolds (`reveal`, 260ms, 8px up). The
+  address is not in the preview: it appears once the mail is kept, and
+  lights up there once in a `--primary` tint that fades (`unlock`, 1.4s).
+- **Copy**: the button reads "Copied" with a check that draws itself
+  (`draw`, 280ms), back after 2 seconds.
+- **Choices**: a chosen card or chip gives a short press (`pop`, 180ms,
+  scale 0.96); the German switch slides with a slight overshoot.
+- **List**: a company row lifts 2px on hover; the size legend unfolds.
+- **Landing example**: plays once when it comes into view: the three steps
+  appear one after the other, then the mail line by line. Without the
+  script, or with reduced motion, it is simply shown.
+
+- **Landing hero** (owner, 2026-11-17): kicker, title, text, buttons and
+  figures rise in order once on load (`rise`, 560ms, 90ms apart).
+- **Landing cards**: "How it works" and the final call reveal once when they
+  come into view, cards 110ms apart; they lift 2px on hover.
+- **Buttons** lift 1px on hover, the primary one with a soft orange shadow;
+  **navigation links** draw an orange underline from the left.
+- **Theme switch**: the sun or moon turns in (`turn-in`, 320ms).
+
+Never: blocks fading in on every scroll of every page, counting numbers,
+animated backgrounds, glows. Reveals happen once, on the landing page only.
 
 ## Theme switch
 
