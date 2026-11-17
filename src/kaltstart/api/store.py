@@ -120,8 +120,10 @@ class Mail:
     status_dates: dict = field(default_factory=dict)
 
     def record(self) -> MailRecord:
+        copied = ("copied" in self.status_dates
+                  or self.status in ("copied", "sent", "human_reply", "positive_reply"))
         return MailRecord(self.id, self.student_id, self.company_id, self.person_key,
-                          self.status, self.created_at)
+                          self.status, self.created_at, round_id=self.round_id, copied=copied)
 
 
 @dataclass(frozen=True)

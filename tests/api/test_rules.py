@@ -83,3 +83,71 @@ def test_reminder_between_72_hours_and_7_days():
 def test_last_slot():
     assert last_slot("c1", [mail(1, "a"), mail(2, "b")], NOW)
     assert not last_slot("c1", [mail(1, "a")], NOW)
+
+
+# --- sending limits (spec 2026-11-16-sending-limits-and-variation) ----------
+
+from kaltstart.api.rules import LIMITS, places_left, variant_for  # noqa: E402
+
+
+def kept(n, student=None, company="c1", round_id="r1", status="sent", days=0.0, copied=False):
+    return MailRecord(f"k{n}", student or f"st{n}", company, None, status,
+                      NOW - timedelta(days=days), round_id=round_id, copied=copied)
+
+
+def test_the_limits_are_in_one_place():
+    assert LIMITS.round_cap == {"small": 6, "medium": 9, "large": 15}
+    assert (LIMITS.speed, LIMITS.speed_days, LIMITS.company_cap, LIMITS.cap_days,
+            LIMITS.pending) == (10, 7, 3, 30, 5)
+
+
+def test_the_round_cap_depends_on_the_size():
+    six = [kept(n, days=40 + 31 * n) for n in range(6)]          # never 3 in 30 days
+    assert refusal("s", "c1", None, six, NOW, round_id="r1", size="small").reason == "round_full"
+    assert refusal("s", "c1", None, six, NOW, round_id="r1", size="medium") is None
+    nine = [kept(n, days=40 + 31 * n) for n in range(9)]
+    assert refusal("s", "c1", None, nine, NOW, round_id="r1", size="medium").reason == "round_full"
+    assert refusal("s", "c1", None, nine, NOW, round_id="r1", size="large") is None
+
+
+def test_a_new_round_starts_the_count_again():
+    six = [kept(n, days=40 + 31 * n) for n in range(6)]
+    assert refusal("s", "c1", None, six, NOW, round_id="r2", size="small") is None
+    recent = [kept(n, round_id="r1", days=n) for n in range(3)]
+    assert refusal("s", "c1", None, recent, NOW, round_id="r2", size="small").reason == "company_full"
+
+
+def test_the_speed_limit_counts_abandoned_mails():
+    ten = [kept(n, student="s", company=f"c{n}", days=6 - n * 0.5,
+                status="abandoned" if n == 0 else "sent") for n in range(10)]
+    refused = refusal("s", "new", None, ten, NOW, round_id="r9", size="small")
+    assert refused == Refusal("student_speed", (NOW - timedelta(days=6) + timedelta(days=7)).date())
+    later = [replace_days(m, 8) for m in ten]
+    assert refusal("s", "new", None, later, NOW, round_id="r9", size="small") is None
+
+
+def replace_days(m, days):
+    from dataclasses import replace
+    return replace(m, created_at=NOW - timedelta(days=days))
+
+
+def test_a_copied_then_abandoned_mail_still_counts():
+    copied = [kept(1, status="abandoned", copied=True, days=1), kept(2, days=1), kept(3, days=1)]
+    assert refusal("s", "c1", None, copied, NOW, round_id="r1", size="small").reason == "company_full"
+    clean = [kept(1, status="abandoned", copied=False, days=1), kept(2, days=1), kept(3, days=1)]
+    assert refusal("s", "c1", None, clean, NOW, round_id="r1", size="small") is None
+
+
+def test_places_left():
+    assert places_left("c1", "r1", "small", [], NOW) == 3
+    assert places_left("c1", "r1", "small", [kept(1, days=1), kept(2, days=2)], NOW) == 1
+    five = [kept(n, days=40 + 20 * n) for n in range(5)]
+    assert places_left("c1", "r1", "small", five, NOW) == 1
+    assert places_left("c1", "r1", "small", five + [kept(9, days=200)], NOW) == 0
+
+
+def test_variant_counts_every_mail_of_the_round():
+    mails = [kept(1), kept(2), kept(3, status="abandoned"), kept(4, round_id="r2"),
+             kept(5, company="c2")]
+    assert variant_for("c1", "r1", mails) == 3
+    assert variant_for("c1", "r3", mails) == 0
