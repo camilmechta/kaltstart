@@ -102,3 +102,16 @@ def test_a_degree_or_a_school_is_never_greeted_as_a_first_name():
     body = generate(student(), company(), round_(), contact(person_name="MSc Eth Lina Beispiel"),
                     style="direct", language="en", variant=0).body
     assert body.startswith("Hi Lina!")
+
+
+@pytest.mark.parametrize("style,language,expected", [
+    ("direct", "en", "I'm doing a Master in Business Innovation at EPFL and am looking for"),
+    ("formal", "en", "I am completing a Master in Business Innovation at EPFL and am applying for"),
+    ("direct", "de", "Ich mache einen Master in Business Innovation an der EPFL und suche"),
+    ("formal", "de", "Ich absolviere einen Master in Business Innovation an der EPFL und bewerbe"),
+])
+def test_the_university_is_the_students_own(style, language, expected):
+    body = generate(student(level="master", university="EPFL"), company(), round_(),
+                    contact(person_name=None if style == "formal" else "Anna Muster"),
+                    style=style, language=language, variant=0).body
+    assert expected in body and "HSG" not in body and "Master in Business Innovation, EPFL" in body

@@ -14,7 +14,7 @@ from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from kaltstart.mailgen.choices import axes, subject, variant as choose_variant
 from kaltstart.mailgen.models import (
     LANGUAGES, MAX_BODY_WORDS, MAX_EXAMPLE_CHARS, MAX_EXAMPLE_WORDS, MAX_NAME_CHARS,
-    MAX_PROGRAMME_CHARS, MAX_TEXT_CHARS, MAX_TEXT_WORDS, REQUESTS,
+    MAX_PROGRAMME_CHARS, MAX_TEXT_CHARS, MAX_UNIVERSITY_CHARS, MAX_TEXT_WORDS, REQUESTS,
     ROLES, STYLES, Company, Contact, Mail, MissingData, Round, Student, TooLong)
 from kaltstart.mailgen.phrases import (
     amount, investor_phrase, request_phrase, role_name, role_paragraph, round_name,
@@ -144,28 +144,38 @@ def _degree(student: Student) -> str | None:
     return f"{student.level.capitalize()} in {student.programme.strip()}"
 
 
+def _university(student: Student, language: str, formal: bool) -> str:
+    """The student's university; HSG is spelled out in the formal style."""
+    name = " ".join((student.university or "HSG").split())
+    if formal and name == "HSG":
+        return ("the University of St. Gallen (HSG)" if language == "en"
+                else "Universität St. Gallen (HSG)")
+    return name
+
+
 def _intro(style: str, language: str, student: Student) -> str:
     request = request_phrase(student, language)
     degree = _degree(student)
+    uni = _university(student, language, style == "formal")
     if degree:
         if language == "en":
             if style == "formal":
-                return (f"I am completing a {degree} at the University of St. Gallen (HSG) "
+                return (f"I am completing a {degree} at {uni} "
                         f"and am applying for {request}.")
-            return f"I'm doing a {degree} at HSG and am looking for {request}."
+            return f"I'm doing a {degree} at {uni} and am looking for {request}."
         if style == "formal":
-            return (f"Ich absolviere einen {degree} an der Universität St. Gallen (HSG) und "
+            return (f"Ich absolviere einen {degree} an der {uni} und "
                     f"bewerbe mich um {request}.")
-        return f"Ich mache einen {degree} an der HSG und suche {request}."
+        return f"Ich mache einen {degree} an der {uni} und suche {request}."
     if language == "en":
         if style == "formal":
-            return (f"I study {student.programme} at the University of St. Gallen (HSG) "
+            return (f"I study {student.programme} at {uni} "
                     f"and am applying for {request}.")
-        return f"I study {student.programme} at HSG and am looking for {request}."
+        return f"I study {student.programme} at {uni} and am looking for {request}."
     if style == "formal":
-        return (f"Ich studiere {student.programme} an der Universität St. Gallen (HSG) und "
+        return (f"Ich studiere {student.programme} an der {uni} und "
                 f"bewerbe mich um {request}.")
-    return f"Ich studiere {student.programme} an der HSG und suche {request}."
+    return f"Ich studiere {student.programme} an der {uni} und suche {request}."
 
 
 def _close(style: str, language: str, role: str, team: bool, number: int = 0) -> str:
@@ -215,7 +225,7 @@ _SIGN_OFF = {
 
 
 def _programme_line(language: str, student: Student) -> str:
-    return f"{_degree(student) or student.programme}, HSG"
+    return f"{_degree(student) or student.programme}, {_university(student, language, False)}"
 
 
 # --- checks --------------------------------------------------------------------
@@ -224,6 +234,8 @@ def _bounded(student: Student, texts: dict[str, str | None]) -> None:
     """Refuse what would not fit in the mail, naming the field."""
     if len(student.programme.strip()) > MAX_PROGRAMME_CHARS:
         raise TooLong("programme")
+    if len((student.university or "").strip()) > MAX_UNIVERSITY_CHARS:
+        raise TooLong("university")
     for field in ("first_name", "last_name"):
         if len(getattr(student, field).strip()) > MAX_NAME_CHARS:
             raise TooLong(field)

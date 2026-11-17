@@ -23,6 +23,7 @@ class Profile:
     last_name: str = ""
     programme: str = ""
     degree_level: str | None = None       # "bachelor" or "master"
+    university: str = ""                  # as the student writes it (D85)
     attach_cv: bool = True                # the mail says the CV is attached
     languages: tuple[str, ...] = ("en",)
     target_role: str | None = None

@@ -148,3 +148,13 @@ def test_the_landing_moves_a_little_more_and_stops_when_asked():
     assert "[data-reveal].revealed" in css
     js = CSS.with_name("app.js").read_text()
     assert "[data-reveal]" in js
+
+
+def test_the_site_is_a_beta_open_to_any_university(client):
+    """Owner, 2026-11-17: friends at EPFL test it too; no HSG-only wording."""
+    for path in ("/", "/signin", "/signup", "/about"):
+        page = client.get(path).text
+        assert "HSG students" not in page and "University of St. Gallen" not in page, path
+    top = header(client.get("/").text)
+    assert 'class="beta-tag"' in top and ">Beta<" in top
+    assert "Beta · by invitation" in client.get("/").text

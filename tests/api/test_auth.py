@@ -80,7 +80,7 @@ def test_sign_in_and_sign_up_titles_match_and_help_is_given(client):
     signin, signup = client.get("/signin").text, client.get("/signup").text
     assert 'class="title-xl"' in signin and 'class="title-xl"' in signup
     assert "At least 8 characters" in signup
-    assert "shared with HSG students" in signup
+    assert "The code you were invited with." in signup
 
 
 def test_a_failed_sign_in_keeps_the_email(client):

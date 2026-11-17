@@ -239,6 +239,7 @@ def register(app: FastAPI) -> None:
     TOO_LONG = {"company_line": "Your sentence about the company: 35 words at most.",
                 "example": "Your showcase sentence is too long for a mail: 60 words at most.",
                 "programme": "Your degree programme is too long: 70 characters at most.",
+                "university": "Your university is too long: 30 characters at most.",
                 "first_name": "Your first name is too long.", "last_name": "Your last name is too long.",
                 "body": "This mail would be too long: shorten your sentences."}
 

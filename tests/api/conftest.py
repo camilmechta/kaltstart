@@ -50,7 +50,7 @@ def user_id(auth, email="lea@example.com"):
 
 PROFILE = {
     "first_name": "Lea", "last_name": "Beispiel", "programme": "Business Innovation",
-    "degree_level": "master",
+    "degree_level": "master", "university": "HSG",
     "lang_en": "on", "target_role": "growth", "request": "internship",
     "start_date": "2027-04-01", "duration_months": "3", "workload_percent": "",
     "link": "https://example.com/lea",

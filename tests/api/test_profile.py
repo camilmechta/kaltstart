@@ -157,3 +157,14 @@ def test_attaching_the_cv_is_ticked_by_default_and_can_be_unticked(client, store
     assert store.profile(user_id(auth)).attach_cv is False
     save_profile(client, attach_cv="on")
     assert store.profile(user_id(auth)).attach_cv is True
+
+
+def test_the_university_is_asked_and_kept(client, store, auth):
+    sign_up_and_in(client)
+    page = client.get("/profile").text
+    assert 'name="university"' in page and 'placeholder="e.g. HSG, EPFL, ETH Zurich"' in page
+    assert "at HSG" not in page
+    response = save_profile(client, university="")
+    assert response.status_code == 400 and "University is required." in response.text
+    save_profile(client, university="EPFL")
+    assert store.profile(user_id(auth)).university == "EPFL"

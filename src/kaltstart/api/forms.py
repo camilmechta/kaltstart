@@ -5,7 +5,7 @@ from datetime import date
 
 from kaltstart.api.store import Profile, Showcase
 from kaltstart.mailgen.models import (
-    MAX_EXAMPLE_CHARS, MAX_EXAMPLE_WORDS, MAX_NAME_CHARS, MAX_PROGRAMME_CHARS, REQUESTS, ROLES)
+    MAX_EXAMPLE_CHARS, MAX_EXAMPLE_WORDS, MAX_NAME_CHARS, MAX_PROGRAMME_CHARS, MAX_UNIVERSITY_CHARS, REQUESTS, ROLES)
 
 COUNTRIES = ("Switzerland", "Germany", "Austria")
 ROLE_LABELS = {"product": "Product", "growth": "Growth", "data": "Data",
@@ -41,6 +41,11 @@ def parse_profile(form, student_id: str) -> tuple[Profile, list[Showcase], dict[
     level = form.get("degree_level") or ""
     if level not in ("bachelor", "master"):
         errors["degree_level"] = "Choose Bachelor or Master."
+    university = _text(form, "university")
+    if not university:
+        errors["university"] = "University is required."
+    elif len(university) > MAX_UNIVERSITY_CHARS:
+        errors["university"] = f"University: at most {MAX_UNIVERSITY_CHARS} characters."
     if not programme:
         errors["programme"] = "Degree programme is required."
     elif len(programme) > MAX_PROGRAMME_CHARS:
@@ -86,7 +91,7 @@ def parse_profile(form, student_id: str) -> tuple[Profile, list[Showcase], dict[
 
     profile = Profile(
         id=student_id, first_name=first, last_name=last, programme=programme,
-        degree_level=level if level in ("bachelor", "master") else None,
+        degree_level=level if level in ("bachelor", "master") else None, university=university,
         attach_cv=form.get("attach_cv") == "on",
         languages=languages, target_role=role if role in ROLES else None,
         request=request if request in REQUESTS else None, start_date=start,
@@ -103,7 +108,7 @@ def missing_for_mail(profile: Profile | None, showcases: list[Showcase]) -> list
         return ["your profile"]
     missing = [label for value, label in (
         (profile.first_name, "first name"), (profile.last_name, "last name"),
-        (profile.degree_level, "Bachelor or Master"),
+        (profile.university, "university"), (profile.degree_level, "Bachelor or Master"),
         (profile.programme, "degree programme"), (profile.target_role, "target role"),
         (profile.request, "internship or part-time"), (profile.start_date, "start date"))
         if not value]

@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Beta open to any university: no HSG-only wording, a Beta tag, the
+  student's university in the profile and in every mail; migration `0005`;
+  mails hold at most 210 words (D85).
 - Names read on sites are cleaned of degrees and schools, and lines that are
   not a person's are dropped, in the scraper and when the app shows people;
   German titles get an English meaning (D84).

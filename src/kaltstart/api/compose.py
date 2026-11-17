@@ -108,7 +108,8 @@ def to_mailgen(profile: Profile, showcases: Sequence[Showcase], company: Company
         role=profile.target_role or "", request=profile.request or "",
         start_date=profile.start_date, duration_months=profile.duration_months,
         workload_percent=profile.workload_percent, link=profile.link, examples=examples,
-        chosen_example=index, level=profile.degree_level, attach_cv=profile.attach_cv)
+        chosen_example=index, level=profile.degree_level, attach_cv=profile.attach_cv,
+        university=profile.university or "HSG")
     return (student,
             mg.Company(company.id, company.name, company.country, company.city, None),
             mg.Round(company.stage, company.amount_eur, company.amount_native,

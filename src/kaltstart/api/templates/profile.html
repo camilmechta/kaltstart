@@ -34,9 +34,10 @@
       <label>First name <input class="{{ cls('first_name') }}" type="text" name="first_name" value="{{ profile.first_name }}" autocomplete="given-name" maxlength="40">{{ error('first_name') }}</label>
       <label>Last name <input class="{{ cls('last_name') }}" type="text" name="last_name" value="{{ profile.last_name }}" autocomplete="family-name" maxlength="40">{{ error('last_name') }}</label>
     </div>
+    <label>Your university <input class="{{ cls('university') }}" type="text" name="university" value="{{ profile.university }}" placeholder="e.g. HSG, EPFL, ETH Zurich" maxlength="30" autocomplete="organization">{{ error('university') }}</label>
     {% set level = profile.degree_level %}
     <fieldset>
-      <legend class="field-label">Your degree at HSG</legend>
+      <legend class="field-label">Your degree</legend>
       <div class="chips">
         {% for value, label in (('bachelor', 'Bachelor'), ('master', 'Master')) %}<label class="chip-toggle"><input type="radio" name="degree_level" value="{{ value }}" {% if level == value %}checked{% endif %}><span>{{ label }}</span></label>{% endfor %}
       </div>
