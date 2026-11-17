@@ -23,5 +23,8 @@ services:
         sync: false
       - key: SESSION_SECRET
         generateValue: true
+      # Measured on the live site (D83): X-Forwarded-For holds the client,
+      # then Cloudflare, then Render's private proxy. A forged entry from the
+      # client lands on the left, so the third from the right is the client.
       - key: PROXY_HOPS
-        value: "1"
+        value: "3"

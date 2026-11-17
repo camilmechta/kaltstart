@@ -264,13 +264,13 @@ def test_the_supabase_profile_keeps_the_cv_choice():
     assert "attach_cv boolean not null default true" in SQL
 
 
-def test_the_proxy_check_shows_the_chain_but_no_address(client):
-    response = client.get("/_proxy-check", headers={
-        "X-Forwarded-For": "8.8.4.4, 10.0.0.2", "CF-Connecting-IP": "8.8.4.4"})
-    data = response.json()
-    assert response.status_code == 200
-    assert data["forwarded_entries"] == 2
-    assert data["entry_equals_cf_connecting_ip"] == [True, False]
-    assert data["entry_is_private"] == [False, True]
-    assert data["headers"]["cf-connecting-ip"] is True and data["headers"]["true-client-ip"] is False
-    assert "8.8.4.4" not in response.text and "10.0.0.2" not in response.text
+def test_the_temporary_proxy_check_is_gone(client):
+    assert client.get("/_proxy-check").status_code == 404
+
+
+def test_the_client_address_behind_render_and_cloudflare():
+    """Measured on the live site (D83): the chain is client, Cloudflare,
+    Render's private proxy; a forged entry lands on the left."""
+    plain = FakeRequest("8.8.4.4, 104.23.1.1, 10.0.0.2")
+    forged = FakeRequest("9.9.9.9, 8.8.4.4, 104.23.1.1, 10.0.0.2")
+    assert client_ip(plain, hops=3) == client_ip(forged, hops=3) == "8.8.4.4"

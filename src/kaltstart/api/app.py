@@ -166,30 +166,6 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
                                      csrf=new_csrf())
         return redirect(request, target)
 
-    @app.get("/_proxy-check")
-    def proxy_check(request: Request):
-        """Temporary (D83): how the host's proxies fill X-Forwarded-For, to set
-        PROXY_HOPS. Shows the shape of the chain, never an address."""
-        import ipaddress
-        from fastapi.responses import JSONResponse
-        entries = [e.strip() for e in request.headers.get("x-forwarded-for", "").split(",")
-                   if e.strip()]
-        cf = request.headers.get("cf-connecting-ip")
-
-        def private(value: str) -> bool:
-            try:
-                return ipaddress.ip_address(value).is_private
-            except ValueError:
-                return False
-        return JSONResponse({
-            "forwarded_entries": len(entries),
-            "entry_equals_cf_connecting_ip": [bool(cf) and e == cf for e in entries],
-            "entry_is_private": [private(e) for e in entries],
-            "peer_is_private": private(request.client.host if request.client else ""),
-            "headers": {name: name in request.headers for name in (
-                "cf-connecting-ip", "true-client-ip", "x-real-ip", "x-forwarded-for")},
-        })
-
     @app.get("/about")
     def about(request: Request):
         return page(request, "about.html")

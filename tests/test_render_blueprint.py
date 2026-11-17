@@ -27,6 +27,6 @@ def test_secrets_are_asked_in_render_never_written_here():
     for key in ("SUPABASE_URL", "SUPABASE_ANON_KEY", "SUPABASE_SERVICE_KEY", "REMOVAL_CONTACT"):
         assert env[key] == {"key": key, "sync": False}, key
     assert env["SESSION_SECRET"] == {"key": "SESSION_SECRET", "generateValue": True}
-    assert env["PROXY_HOPS"]["value"] == "1"
+    assert env["PROXY_HOPS"]["value"] == "3"   # client, Cloudflare, Render (D83)
     for entry in env.values():
         assert "value" not in entry or entry["key"] == "PROXY_HOPS"
