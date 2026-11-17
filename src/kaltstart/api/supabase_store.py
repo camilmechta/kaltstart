@@ -46,8 +46,9 @@ def _d(value: str | None) -> date | None:
 
 
 class SupabaseAppStore:
-    def __init__(self, client: Client) -> None:
-        self._client = client
+    def __init__(self, client: Client,
+                 now: Callable[[], datetime] = lambda: datetime.now().astimezone()) -> None:
+        self._client, self._now = client, now
 
     @classmethod
     def from_env(cls) -> "SupabaseAppStore":
@@ -160,7 +161,7 @@ class SupabaseAppStore:
         return sorted({(r["sectors"] or [None])[0] for r in rows} - {None})
 
     def company(self, company_id: str) -> CompanyRow | None:
-        now = datetime.now().astimezone()
+        now = self._now()
         rows = self._company_rows(now, company_id)
         if not rows or company_id in self._excluded():
             return None

@@ -145,3 +145,17 @@ def test_mail_records_know_the_round_and_whether_the_text_was_copied():
              "round_id": "r1", "copied_at": None}]
     records = store(Recorder(tables={"mails": rows})).mail_records()
     assert [(r.round_id, r.copied) for r in records] == [("r1", True), ("r1", False)]
+
+
+def test_a_company_page_follows_the_stores_clock():
+    from datetime import timedelta
+    tables = dict(TABLES, contact_emails=[{"company_id": "c1", "address": "info@one.example.ch",
+                                           "type": "generic", "source_url": "https://one.example.ch"}])
+    recorder = Recorder(tables=tables)
+    http = httpx.Client(transport=httpx.MockTransport(recorder))
+    client = create_client("http://localhost:54321", "test-key",
+                           options=ClientOptions(httpx_client=http))
+    later = NOW + timedelta(days=800)
+    SupabaseAppStore(client, now=lambda: later).company("c1")
+    since = (later - timedelta(days=365)).date().isoformat()
+    assert param(recorder.of("GET", "rounds")[0], "date") == f"gte.{since}"
