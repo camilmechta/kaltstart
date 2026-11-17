@@ -87,6 +87,7 @@ def parse_profile(form, student_id: str) -> tuple[Profile, list[Showcase], dict[
     profile = Profile(
         id=student_id, first_name=first, last_name=last, programme=programme,
         degree_level=level if level in ("bachelor", "master") else None,
+        attach_cv=form.get("attach_cv") == "on",
         languages=languages, target_role=role if role in ROLES else None,
         request=request if request in REQUESTS else None, start_date=start,
         duration_months=months if request == "internship" else None,

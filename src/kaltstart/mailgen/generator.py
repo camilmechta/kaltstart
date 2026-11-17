@@ -195,6 +195,15 @@ def _close(style: str, language: str, role: str, team: bool, number: int = 0) ->
     }[style][number]
 
 
+def _cv(style: str, language: str, team: bool) -> str:
+    """The sentence saying the CV is attached (the student attaches it)."""
+    if language == "en":
+        return "Please find my CV attached." if style == "formal" else "My CV is attached."
+    if style == "formal":
+        return "Meinen Lebenslauf finden Sie im Anhang."
+    return f"Meinen Lebenslauf {'findet ihr' if team else 'findest du'} im Anhang."
+
+
 _SIGN_OFF = {
     ("en", "direct"): "Best,", ("en", "round"): "Best regards,", ("en", "formal"): "Kind regards,",
     ("de", "direct"): "Viele Grüsse", ("de", "round"): "Beste Grüsse",
@@ -297,7 +306,9 @@ def generate(student: Student, company: Company, round: Round, contact: Contact,
         # The student's own sentence about the company, when given, replaces the
         # generic paragraph about the role (decision D71).
         role_paragraph=None if line else role_paragraph(student.role, language, style == "formal"),
-        close=_close(style, language, student.role, team, close_n),
+        # The CV sentence is its own paragraph, after the question.
+        close=_close(style, language, student.role, team, close_n)
+        + (f"\n\n{_cv(style, language, team)}" if student.attach_cv else ""),
         intro_first=order == 0,
         sign_off=_SIGN_OFF[(language, style)],
         name=f"{student.first_name.strip()} {student.last_name.strip()}",

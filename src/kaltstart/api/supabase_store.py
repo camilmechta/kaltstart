@@ -17,7 +17,7 @@ from kaltstart.api.store import (
     Profile, Showcase, eligible)
 
 PAGE_SIZE = 1000
-_PROFILE_FIELDS = ("first_name", "last_name", "programme", "degree_level", "languages",
+_PROFILE_FIELDS = ("first_name", "last_name", "programme", "degree_level", "attach_cv", "languages",
                    "target_role", "request",
                    "start_date", "duration_months", "workload_percent", "link",
                    "preferred_countries", "preferred_sectors")
@@ -84,6 +84,7 @@ class SupabaseAppStore:
         row = rows[0]
         return Profile(id=row["id"], first_name=row["first_name"], last_name=row["last_name"],
                        programme=row["programme"], degree_level=row.get("degree_level"),
+                       attach_cv=row.get("attach_cv", True) is not False,
                        languages=tuple(row["languages"] or ()),
                        target_role=row["target_role"], request=row["request"],
                        start_date=_d(row["start_date"]), duration_months=row["duration_months"],

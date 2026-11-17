@@ -78,3 +78,21 @@ def test_the_degree_level_is_said_in_the_mail():
     de = generate(student(**{**base, "level": "bachelor"}), company(), round_(),
                   contact(person_name="Anna Muster"), style="direct", language="de", variant=0).body
     assert "Ich mache einen Bachelor in Business Innovation an der HSG und suche" in de
+
+
+@pytest.mark.parametrize("style,language,person,sentence", [
+    ("direct", "en", "Anna Muster", "My CV is attached."),
+    ("round", "en", None, "My CV is attached."),
+    ("formal", "en", None, "Please find my CV attached."),
+    ("direct", "de", "Anna Muster", "Meinen Lebenslauf findest du im Anhang."),
+    ("round", "de", None, "Meinen Lebenslauf findet ihr im Anhang."),
+    ("formal", "de", None, "Meinen Lebenslauf finden Sie im Anhang."),
+])
+def test_the_cv_is_mentioned_when_the_student_attaches_it(style, language, person, sentence):
+    with_cv = generate(student(attach_cv=True), company(), round_(), contact(person_name=person),
+                       style=style, language=language, variant=0).body
+    without = generate(student(), company(), round_(), contact(person_name=person),
+                       style=style, language=language, variant=0).body
+    assert sentence in with_cv and sentence not in without
+    paragraphs = with_cv.split("\n\n")
+    assert sentence in paragraphs[-2] or sentence in paragraphs[-3]      # just before the end

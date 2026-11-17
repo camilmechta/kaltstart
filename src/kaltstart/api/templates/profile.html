@@ -50,6 +50,11 @@
     </fieldset>
     <label>Link: LinkedIn, website or portfolio (optional)<span class="field-help">If you add one, it is added at the end of your mails, so they can see who you are.</span> <input class="{{ cls('link') }}" type="url" name="link" value="{{ profile.link or '' }}" placeholder="https://">{{ error('link') }}</label>
     <div>
+      <p class="field-label">Your CV</p>
+      <p class="field-help" style="margin:0 0 4px">Kaltstart never stores your CV: you attach it yourself in your mailbox. With this on, each mail says it is attached and the mail page reminds you.</p>
+      <label class="switch"><input type="checkbox" name="attach_cv" {% if profile.attach_cv %}checked{% endif %}><span class="switch-track" aria-hidden="true"></span> I attach my CV to my mails</label>
+    </div>
+    <div>
       <p class="field-label">Languages</p>
       <p class="field-help">Every mail can be in English. Switch on German to write in German to companies in Germany, Austria and German-speaking Switzerland.</p>
       <label class="switch"><input type="checkbox" name="lang_de" data-toggles="lang_de" {% if german %}checked{% endif %}><span class="switch-track" aria-hidden="true"></span> I can also write in German</label>

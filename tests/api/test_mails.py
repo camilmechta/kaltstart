@@ -115,3 +115,13 @@ def test_a_refusal_is_a_page_not_a_download(client):
     sign_up_and_in(client)
     missing = client.get("/mails/00000000-0000-0000-0000-000000000000")
     assert missing.status_code == 404 and missing.headers["content-type"].startswith("text/html")
+
+
+def test_the_mail_page_reminds_to_attach_the_cv(client, store, auth):
+    from tests.api.conftest import save_profile
+    sign_up_and_in(client)
+    save_profile(client, attach_cv="on")
+    mail_id = keep(store, user_id(auth))
+    assert "Attach your CV before you send it." in client.get(f"/mails/{mail_id}").text
+    save_profile(client)
+    assert "Attach your CV" not in client.get(f"/mails/{mail_id}").text

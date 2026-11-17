@@ -127,7 +127,7 @@ right lists of 9 (78 %), and 39 of 44 (89 %) over runs 5 to 9.
 `kaltstart.mailgen.generate` writes the subject and body of a spontaneous
 application from a student's profile, a company, its round and a contact. It
 is a pure function: no network, no database, no AI. Three styles (Direct,
-Round, Formal), each in English and German, at most 200 words and a subject
+Round, Formal), each in English and German, at most 205 words and a subject
 of at most 60 characters. Every mail is built around the student's
 showcase sentence from their profile; a motivated student may add a sentence
 of their own about the company. The twelve reference mails are in

@@ -96,7 +96,8 @@ def register(app: FastAPI) -> None:
         shown = rules.shown_status(mail.record(), app.state.now())
         return page(request, "mail.html", mail=mail, shown=shown, labels=LABELS,
                     kept=request.query_params.get("kept") == "1",
-                    company_name=names_of([mail])[mail.company_id])
+                    company_name=names_of([mail])[mail.company_id],
+                    attach_cv=bool((p := store.profile(request.state.user_id)) and p.attach_cv))
 
     @app.post("/mails/{mail_id}/status")
     def change_status(request: Request, mail_id: str, form: FormData = Depends(posted_form)):

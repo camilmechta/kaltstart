@@ -148,3 +148,12 @@ def test_the_profile_says_why_it_asks(client):
                   "decides whom we suggest at each company",
                   "so the company knows when you are free"):
         assert words in page, words
+
+
+def test_attaching_the_cv_is_ticked_by_default_and_can_be_unticked(client, store, auth):
+    sign_up_and_in(client)
+    assert 'name="attach_cv" checked' in client.get("/profile").text
+    save_profile(client)                                   # the form without the box
+    assert store.profile(user_id(auth)).attach_cv is False
+    save_profile(client, attach_cv="on")
+    assert store.profile(user_id(auth)).attach_cv is True

@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- CV: a profile switch, on by default, adds "My CV is attached." to every
+  mail and a reminder on the mail page; Kaltstart never stores a CV. Mails
+  hold at most 205 words (D81).
 - Profile: Bachelor or Master, then the programme; a line under each section
   says why it is asked. Mails name the degree. The preview says the hidden
   part is the e-mail address. Fixed: "I sent it" downloaded a file (D80).

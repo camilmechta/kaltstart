@@ -256,3 +256,9 @@ def test_the_supabase_profile_keeps_the_degree_level():
     from kaltstart.api.supabase_store import _PROFILE_FIELDS
     assert "degree_level" in _PROFILE_FIELDS
     assert "degree_level text check (degree_level in ('bachelor', 'master'))" in SQL
+
+
+def test_the_supabase_profile_keeps_the_cv_choice():
+    from kaltstart.api.supabase_store import _PROFILE_FIELDS
+    assert "attach_cv" in _PROFILE_FIELDS
+    assert "attach_cv boolean not null default true" in SQL
