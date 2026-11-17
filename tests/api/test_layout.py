@@ -102,3 +102,49 @@ def test_the_landing_example_is_ready_to_play(client):
     page = client.get("/").text
     example = page.split("product-example", 1)[1]
     assert "data-play" in example and example.count('class="type-line"') >= 4
+
+
+# --- owner's landing feedback, 2026-11-17 --------------------------------------
+
+def header(page):
+    return page.split('<header class="nav">', 1)[1].split("</header>", 1)[0]
+
+
+def test_a_visitor_can_create_an_account_from_the_top_right(client):
+    top = header(client.get("/").text)
+    assert 'class="nav-actions"' in top
+    assert 'href="/signin"' in top and 'class="btn btn-primary btn-small nav-account" href="/signup"' in top
+    assert "<svg" in top.split("nav-account", 1)[1].split("</a>", 1)[0]    # a person icon
+
+
+def test_the_theme_switch_is_an_icon_button_in_the_header(client):
+    page = client.get("/").text
+    top = header(page)
+    assert 'class="theme-toggle"' in top and 'data-theme-toggle' in top
+    assert 'aria-label="Switch between light and dark"' in top
+    toggle = top.split('class="theme-toggle"', 1)[1].split("</button>", 1)[0]
+    assert toggle.count("<svg") == 2                                     # sun and moon
+    assert "Light / dark" not in page
+
+
+def test_the_signed_in_header_keeps_the_switch(client):
+    sign_up_and_in(client)
+    top = header(client.get("/companies").text)
+    assert 'class="theme-toggle"' in top and 'action="/signout"' in top
+    assert 'href="/signup"' not in top
+
+
+def test_how_it_works_is_three_cards_and_a_separate_final_call(client):
+    page = client.get("/").text
+    how = page.split('class="how-cards"', 1)[1].split("</ol>", 1)[0]
+    assert how.count('class="how-card"') == 3
+    final = page.split('final-cta"', 1)[1].split("</section>", 1)[0]
+    assert 'href="/signup"' in final and "invitation code" in final
+
+
+def test_the_landing_moves_a_little_more_and_stops_when_asked():
+    css = CSS.read_text()
+    assert "@keyframes rise" in css and ".rise {" in css
+    assert "[data-reveal].revealed" in css
+    js = CSS.with_name("app.js").read_text()
+    assert "[data-reveal]" in js

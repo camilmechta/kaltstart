@@ -58,3 +58,8 @@ def test_the_landing_page_shows_an_example_of_the_product(client):
     assert 'class="row' in example and 'class="mail-preview' in example
     assert "invented" in example.lower()
     assert 'class="feature"' not in text
+
+
+def test_the_hero_rises_in_order(client):
+    hero = client.get("/").text.split('class="hero"', 1)[1].split("</section>", 1)[0]
+    assert hero.count('class="rise') >= 4 or hero.count(' rise"') + hero.count('class="rise') >= 4

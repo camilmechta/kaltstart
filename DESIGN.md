@@ -156,6 +156,12 @@ dense lists do. Helper text under fields and in cards is 15px, never less
 - **Switch** (profile, "I can also write in German"): 40 × 22px track,
   `--primary` when on. English is never a control: every mail can be in
   English, so nothing is shown ticked and locked.
+- **Header actions** (top right): a round 36px theme switch with a sun or a
+  moon icon; signed out, "Sign in" and a small primary "Create account"
+  button with a person icon; signed in, "Sign out". The footer no longer
+  holds the switch.
+- **Landing, last part**: "How it works" as three cards, then a separate
+  final card with the call to create an account.
 - **Navigation**: logo ("**Kalt**start", "Kalt" in `--primary`), then
   Companies, My mails, Profile; on the right the pending pill
   ("2 / 5 pending") in Geist Mono. One line on desktop; on phones the links
@@ -192,8 +198,16 @@ never blocks a click, and stops entirely under `prefers-reduced-motion`.
   appear one after the other, then the mail line by line. Without the
   script, or with reduced motion, it is simply shown.
 
-Never: blocks fading in on every scroll, counting numbers, animated
-backgrounds, glows.
+- **Landing hero** (owner, 2026-11-17): kicker, title, text, buttons and
+  figures rise in order once on load (`rise`, 560ms, 90ms apart).
+- **Landing cards**: "How it works" and the final call reveal once when they
+  come into view, cards 110ms apart; they lift 2px on hover.
+- **Buttons** lift 1px on hover, the primary one with a soft orange shadow;
+  **navigation links** draw an orange underline from the left.
+- **Theme switch**: the sun or moon turns in (`turn-in`, 320ms).
+
+Never: blocks fading in on every scroll of every page, counting numbers,
+animated backgrounds, glows. Reveals happen once, on the landing page only.
 
 ## Theme switch
 

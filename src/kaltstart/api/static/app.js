@@ -85,6 +85,18 @@
     sync();
     // The landing example plays once, when it comes into view.
     var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // Cards of the landing page reveal once, when they come into view.
+    if (!reduce && "IntersectionObserver" in window) {
+      document.querySelectorAll("[data-reveal]").forEach(function (el) {
+        el.classList.add("will-reveal");
+        var seen = new IntersectionObserver(function (entries) {
+          if (!entries[0].isIntersecting) return;
+          el.classList.add("revealed");
+          seen.disconnect();
+        }, { threshold: 0.2 });
+        seen.observe(el);
+      });
+    }
     if (!reduce && "IntersectionObserver" in window) {
       document.querySelectorAll("[data-play]").forEach(function (el) {
         el.classList.add("will-play");

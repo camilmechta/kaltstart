@@ -469,3 +469,66 @@ details.legend[open] .legend-items { animation: reveal 220ms ease-out both; }
 .input-prefix[hidden] { display: none; }
 .input-prefixed input { border: 0; border-radius: 0; flex: 1; min-width: 0; }
 .input-prefixed input:focus { outline: none; box-shadow: none; }
+
+/* --- header: actions at the top right ---------------------------------------- */
+.nav-actions { display: flex; align-items: center; gap: var(--space-3); margin-left: auto; }
+.pill + .nav-actions { margin-left: 0; }
+.nav-signin { color: var(--muted); font-size: var(--text-md); }
+.nav-signin:hover { color: var(--text); text-decoration: none; }
+.btn-small { padding: 7px 14px; font-size: var(--text-sm); }
+.theme-toggle { display: inline-grid; place-items: center; width: 36px; height: 36px; padding: 0;
+  border-radius: var(--radius-full); border: 1px solid var(--border); background: var(--surface);
+  color: var(--muted); cursor: pointer; transition: color 120ms, border-color 120ms, background-color 120ms; }
+.theme-toggle:hover { color: var(--text); border-color: var(--border-strong); }
+.theme-toggle:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.theme-toggle svg { grid-area: 1 / 1; animation: turn-in 320ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.theme-toggle .icon-moon { display: none; }
+:root[data-theme="light"] .theme-toggle .icon-sun { display: none; }
+:root[data-theme="light"] .theme-toggle .icon-moon { display: block; }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .theme-toggle .icon-sun { display: none; }
+  :root:not([data-theme="dark"]) .theme-toggle .icon-moon { display: block; }
+}
+@keyframes turn-in { from { opacity: 0; transform: rotate(-90deg) scale(0.6); } to { opacity: 1; transform: none; } }
+@media (max-width: 640px) { .nav-signin { display: none; } }
+
+/* --- landing: how it works as cards, a final call ---------------------------- */
+.how-cards { list-style: none; padding: 0; margin: var(--space-5) 0 0; display: grid;
+  grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
+@media (max-width: 760px) { .how-cards { grid-template-columns: 1fr; } }
+.how-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-2);
+  transition: border-color 160ms, transform 160ms ease-out; }
+.how-card:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+.how-card .step-number { width: 32px; height: 32px; font-size: var(--text-md);
+  background: var(--primary-soft); color: var(--link); margin-bottom: var(--space-2); }
+.how-card h3 { font-size: var(--text-lg); line-height: 26px; letter-spacing: -0.02em; }
+.how-card p { color: var(--muted); font-size: var(--text-md); line-height: 24px; }
+.final-card { text-align: center; padding: var(--space-7) var(--space-5); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); background: linear-gradient(180deg, var(--primary-soft), var(--surface));
+  display: flex; flex-direction: column; align-items: center; gap: var(--space-3); }
+.final-card .actions { justify-content: center; margin-top: var(--space-3); }
+.example-row .amount { white-space: nowrap; }
+.example-row { grid-template-columns: minmax(0, 1.3fr) auto minmax(0, 1fr); }
+
+/* --- a little more motion (owner, 2026-11-17): the hero rises in order, the
+   cards of the landing reveal once, buttons lift on hover ------------------- */
+@keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+.rise { animation: rise 560ms cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(var(--d, 0) * 90ms); }
+[data-reveal].will-reveal > *, [data-reveal].will-reveal { opacity: 0; }
+[data-reveal].will-reveal.revealed, [data-reveal].revealed > * { opacity: 1; }
+[data-reveal].revealed > * { animation: rise 480ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 110ms); }
+.final-card[data-reveal].revealed { animation: rise 480ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.final-card[data-reveal].revealed > * { animation: none; }
+.btn { transition: background-color 120ms, border-color 120ms, transform 140ms ease-out, box-shadow 140ms; }
+.btn-primary:hover { transform: translateY(-1px);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--primary) 28%, transparent); }
+.btn-secondary:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); box-shadow: none; }
+.nav-links a { position: relative; }
+.nav-links a::after { content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px;
+  background: var(--primary); border-radius: 2px; transform: scaleX(0); transform-origin: left;
+  transition: transform 180ms ease-out; }
+.nav-links a:hover::after, .nav-links a[aria-current="page"]::after { transform: scaleX(1); }
+.nav-links a:hover { text-decoration: none; color: var(--text); }
