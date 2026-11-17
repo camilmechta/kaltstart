@@ -9,3 +9,4 @@ local/
 .DS_Store
 .Rhistory
 .superpowers/
+build/
