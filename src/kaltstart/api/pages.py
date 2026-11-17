@@ -168,9 +168,10 @@ def register(app: FastAPI) -> None:
         profile = store.profile(request.state.user_id)
         # "saved" only says the profile was just saved: the preferences still apply.
         first_visit = not (set(q.keys()) - {"saved"})
-        countries = tuple(q.getlist("country")) or (
+        # "All countries" and "All sectors" arrive as empty values: no filter.
+        countries = tuple(c for c in q.getlist("country") if c) or (
             profile.preferred_countries if first_visit and profile else ())
-        sectors = tuple(q.getlist("sector")) or (
+        sectors = tuple(c for c in q.getlist("sector") if c) or (
             profile.preferred_sectors if first_visit and profile else ())
         try:
             months = int(q.get("months", "12"))

@@ -134,3 +134,14 @@ def test_each_row_counts_the_people_named(client, store):
     count = len(store.people(named.id))
     word = "person" if count == 1 else "people"
     assert f"{count} {word} named" in page
+
+
+def test_filter_with_every_choice_on_all_lists_every_company(client, store, auth):
+    """The form sends empty values for "All countries", "All sectors" and
+    "All sizes" (owner's report on the live site, 2026-11-17)."""
+    sign_up_and_in(client)
+    every = client.get("/companies?months=12").text
+    clicked = client.get("/companies?q=&country=&sector=&size=&months=12").text
+    assert names(clicked) == names(every) and names(every)
+    one = client.get("/companies?q=&country=Germany&sector=&size=&months=12").text
+    assert names(one) and len(names(one)) < len(names(every))
