@@ -156,12 +156,15 @@ begin
 end;
 $$;
 
--- Nobody signs up without the invitation code, even calling Supabase directly.
+-- Nobody signs up without the invitation code, even calling Supabase directly,
+-- and nobody at all while no code is set.
 create function check_invitation_code()
 returns trigger language plpgsql security definer set search_path = public as $$
+declare
+  v_code text := (select value from app_settings where key = 'invitation_code');
 begin
-  if coalesce(new.raw_user_meta_data->>'invitation_code', '') <>
-     coalesce((select value from app_settings where key = 'invitation_code'), '') then
+  if v_code is null or v_code = ''
+     or coalesce(new.raw_user_meta_data->>'invitation_code', '') <> v_code then
     raise exception 'Sign-up refused.';
   end if;
   return new;
@@ -169,6 +172,23 @@ end;
 $$;
 create trigger check_invitation_code before insert on auth.users
   for each row execute function check_invitation_code();
+
+-- A student deleted from the Supabase dashboard is anonymised exactly as one
+-- who deletes their account in the app: their mails stay for the company caps
+-- and the Phase 5 rates, without anything that names anybody.
+create function anonymise_student()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  update mails set student_id = null, subject = null, body = null, person_name = null,
+                   person_source_url = null, address = null, company_line = null
+    where student_id = old.id;
+  delete from showcases where student_id = old.id;
+  delete from profiles where id = old.id;
+  return old;
+end;
+$$;
+create trigger anonymise_student before delete on auth.users
+  for each row execute function anonymise_student();
 
 -- Removal on request now also blanks the person's name in mails already
 -- generated for that company.
@@ -239,5 +259,6 @@ $$;
 
 revoke all on function reserve_mail(uuid, text, text, jsonb) from public, anon, authenticated;
 revoke all on function check_invitation_code() from public, anon, authenticated;
+revoke all on function anonymise_student() from public, anon, authenticated;
 revoke all on function exclude_company(p_company_id text) from public, anon, authenticated;
 revoke all on function exclude_person(p_company_id text, p_person_name text) from public, anon, authenticated;

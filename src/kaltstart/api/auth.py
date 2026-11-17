@@ -23,6 +23,7 @@ class Auth(Protocol):
     def refresh(self, refresh_token: str) -> Tokens | None: ...
     def user_id(self, access_token: str) -> str | None: ...
     def delete_user(self, user_id: str) -> None: ...
+    def sign_out(self, access_token: str) -> None: ...
 
 
 class FakeAuth:
@@ -67,6 +68,12 @@ class FakeAuth:
     def delete_user(self, user_id: str) -> None:
         self.users = {e: u for e, u in self.users.items() if u[2] != user_id}
         self._access = {t: u for t, u in self._access.items() if u != user_id}
+
+    def sign_out(self, access_token: str) -> None:
+        """Every session of the user ends, as Supabase's global sign-out."""
+        user_id = self._access.get(access_token)
+        self._access = {t: u for t, u in self._access.items() if u != user_id}
+        self._refresh = {t: u for t, u in self._refresh.items() if u != user_id}
 
 
 class SupabaseAuth:
@@ -121,3 +128,10 @@ class SupabaseAuth:
 
     def delete_user(self, user_id: str) -> None:
         self._client(self._service).auth.admin.delete_user(user_id)
+
+    def sign_out(self, access_token: str) -> None:
+        """Revokes every refresh token of the user (Supabase global sign-out)."""
+        try:
+            self._client(self._anon).auth.admin.sign_out(access_token, "global")
+        except Exception:
+            pass                    # an expired token: its session is ending anyway

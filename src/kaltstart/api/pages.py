@@ -1,15 +1,18 @@
 """The pages behind sign-in: companies, company, mails, profile."""
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
+from starlette.datastructures import FormData
+
+from kaltstart.api.session import safe_next
 
 
 def register(app: FastAPI) -> None:
     page, signed_in = app.state.page, app.state.signed_in
 
-
     from kaltstart.api.forms import COUNTRIES, ROLE_LABELS, missing_for_mail, parse_profile
     from kaltstart.api.store import Profile
-    store, auth, redirect, form_of = app.state.store, app.state.auth, app.state.redirect, app.state.form_of
+    store, auth, redirect = app.state.store, app.state.auth, app.state.redirect
+    posted_form = app.state.posted_form
 
     def profile_page(request, profile, showcases, errors=None, status=200):
         by_position = {s.position: s for s in showcases}
@@ -19,17 +22,16 @@ def register(app: FastAPI) -> None:
                     saved=request.query_params.get("saved") == "1")
 
     @app.get("/profile")
-    async def profile(request: Request):
+    def profile(request: Request):
         if (gate := signed_in(request)):
             return gate
         student = request.state.user_id
         return profile_page(request, store.profile(student), store.showcases(student))
 
     @app.post("/profile")
-    async def save_profile(request: Request):
+    def save_profile(request: Request, form: FormData = Depends(posted_form)):
         if (gate := signed_in(request)):
             return gate
-        form = await form_of(request)
         profile, showcases, errors = parse_profile(form, request.state.user_id)
         if errors:
             return profile_page(request, profile, showcases, errors, status=400)
@@ -38,16 +40,15 @@ def register(app: FastAPI) -> None:
         return redirect(request, "/companies?saved=1")
 
     @app.get("/profile/delete")
-    async def delete_form(request: Request):
+    def delete_form(request: Request):
         if (gate := signed_in(request)):
             return gate
         return page(request, "delete.html")
 
     @app.post("/profile/delete")
-    async def delete_account(request: Request):
+    def delete_account(request: Request, form: FormData = Depends(posted_form)):
         if (gate := signed_in(request)):
             return gate
-        await form_of(request)
         student = request.state.user_id
         store.delete_student(student)
         auth.delete_user(student)
@@ -73,7 +74,7 @@ def register(app: FastAPI) -> None:
                 for m in mails}
 
     @app.get("/mails")
-    async def my_mails(request: Request):
+    def my_mails(request: Request):
         if (gate := signed_in(request)):
             return gate
         now = app.state.now()
@@ -85,7 +86,7 @@ def register(app: FastAPI) -> None:
                     companies=names_of(mails))
 
     @app.get("/mails/{mail_id}")
-    async def one_mail(request: Request, mail_id: str):
+    def one_mail(request: Request, mail_id: str):
         if (gate := signed_in(request)):
             return gate
         mail = store.mail(request.state.user_id, mail_id)
@@ -97,23 +98,22 @@ def register(app: FastAPI) -> None:
                     company_name=names_of([mail])[mail.company_id])
 
     @app.post("/mails/{mail_id}/status")
-    async def change_status(request: Request, mail_id: str):
+    def change_status(request: Request, mail_id: str, form: FormData = Depends(posted_form)):
         if (gate := signed_in(request)):
             return gate
-        form = await form_of(request)
         mail = store.mail(request.state.user_id, mail_id)
         if mail is None:
             return Response("Not found", status_code=404)
         new = form.get("status", "")
         if allowed(mail.status, new):
             store.set_status(request.state.user_id, mail_id, new, app.state.now())
-        return redirect(request, form.get("back") or f"/mails/{mail_id}")
+        back = form.get("back") or f"/mails/{mail_id}"
+        return redirect(request, back if safe_next(back) == back else "/mails")
 
     @app.post("/mails/{mail_id}/copied")
-    async def copied(request: Request, mail_id: str):
+    def copied(request: Request, mail_id: str, form: FormData = Depends(posted_form)):
         if (gate := signed_in(request)):
             return gate
-        await form_of(request)
         mail = store.mail(request.state.user_id, mail_id)
         if mail is None:
             return Response("Not found", status_code=404)
@@ -145,12 +145,11 @@ def register(app: FastAPI) -> None:
     }
     SIZES = {key: info[0] for key, info in SIZE_INFO.items()}
 
-    def contact_kind(company_id: str) -> str:
-        if (count := len(store.people(company_id))):
+    def contact_kind(summary: tuple[int, bool]) -> str:
+        count, careers = summary
+        if count:
             return f"{count} {'person' if count == 1 else 'people'} named"
-        if any(e.type == "careers" for e in store.emails(company_id)):
-            return "Careers address"
-        return "General address"
+        return "Careers address" if careers else "General address"
 
     def round_text(c) -> str:
         r = MailRound(c.stage, c.amount_eur, c.amount_native, c.currency, c.investors,
@@ -160,7 +159,7 @@ def register(app: FastAPI) -> None:
         return f"{money} {name}" if money else name[0].upper() + name[1:]
 
     @app.get("/companies")
-    async def companies(request: Request):
+    def companies(request: Request):
         if (gate := signed_in(request)):
             return gate
         q = request.query_params
@@ -187,7 +186,9 @@ def register(app: FastAPI) -> None:
         now = app.state.now()
         rows, total = store.companies(filters, request.state.user_id, now)
         records = store.mail_records()
-        items = [dict(company=c, round=round_text(c), contact=contact_kind(c.id), named=bool(store.people(c.id)),
+        summary = store.contact_summary([c.id for c in rows])
+        items = [dict(company=c, round=round_text(c), contact=contact_kind(summary[c.id]),
+                      named=summary[c.id][0] > 0,
                       places_left=rules.places_left(c.id, c.round_id, c.size_category,
                                                     records, now)) for c in rows]
         student = request.state.user_id
@@ -293,13 +294,13 @@ def register(app: FastAPI) -> None:
         number of mails kept before for this company and round (the variant)."""
         student = request.state.user_id
         profile, showcases = store.profile(student), store.showcases(student)
-        choice = form.get("choice") or ""
-        if choice not in compose.CHOICES:
-            return None, ("Choose who you write to (step 1).", None, 400)
         missing = missing_for_mail(profile, showcases)
         if missing:
             return None, ("Complete your profile first: " + ", ".join(missing) + ".",
                           "/profile", 400)
+        choice = form.get("choice") or ""
+        if choice not in compose.CHOICES:
+            return None, ("Choose who you write to (step 1).", None, 400)
         try:
             index = int(form.get("person")) if form.get("person") not in (None, "") else None
         except ValueError:
@@ -340,7 +341,7 @@ def register(app: FastAPI) -> None:
         return recipient, (mail, k)
 
     @app.get("/companies/{company_id}")
-    async def company_page(request: Request, company_id: str):
+    def company_page(request: Request, company_id: str):
         if (gate := signed_in(request)):
             return gate
         company = store.company(company_id)
@@ -349,10 +350,9 @@ def register(app: FastAPI) -> None:
         return company_view(request, company)
 
     @app.post("/companies/{company_id}/preview")
-    async def preview(request: Request, company_id: str):
+    def preview(request: Request, company_id: str, form: FormData = Depends(posted_form)):
         if (gate := signed_in(request)):
             return gate
-        form = await form_of(request)
         company = store.company(company_id)
         if company is None:
             return Response("Not found", status_code=404)
@@ -364,10 +364,9 @@ def register(app: FastAPI) -> None:
         return company_view(request, company, form=form, preview=result[0], recipient=recipient)
 
     @app.post("/companies/{company_id}/keep")
-    async def keep_mail(request: Request, company_id: str):
+    def keep_mail(request: Request, company_id: str, form: FormData = Depends(posted_form)):
         if (gate := signed_in(request)):
             return gate
-        form = await form_of(request)
         company = store.company(company_id)
         if company is None:
             return Response("Not found", status_code=404)

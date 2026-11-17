@@ -5,8 +5,9 @@ the same function the in-memory store uses: a few hundred companies, so a
 few requests per page, and one place for the rules of spec 7.2."""
 
 import os
+import uuid
 from datetime import date, datetime, timedelta
-from typing import Callable
+from typing import Callable, Sequence
 
 from supabase import Client, create_client
 
@@ -23,6 +24,14 @@ _MAIL_COLUMNS = ("id,student_id,company_id,round_id,address,address_type,person_
                  "person_choice,person_source_url,style,language,company_line,used_company_line,"
                  "subject,body,status,created_at,copied_at,sent_at,human_reply_at,"
                  "positive_reply_at,abandoned_at,variant,size_category")
+
+
+def _is_uuid(value: str) -> bool:
+    try:
+        uuid.UUID(value)
+    except (ValueError, TypeError):
+        return False
+    return True
 
 
 _COPIED = ("copied", "sent", "human_reply", "positive_reply")
@@ -171,6 +180,20 @@ class SupabaseAppStore:
                 .eq("company_id", company_id).order("address").execute().data)
         return [EmailRow(r["address"], r["type"], r["source_url"]) for r in rows]
 
+    def contact_summary(self, company_ids: Sequence[str]) -> dict[str, tuple[int, bool]]:
+        ids = list(company_ids)
+        if not ids:
+            return {}
+        people = (self._client.table("contact_people").select("company_id")
+                  .in_("company_id", ids).execute().data)
+        careers = (self._client.table("contact_emails").select("company_id")
+                   .in_("company_id", ids).eq("type", "careers").execute().data)
+        counts = {c: 0 for c in ids}
+        for row in people:
+            counts[row["company_id"]] += 1
+        with_careers = {row["company_id"] for row in careers}
+        return {c: (counts[c], c in with_careers) for c in ids}
+
     # --- mails -----------------------------------------------------------------
     def mail_records(self) -> list[MailRecord]:
         rows = self._read_all("mails", "id,student_id,company_id,person_key,status,created_at,"
@@ -209,6 +232,8 @@ class SupabaseAppStore:
         return [self._mail(r) for r in rows]
 
     def mail(self, student_id: str, mail_id: str) -> Mail | None:
+        if not _is_uuid(mail_id):
+            return None                 # PostgREST would fail on it: not found
         rows = (self._client.table("mails").select(_MAIL_COLUMNS).eq("id", mail_id)
                 .eq("student_id", student_id).execute().data)
         return self._mail(rows[0]) if rows else None

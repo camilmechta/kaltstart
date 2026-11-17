@@ -11,7 +11,7 @@
   {% if company.investors %}<span class="muted"> · with {{ company.investors[0] }}{% if company.investors|length > 1 %} and others{% endif %}</span>{% endif %}</p>
 {% if company.description %}<p style="margin-top:12px">{{ company.description }}</p>{% endif %}
 <p class="small muted" style="margin-top:8px">
-  {% if company.website %}<a href="{{ company.website }}" rel="noopener" target="_blank">Visit their website</a>{% endif %}
+  {% if company.website|web_link %}<a href="{{ company.website|web_link }}" rel="noopener noreferrer" target="_blank">Visit their website</a>{% endif %}
 </p>
 
 
@@ -29,7 +29,7 @@
         <input type="radio" name="choice" value="suggested" {% if form.get('choice') == 'suggested' %}checked{% endif %}>
         <span class="option-title">{{ suggested.name }}, {{ suggested.title }}</span> <span class="tag">Suggested</span>
         <p class="option-detail"><b>Why {{ suggested.name.split()[0] }}?</b> {{ why }}</p>
-        <p class="option-detail">{{ suggested.name.split()[0] }} was found on the company's own website, on <a href="{{ suggested.source_url }}" rel="noopener" target="_blank">this page</a>, on {{ suggested.read_at.strftime('%-d %b %Y') }}. People change jobs: check the page before you choose.</p>
+        <p class="option-detail">{{ suggested.name.split()[0] }} was found on the company's own website, on {% if suggested.source_url|web_link %}<a href="{{ suggested.source_url|web_link }}" rel="noopener noreferrer" target="_blank">this page</a>{% else %}a page of its site{% endif %}, on {{ suggested.read_at.strftime('%-d %b %Y') }}. People change jobs: check the page before you choose.</p>
       </label>
       {% endif %}
       {% if people|length > (1 if suggested and not profile_missing else 0) %}

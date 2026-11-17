@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Security fixes after the final review of the web app: real client address
+  behind the host's proxy, limits on sign-in and on wrong invitation codes,
+  sign-out revokes the session, CSRF token rotation, safe links from data,
+  security headers, non-blocking routes, fewer database calls on the list,
+  pinned dependencies and an unprivileged container (D78).
 - The preview of a mail hides the address; it shows once the mail is kept.
 - Sending limits: at most 6, 9 or 15 mails per company and funding round by
   size, 10 kept mails per student a week, and a copied mail keeps its slot

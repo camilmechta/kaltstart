@@ -31,7 +31,7 @@ class Sessions:
             data = {}
         if not isinstance(data, dict):
             data = {}
-        data.setdefault("csrf", secrets.token_urlsafe(24))
+        data.setdefault("csrf", new_csrf())
         return data
 
     def save(self, response: Response, data: dict) -> None:
@@ -39,8 +39,25 @@ class Sessions:
                             httponly=True, secure=True, samesite="lax", path="/")
 
 
+def new_csrf() -> str:
+    return secrets.token_urlsafe(24)
+
+
 def csrf_ok(session: dict, submitted: str | None) -> bool:
-    return bool(submitted) and hmac.compare_digest(session.get("csrf", ""), submitted)
+    if not submitted or not isinstance(submitted, str):
+        return False
+    return hmac.compare_digest(session.get("csrf", "").encode(), submitted.encode())
+
+
+def client_ip(request: Request, hops: int) -> str:
+    """The client's address: the entry the host's last proxy appended to
+    X-Forwarded-For (counted from the right), never the leftmost entries a
+    client can write itself. With hops = 0, or no header, the direct peer."""
+    peer = request.client.host if request.client else "unknown"
+    if hops <= 0:
+        return peer
+    entries = [e.strip() for e in request.headers.get("x-forwarded-for", "").split(",") if e.strip()]
+    return entries[-hops] if len(entries) >= hops else peer
 
 
 class RateLimit:
@@ -50,6 +67,14 @@ class RateLimit:
                  clock=time.monotonic) -> None:
         self._limit, self._window, self._clock = limit, window_s, clock
         self._hits: dict[str, deque] = defaultdict(deque)
+
+    def full(self, key: str) -> bool:
+        """True when the window holds `limit` attempts already (nothing recorded)."""
+        now = self._clock()
+        hits = self._hits[key]
+        while hits and now - hits[0] > self._window:
+            hits.popleft()
+        return len(hits) >= self._limit
 
     def allow(self, key: str) -> bool:
         now = self._clock()
