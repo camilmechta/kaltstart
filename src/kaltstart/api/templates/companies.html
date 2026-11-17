@@ -64,7 +64,7 @@
     <div><span class="row-title">{{ c.name }}</span><div class="row-detail"><span class="size size-{{ c.size_category }}">{{ size_info[c.size_category][0] }}</span> {{ c.sector or '' }}</div></div>
     <div><span class="amount">{{ item.round }}</span><div class="row-detail">{{ c.round_date.strftime('%b %Y') }}</div></div>
     <div class="row-detail">{{ c.city or '' }}{% if c.city %} · {% endif %}{{ c.country }}</div>
-    <div class="row-detail">{% if item.last_slot %}<span class="last-slot">Last slot</span> · {% endif %}<span class="{{ 'contact-person' if item.named else '' }}">{{ item.contact }}</span></div>
+    <div class="row-detail">{% if item.places_left in (1, 2) %}<span class="last-slot">{{ item.places_left }} place{{ '' if item.places_left == 1 else 's' }} left</span> · {% endif %}<span class="{{ 'contact-person' if item.named else '' }}">{{ item.contact }}</span></div>
   </a></li>
   {% endfor %}
 </ul>

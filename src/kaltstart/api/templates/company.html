@@ -6,6 +6,7 @@
 <h1 class="title-xl">{{ company.name }}</h1>
 <p class="muted">{{ company.sector or '' }}{% if company.sector %} · {% endif %}{{ company.city or '' }}{% if company.city %} · {% endif %}{{ company.country }}</p>
 <p style="margin-top:12px"><span class="size size-{{ company.size_category }}">{{ size_info[0] }}</span> <span class="small"><b>{{ size_info[1] }}</b> read applications here.</span> <span class="small muted">{{ size_info[3] }}</span></p>
+{% if places_left in (1, 2) %}<p class="notice notice-warning" style="margin-top:12px">{{ places_left }} place{{ '' if places_left == 1 else 's' }} left: Kaltstart limits how many students write to each company, so founders read every mail.</p>{% endif %}
 <p style="margin-top:12px"><span class="amount">{{ round }}</span> <span class="tag">{{ company.round_date.strftime('%b %Y') }}</span>
   {% if company.investors %}<span class="muted"> · with {{ company.investors[0] }}{% if company.investors|length > 1 %} and others{% endif %}</span>{% endif %}</p>
 {% if company.description %}<p style="margin-top:12px">{{ company.description }}</p>{% endif %}

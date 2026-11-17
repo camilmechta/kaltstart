@@ -131,8 +131,3 @@ def variant_for(company_id: str, round_id: str | None, mails: Sequence[MailRecor
     """How many mails were ever kept for this company and round, abandoned ones
     included: the next mail takes the next wording (generator variant)."""
     return sum(1 for m in mails if m.company_id == company_id and m.round_id == round_id)
-
-
-def last_slot(company_id: str, mails: Sequence[MailRecord], now: datetime) -> bool:
-    """Until the pages use places_left (Task 4)."""
-    return len(_counting(company_id, mails, now)) == LIMITS.company_cap - 1

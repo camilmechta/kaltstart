@@ -2,7 +2,8 @@ from datetime import date, datetime, timedelta, timezone
 
 from kaltstart.api.rules import (
     CAP_DAYS, COMPANY_CAP, PENDING_LIMIT, PRESUMED_SENT_DAYS, REMINDER_HOURS, MailRecord,
-    Refusal, last_slot, needs_reminder, pending_count, refusal, shown_status)
+    LIMITS, Refusal, needs_reminder, pending_count, places_left, refusal, shown_status,
+    variant_for)
 
 NOW = datetime(2026, 11, 16, 12, 0, tzinfo=timezone.utc)
 
@@ -78,16 +79,6 @@ def test_reminder_between_72_hours_and_7_days():
     assert needs_reminder(mail(1, status="copied", days=6.9), NOW)
     assert not needs_reminder(mail(1, days=7), NOW)
     assert not needs_reminder(mail(1, status="sent", days=4), NOW)
-
-
-def test_last_slot():
-    assert last_slot("c1", [mail(1, "a"), mail(2, "b")], NOW)
-    assert not last_slot("c1", [mail(1, "a")], NOW)
-
-
-# --- sending limits (spec 2026-11-16-sending-limits-and-variation) ----------
-
-from kaltstart.api.rules import LIMITS, places_left, variant_for  # noqa: E402
 
 
 def kept(n, student=None, company="c1", round_id="r1", status="sent", days=0.0, copied=False):

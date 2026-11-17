@@ -157,8 +157,9 @@ def eligible(companies: Sequence[CompanyRow], with_address: set[str], excluded: 
             continue
         if c.id not in with_address or c.id in excluded:
             continue
-        full = rules.refusal("", c.id, None, mails, now)
-        if full and full.reason == "company_full" and c.id not in own:
+        full = rules.refusal("", c.id, None, mails, now, round_id=c.round_id,
+                             size=c.size_category)
+        if full and full.reason in ("company_full", "round_full") and c.id not in own:
             continue
         if query and query not in c.name.lower():
             continue

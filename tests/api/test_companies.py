@@ -51,14 +51,14 @@ def test_the_profile_preferences_preset_the_filters(client, store, auth):
     assert 'value="Germany" selected' in page
 
 
-def test_last_slot_is_flagged(client, store, auth):
+def test_the_last_place_is_flagged(client, store, auth):
     from tests.api.test_mails import keep
     keep(store, "a", "dev05")
     keep(store, "b", "dev05")
     sign_up_and_in(client)
     page = client.get("/companies?months=12").text
     row = page.split(store.company("dev05").name, 1)[1].split("</a>", 1)[0]
-    assert "Last slot" in row
+    assert "1 place left" in row
 
 
 def test_an_excluded_company_has_no_page(client, store):

@@ -220,3 +220,62 @@ def test_the_generated_mail_unfolds_and_its_address_lights_up(client):
     ready(client)
     page = post(client, "preview", choice="team").text
     assert 'class="mail-preview reveal"' in page and 'class="mail-address unlock"' in page
+
+
+
+# --- sending limits and variation -------------------------------------------
+
+def reserve(store, student, days, company=None, **changes):
+    from dataclasses import replace
+    from datetime import timedelta
+    from kaltstart.api.store import NewMail
+    c = company or C1
+    mail = NewMail(company_id=c.id, round_id=c.round_id, address="info@c1.example.ch",
+                   address_type="generic", person_name=None, person_key=None,
+                   person_choice="team", person_source_url=None, style="direct",
+                   language="en", company_line=None, used_company_line=False,
+                   subject="S", body="B", size_category=c.size_category)
+    return store.reserve(student, replace(mail, **changes), NOW - timedelta(days=days))
+
+
+def test_a_company_whose_round_is_full_is_hidden(client, store):
+    for n in range(9):                                   # medium: 9 per round
+        reserve(store, f"other{n}", 40 * (9 - n))
+    ready(client)
+    assert C1.name not in client.get("/companies?months=12").text
+
+
+def test_the_round_full_refusal_is_said(client, store):
+    for n in range(9):
+        reserve(store, f"other{n}", 40 * (9 - n))
+    ready(client)
+    page = post(client, "preview", choice="team")
+    assert page.status_code == 409
+    assert "all the mails Kaltstart allows for its current funding round" in page.text
+
+
+def test_the_speed_refusal_names_the_date(client, store, auth):
+    ready(client)
+    for n in range(10):
+        reserve(store, user_id(auth), 6 - n * 0.5, company_id=f"x{n}", round_id=f"rx{n}")
+        store.set_status(user_id(auth), store.all_mails()[-1].id, "sent", NOW)
+    page = post(client, "preview", choice="team")
+    assert page.status_code == 409
+    assert "You kept 10 mails this week. You can keep a new one on 17 November 2026." in page.text
+
+
+def test_places_left_are_shown(client, store):
+    reserve(store, "a", 2)
+    ready(client)
+    assert "2 places left" in client.get("/companies/c1").text
+    reserve(store, "b", 1)
+    assert "1 place left" in client.get("/companies/c1").text
+
+
+def test_the_second_kept_mail_to_a_company_uses_the_next_variant(client, store, auth):
+    ready(client)
+    first = reserve(store, "other", 3, subject="Example internship?")
+    post(client, "keep", choice="team")
+    mine = [m for m in store.all_mails() if m.student_id == user_id(auth)][0]
+    assert mine.variant == 1 and mine.size_category == C1.size_category
+    assert mine.subject != "Example internship?" and isinstance(first, str)

@@ -188,7 +188,8 @@ def register(app: FastAPI) -> None:
         rows, total = store.companies(filters, request.state.user_id, now)
         records = store.mail_records()
         items = [dict(company=c, round=round_text(c), contact=contact_kind(c.id), named=bool(store.people(c.id)),
-                      last_slot=rules.last_slot(c.id, records, now)) for c in rows]
+                      places_left=rules.places_left(c.id, c.round_id, c.size_category,
+                                                    records, now)) for c in rows]
         student = request.state.user_id
         get_started = None
         if not any(m.student_id == student for m in records):
@@ -215,8 +216,13 @@ def register(app: FastAPI) -> None:
     from kaltstart.mailgen.models import MissingData, TooLong
 
     REFUSALS = {
-        "company_full": "This company already has 3 mails this month, to protect its founders.",
-        "student_pending": "You have 5 mails waiting for a status. Mark some as sent or "
+        "company_full": f"This company already has {rules.LIMITS.company_cap} mails this month, "
+                        "to protect its founders.",
+        "round_full": "This company has received all the mails Kaltstart allows for its current "
+                      "funding round. Others are waiting for you.",
+        "student_speed": f"You kept {rules.LIMITS.speed} mails this week. You can keep a new one "
+                         "on {date}.",
+        "student_pending": f"You have {rules.LIMITS.pending} mails waiting for a status. Mark some as sent or "
                            "abandoned in My mails, then come back.",
         "company_done": "You already wrote to this company.",
         "person_done": "You already wrote to this person.",
@@ -233,9 +239,11 @@ def register(app: FastAPI) -> None:
                 "body": "This mail would be too long: shorten your sentences."}
 
     def refusal_text(refused) -> str:
+        from kaltstart.mailgen.phrases import long_date
         text = REFUSALS[refused.reason]
+        if "{date}" in text:
+            return text.format(date=long_date(refused.frees_on, "en"))
         if refused.frees_on:
-            from kaltstart.mailgen.phrases import long_date
             text += f" A slot frees on {long_date(refused.frees_on, 'en')}."
         return text
 
@@ -275,10 +283,14 @@ def register(app: FastAPI) -> None:
                     form=form, preview=preview, recipient=recipient, error=error,
                     error_link=error_link, size_info=SIZE_INFO[company.size_category],
                     why=compose.why(person, profile, company) if person else None,
-                    profile_missing=missing_for_mail(profile, store.showcases(student)))
+                    profile_missing=missing_for_mail(profile, store.showcases(student)),
+                    places_left=rules.places_left(company.id, company.round_id,
+                                                  company.size_category, store.mail_records(),
+                                                  app.state.now()))
 
     def compose_mail(request, company, form):
-        """(recipient, mail) or (None, (message, link, status))."""
+        """(recipient, mail, k) or (None, (message, link, status), None); k is the
+        number of mails kept before for this company and round (the variant)."""
         student = request.state.user_id
         profile, showcases = store.profile(student), store.showcases(student)
         choice = form.get("choice") or ""
@@ -301,8 +313,10 @@ def register(app: FastAPI) -> None:
                           "else or write to the team.", None, 400)
         except ValueError:
             return None, ("Choose who you write to (step 1).", None, 400)
-        refused = rules.refusal(student, company.id, recipient.person_key,
-                                store.mail_records(), app.state.now())
+        records = store.mail_records()
+        refused = rules.refusal(student, company.id, recipient.person_key, records,
+                                app.state.now(), round_id=company.round_id,
+                                size=company.size_category)
         if refused:
             return None, (refusal_text(refused), "/mails" if refused.reason != "company_full"
                           else None, 409)
@@ -314,14 +328,15 @@ def register(app: FastAPI) -> None:
             showcase = 1
         inputs = compose.to_mailgen(profile, showcases, company, recipient, showcase)
         try:
+            k = rules.variant_for(company.id, company.round_id, records)
             mail = generate(*inputs, style=style, language=language,
-                            company_line=form.get("company_line") or None)
+                            company_line=form.get("company_line") or None, variant=k)
         except MissingData as exc:
             words = [FIELD_WORDS.get(f, f) for f in exc.fields]
             return None, ("Missing for this mail: " + ", ".join(words) + ".", "/profile", 400)
         except TooLong as exc:
             return None, (TOO_LONG.get(exc.field, "A text is too long."), None, 400)
-        return recipient, mail
+        return recipient, (mail, k)
 
     @app.get("/companies/{company_id}")
     async def company_page(request: Request, company_id: str):
@@ -345,7 +360,7 @@ def register(app: FastAPI) -> None:
             message, link, status = result
             return company_view(request, company, form=form, error=message, error_link=link,
                                 status=status)
-        return company_view(request, company, form=form, preview=result, recipient=recipient)
+        return company_view(request, company, form=form, preview=result[0], recipient=recipient)
 
     @app.post("/companies/{company_id}/keep")
     async def keep_mail(request: Request, company_id: str):
@@ -360,14 +375,15 @@ def register(app: FastAPI) -> None:
             message, link, status = result
             return company_view(request, company, form=form, error=message, error_link=link,
                                 status=status)
-        mail = result
+        mail, k = result
         kept = store.reserve(request.state.user_id, NewMail(
             company_id=company.id, round_id=company.round_id, address=recipient.address,
             address_type=recipient.address_type, person_name=recipient.person_name,
             person_key=recipient.person_key, person_choice=recipient.person_choice,
             person_source_url=recipient.person_source_url, style=mail.style,
             language=mail.language, company_line=(form.get("company_line") or None),
-            used_company_line=mail.used_company_line, subject=mail.subject, body=mail.body),
+            used_company_line=mail.used_company_line, subject=mail.subject, body=mail.body,
+            variant=k, size_category=company.size_category),
             app.state.now())
         if not isinstance(kept, str):
             return company_view(request, company, form=form, error=refusal_text(kept),
