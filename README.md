@@ -157,7 +157,8 @@ these environment variables: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`,
 default, so that the sign-up and sign-in limits read the real client
 address). The image installs the exact versions of `requirements.txt` and
 runs as an unprivileged user. Before the first
-sign-up, apply the migrations `0004` to `0007` in the Supabase SQL editor,
+sign-up, apply the migrations `0004` to `0007` in the Supabase SQL editor, check
+them with `supabase/check_migrations.sql` (every column must be true),
 then create single-use invitation codes there; they are shown once:
 
 ```sql
