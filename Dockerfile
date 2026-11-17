@@ -4,8 +4,8 @@ FROM python:3.12-slim
 WORKDIR /app
 # Exact versions first, so a new release of a library never changes the app
 # by surprise; then the app itself, without touching them.
-COPY requirements.lock ./
-RUN pip install --no-cache-dir -r requirements.lock
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 COPY pyproject.toml README.md ./
 COPY src ./src
 RUN pip install --no-cache-dir --no-deps .

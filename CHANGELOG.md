@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Repository protections: Dependabot updates for libraries and actions, a
+  separate `security` workflow running `pip-audit`, actions pinned to exact
+  commits, read-only workflows (D79).
 - Security fixes after the final review of the web app: real client address
   behind the host's proxy, limits on sign-in and on wrong invitation codes,
   sign-out revokes the session, CSRF token rotation, safe links from data,

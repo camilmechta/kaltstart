@@ -246,7 +246,7 @@ def test_deleting_a_user_in_supabase_anonymises_their_mails():
 
 def test_the_container_runs_unprivileged_with_pinned_dependencies():
     docker = (ROOT / "Dockerfile").read_text()
-    assert "USER " in docker and "requirements.lock" in docker
+    assert "USER " in docker and "requirements.txt" in docker
     assert 'forwarded-allow-ips="*"' not in docker
-    lock = (ROOT / "requirements.lock").read_text()
+    lock = (ROOT / "requirements.txt").read_text()
     assert "fastapi==" in lock and "supabase==" in lock and "pytest" not in lock

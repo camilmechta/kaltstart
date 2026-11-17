@@ -155,7 +155,7 @@ these environment variables: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`,
 `REMOVAL_CONTACT` (the address shown for removal requests), and
 `PROXY_HOPS` (how many proxies of the host stand in front of the app, 1 by
 default, so that the sign-up and sign-in limits read the real client
-address). The image installs the exact versions of `requirements.lock` and
+address). The image installs the exact versions of `requirements.txt` and
 runs as an unprivileged user. Before the first
 sign-up, apply `supabase/migrations/0004_students.sql` in the Supabase SQL
 editor and set the invitation code there:
