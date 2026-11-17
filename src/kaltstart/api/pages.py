@@ -7,6 +7,7 @@ from kaltstart.api.session import safe_next
 
 
 def register(app: FastAPI) -> None:
+    from kaltstart.api.app import error_page
     page, signed_in = app.state.page, app.state.signed_in
 
     from kaltstart.api.forms import COUNTRIES, ROLE_LABELS, missing_for_mail, parse_profile
@@ -91,7 +92,7 @@ def register(app: FastAPI) -> None:
             return gate
         mail = store.mail(request.state.user_id, mail_id)
         if mail is None:
-            return Response("Not found", status_code=404)
+            return error_page(404)
         shown = rules.shown_status(mail.record(), app.state.now())
         return page(request, "mail.html", mail=mail, shown=shown, labels=LABELS,
                     kept=request.query_params.get("kept") == "1",
@@ -103,7 +104,7 @@ def register(app: FastAPI) -> None:
             return gate
         mail = store.mail(request.state.user_id, mail_id)
         if mail is None:
-            return Response("Not found", status_code=404)
+            return error_page(404)
         new = form.get("status", "")
         if allowed(mail.status, new):
             store.set_status(request.state.user_id, mail_id, new, app.state.now())
@@ -116,7 +117,7 @@ def register(app: FastAPI) -> None:
             return gate
         mail = store.mail(request.state.user_id, mail_id)
         if mail is None:
-            return Response("Not found", status_code=404)
+            return error_page(404)
         if mail.status == "generated":
             store.set_status(request.state.user_id, mail_id, "copied", app.state.now())
         return Response(status_code=204)
@@ -346,7 +347,7 @@ def register(app: FastAPI) -> None:
             return gate
         company = store.company(company_id)
         if company is None:
-            return Response("Not found", status_code=404)
+            return error_page(404)
         return company_view(request, company)
 
     @app.post("/companies/{company_id}/preview")
@@ -355,7 +356,7 @@ def register(app: FastAPI) -> None:
             return gate
         company = store.company(company_id)
         if company is None:
-            return Response("Not found", status_code=404)
+            return error_page(404)
         recipient, result = compose_mail(request, company, form)
         if recipient is None:
             message, link, status = result
@@ -369,7 +370,7 @@ def register(app: FastAPI) -> None:
             return gate
         company = store.company(company_id)
         if company is None:
-            return Response("Not found", status_code=404)
+            return error_page(404)
         recipient, result = compose_mail(request, company, form)
         if recipient is None:
             message, link, status = result

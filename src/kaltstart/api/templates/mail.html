@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_status_actions.html" import actions %}
+{% from "_status_actions.html" import actions with context %}
 {% block title %}Mail to {{ company_name }} · Kaltstart{% endblock %}
 {% block main_class %}container column{% endblock %}
 {% block content %}

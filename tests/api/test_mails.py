@@ -91,3 +91,27 @@ def test_a_kept_mail_says_kept_and_confirms_it(client, store, auth):
     page = client.get(f"/mails/{mail}?kept=1").text
     assert "Kept. Copy it and send it from your own mailbox." in page
     assert 'class="kicker"' in listing
+
+
+def test_the_status_buttons_carry_the_page_token(client, store, auth):
+    """The buttons are posted as the browser does, with the token the page holds."""
+    import re
+    sign_up_and_in(client)
+    mail_id = keep(store, user_id(auth))
+    for path in ("/mails", f"/mails/{mail_id}"):
+        page = client.get(path).text
+        form = page.split(f'action="/mails/{mail_id}/status"', 1)[1].split("</form>", 1)[0]
+        token = re.search(r'name="csrf" value="([^"]*)"', form).group(1)
+        assert token, path
+        response = client.post(f"/mails/{mail_id}/status",
+                                data={"csrf": token, "status": "sent", "back": path})
+        assert response.status_code == 303, path
+
+
+def test_a_refusal_is_a_page_not_a_download(client):
+    response = client.post("/signin", data={"email": "a@example.com", "password": "x"})
+    assert response.status_code == 403
+    assert response.headers["content-type"].startswith("text/html")
+    sign_up_and_in(client)
+    missing = client.get("/mails/00000000-0000-0000-0000-000000000000")
+    assert missing.status_code == 404 and missing.headers["content-type"].startswith("text/html")

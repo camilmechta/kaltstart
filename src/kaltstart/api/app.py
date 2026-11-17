@@ -113,7 +113,9 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
 
     @app.exception_handler(HTTPException)
     async def http_error(request: Request, exc: HTTPException):
-        return Response(exc.detail or "", status_code=exc.status_code)
+        # A page, never a bare body: a browser would save a body without a
+        # type as a file (the owner got a "status" download, 2026-11-17).
+        return error_page(exc.status_code)
 
     async def posted_form(request: Request) -> FormData:
         """The posted form, after checking its CSRF token (403 otherwise). A
@@ -217,6 +219,16 @@ SECURITY_HEADERS = {
     "X-Frame-Options": "DENY",
     "Referrer-Policy": "strict-origin-when-cross-origin",
 }
+
+
+def error_page(status: int) -> HTMLResponse:
+    """A short page for a refusal or a missing page, with a way back."""
+    text = {403: "This form has expired. Go back, reload the page and try again.",
+            404: "This page does not exist, or it is not yours."}.get(
+                status, "Something went wrong. Please try again in a moment.")
+    return HTMLResponse(f'<!doctype html><meta charset="utf-8"><title>Kaltstart</title>'
+                        f'<p>{text}</p><p><a href="/companies">Back to the companies</a></p>',
+                        status_code=status)
 
 
 def web_link(url: str | None) -> str | None:
