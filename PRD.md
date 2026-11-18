@@ -47,9 +47,9 @@ In scope:
   (leaders, function heads and managers, recruiters), found on public company
   web pages.
 - Mail generation in English and German, from rules and templates.
-- Booking rules: at most 3 non-abandoned mails per company over 30 days, at most
-  5 mails per student in generated or copied status, one mail per student and
-  company.
+- Booking rules: at most 3 kept mails per company over 30 days, abandoned ones
+  included, and a cap per funding round; at most 5 mails per student in
+  generated or copied status; one mail per student and company (D76, D92).
 - Follow-up tracking and response rate reporting.
 
 Out of scope:

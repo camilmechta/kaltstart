@@ -7,7 +7,7 @@ import psycopg
 import pytest
 
 from tests.sql.conftest import as_role
-from tests.sql.helpers import company, mail_row, student
+from tests.sql.helpers import company, mail_row, reserve, student
 
 
 def test_two_students_cannot_both_take_the_last_slot(database_uri):
@@ -56,3 +56,13 @@ def test_codes_are_for_the_owner_and_the_server_only(db, function):
     as_role(db, "anon")
     with pytest.raises(psycopg.errors.InsufficientPrivilege):
         db.execute(f"select {function}")
+
+
+def test_an_abandoned_mail_keeps_its_slot_even_never_copied(db):
+    cid = company(db, cid=f"ab-{uuid.uuid4().hex[:6]}")
+    first = reserve(db, student(db), cid, round_id=f"r-{cid}")
+    for _ in range(2):
+        assert reserve(db, student(db), cid, round_id=f"r-{cid}")["ok"]
+    db.execute("update mails set status = 'abandoned', copied_at = null where id = %s",
+               (first["id"],))
+    assert reserve(db, student(db), cid, round_id=f"r-{cid}")["reason"] == "company_full"

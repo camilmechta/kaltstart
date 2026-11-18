@@ -66,19 +66,16 @@ def shown_status(mail: MailRecord, now: datetime) -> str:
     return mail.status
 
 
-def _holds_a_slot(m: MailRecord) -> bool:
-    """An abandoned mail frees its slot only if its text was never copied."""
-    return m.status != "abandoned" or m.copied
-
-
+# Every kept mail holds its company and round slot, abandoned or not: its
+# address was shown once it was kept (D77), so it may have been sent (D92).
 def _counting(company_id: str, mails: Sequence[MailRecord], now: datetime) -> list[MailRecord]:
-    return [m for m in mails if m.company_id == company_id and _holds_a_slot(m)
+    return [m for m in mails if m.company_id == company_id
             and _age(m, now) < timedelta(days=LIMITS.cap_days)]
 
 
 def _in_round(company_id: str, round_id: str | None, mails: Sequence[MailRecord]) -> list[MailRecord]:
     return [m for m in mails if m.company_id == company_id and round_id is not None
-            and m.round_id == round_id and _holds_a_slot(m)]
+            and m.round_id == round_id]
 
 
 def _round_cap(size: str | None) -> int | None:

@@ -32,8 +32,8 @@ def test_the_30_day_boundary():
     assert refusal("s1", "c1", None, young, NOW).reason == "company_full"
 
 
-def test_abandoned_mails_count_for_nothing():
-    mails = [mail(n, f"x{n}", status="abandoned") for n in range(5)]
+def test_abandoned_mails_are_not_in_progress():
+    mails = [mail(n, company=f"c{n + 10}", status="abandoned") for n in range(5)]
     assert refusal("s1", "c1", None, mails, NOW) is None
 
 
@@ -122,11 +122,16 @@ def replace_days(m, days):
     return replace(m, created_at=NOW - timedelta(days=days))
 
 
-def test_a_copied_then_abandoned_mail_still_counts():
-    copied = [kept(1, status="abandoned", copied=True, days=1), kept(2, days=1), kept(3, days=1)]
-    assert refusal("s", "c1", None, copied, NOW, round_id="r1", size="small").reason == "company_full"
-    clean = [kept(1, status="abandoned", copied=False, days=1), kept(2, days=1), kept(3, days=1)]
-    assert refusal("s", "c1", None, clean, NOW, round_id="r1", size="small") is None
+def test_an_abandoned_mail_keeps_its_company_slot():
+    # Its address was shown once it was kept (D77): it may have been sent,
+    # copied with the button or not (D92).
+    mails = [kept(1, status="abandoned", copied=False, days=1), kept(2, days=1), kept(3, days=1)]
+    assert refusal("s", "c1", None, mails, NOW, round_id="r1", size="small").reason == "company_full"
+
+
+def test_an_abandoned_mail_keeps_its_round_slot():
+    mails = [kept(n, status="abandoned", days=40 + n) for n in range(6)]
+    assert refusal("s", "c1", None, mails, NOW, round_id="r1", size="small").reason == "round_full"
 
 
 def test_places_left():

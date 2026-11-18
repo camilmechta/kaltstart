@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Sign-in attempts are limited per computer and per e-mail from one
   computer, so a stranger can no longer lock a student out; an IPv6 client
   counts as its /64 network (D91).
+- An abandoned mail keeps its company and round slot, copied or not, since
+  its address showed once it was kept; migration `0008` (D92).
 
 ### Added
 
