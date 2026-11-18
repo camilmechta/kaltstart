@@ -74,7 +74,10 @@ _CONNECTORS = frozenset(("of", "and", "und", "der", "die", "das", "des", "de", "
 
 _ACADEMIC = re.compile(r"\b(?:Dr|Prof|Mag|Ing|Dipl\.-Ing)\b\.?", re.IGNORECASE)
 _CREDENTIAL = r"(?:E?MBA|Ph\.?D\.?|M\.?Sc\.?|B\.?Sc\.?|MRICS|CFA)"
-_TRAILING_CREDENTIALS = re.compile(rf"(?:,\s*(?:{_CREDENTIAL}|[A-Z]{{2,6}}))+\s*$")
+# One credential after a comma. Read one comma at a time (see
+# `_without_trailing_credentials`): as a repeated group, the two overlapping
+# alternatives backtracked through 2**n paths on a run of ",MBA".
+_TRAILING_CREDENTIAL = re.compile(rf"\s*(?:{_CREDENTIAL}|[A-Z]{{2,6}})")
 _LEADING_CREDENTIALS = re.compile(rf"^(?:[\s,|–—-]*{_CREDENTIAL}(?![\w.]))+")
 _WORD = r"[A-ZÀ-ÖØ-Þ][^\W\d_]*(?:[-'’][^\W\d_]+)*"
 _PARTICLE = r"(?:von|van|de|del|di|der|den)"
@@ -242,9 +245,17 @@ def _without_academic_titles(text: str) -> str:
     return " ".join(_ACADEMIC.sub(" ", text).split())
 
 
+def _without_trailing_credentials(text: str) -> str:
+    """`text` without the credentials that end it: "Anna Muster, MBA, CFA"."""
+    parts = text.rstrip().split(",")
+    while len(parts) > 1 and _TRAILING_CREDENTIAL.fullmatch(parts[-1]):
+        parts.pop()
+    return ",".join(parts)
+
+
 def _whole_names(text: str, company_key: str) -> list[str]:
     """The names, when `text` holds nothing but one or several names."""
-    cleaned = _TRAILING_CREDENTIALS.sub("", _without_academic_titles(text)).strip()
+    cleaned = _without_trailing_credentials(_without_academic_titles(text)).strip()
     names = []
     for piece in _NAME_SEPARATORS.split(cleaned):
         if not _WHOLE_NAME.match(piece):

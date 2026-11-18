@@ -13,7 +13,11 @@ from kaltstart.contacts.site import (
 TOOLING_DOMAINS = ("sentry.io", "wixpress.com")
 _IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp")
 
-_ADDRESS = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+# Starts where a run of address letters starts, and is bounded like a real
+# address (64 letters before the @): unanchored, it restarted at every letter
+# of a long run and read the run to its end, quadratic on a 5 MB page.
+_ADDRESS = re.compile(
+    r"(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,253}\.[A-Za-z]{2,}")
 # Bracketed disguise, e.g. "hello [at] example [dot] ch". Lower case only:
 # an address is written in lower case, a capitalised "Jobs [at] Example.ch"
 # is a heading. Bare words ("hello at example.ch") are never read as an
@@ -73,8 +77,12 @@ def _candidates(html: str) -> list[str]:
             found += [r.strip() for r in recipients.split(",")]
     text = visible_text(html)
     linked = list(found)
-    found += [address for address in _ADDRESS.findall(text)
-              if not _split_copy(address, linked, text)]
+    split: dict[str, bool] = {}     # each distinct address searched for once
+    for address in _ADDRESS.findall(text):
+        if address not in split:
+            split[address] = _split_copy(address, linked, text)
+        if not split[address]:
+            found.append(address)
     found += [f"{local}@{_DOT_ONLY.sub('.', domain)}"
               for local, domain in _DISGUISED.findall(text)]
     return found

@@ -416,3 +416,13 @@ def test_a_degree_and_a_school_before_the_name_are_not_part_of_it():
 
 def test_a_question_read_as_a_name_is_dropped():
     assert names("<p>Was Einkauf, Technik und Geschäftsführung wissen wollen.</p>") == []
+
+
+def test_a_long_run_of_credentials_is_read_in_linear_time():
+    # A run of ",MBA" that does not end the line made the credential regex
+    # backtrack through 2**n paths: 24 of them took seconds, 40 would hang.
+    import time
+    body = "<p>Gründer Anna Muster" + ",MBA" * 24 + "x</p>"
+    start = time.monotonic()
+    names(body, kind="home")
+    assert time.monotonic() - start < 0.5

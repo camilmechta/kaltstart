@@ -6,6 +6,7 @@ when a page redirects elsewhere; every request, redirect hops included, waits
 for the minimum interval.
 """
 
+import codecs
 import time
 from typing import Callable
 from urllib.parse import urljoin, urlsplit
@@ -172,8 +173,17 @@ class SiteFetcher:
         return _FORBID_ALL
 
 
-def _text(response: httpx.Response) -> str:
+def _web_charset(name: str | None) -> bool:
+    """True for the charsets web pages use. A site names its own charset,
+    and Python knows codecs no page uses ("punycode" decodes in quadratic time)."""
     try:
-        return response.content.decode(response.encoding or "utf-8", errors="replace")
+        codec = codecs.lookup(name or "").name
     except LookupError:
-        return response.content.decode("utf-8", errors="replace")
+        return False
+    return (codec in ("utf-8", "utf-16", "utf-16-le", "utf-16-be", "ascii")
+            or codec.startswith(("iso8859-", "cp125")))
+
+
+def _text(response: httpx.Response) -> str:
+    encoding = response.encoding if _web_charset(response.encoding) else "utf-8"
+    return response.content.decode(encoding, errors="replace")

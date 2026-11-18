@@ -109,3 +109,23 @@ def test_two_real_addresses_where_one_ends_like_the_other_are_both_kept():
             '<p>Or to anna@example.ch</p>')
     assert extract_addresses(page(body), ["example.ch"]) == (
         ["hanna@example.ch", "anna@example.ch"], 0)
+
+
+def _seconds(body, hosts=("example.ch",)):
+    import time
+    start = time.monotonic()
+    extract_addresses(page(body), list(hosts))
+    return time.monotonic() - start
+
+
+def test_a_long_run_of_letters_without_an_address_is_read_in_linear_time():
+    # The address pattern restarted at every letter of the run and read it
+    # to its end: quadratic on a page of up to 5 MB.
+    assert _seconds("<p>" + "a" * 100_000 + "</p>") < 0.5
+
+
+def test_a_repeated_address_is_checked_against_the_links_once():
+    # Each copy of a short address that ends like a linked one searched the
+    # whole page again: quadratic in the number of copies.
+    body = '<a href="mailto:xa@example.ch">Mail</a><p>' + "a@example.ch " * 10_000 + "</p>"
+    assert _seconds(body) < 0.5

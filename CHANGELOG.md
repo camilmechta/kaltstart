@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Security
+
+- Three ways a company website could stall the nightly contact scraper are
+  closed: a run of credentials after a name, a long run of address letters
+  or one address repeated many times, and a page charset no website uses
+  (D90).
+
 ### Added
 
 - After an outside review: atomic profile save, removals that also clear kept

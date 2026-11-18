@@ -368,3 +368,28 @@ def test_a_heavy_home_page_under_5_mb_is_read():
 def test_default_page_limit_is_5_mb():
     from kaltstart.contacts.fetcher import MAX_PAGE_BYTES
     assert MAX_PAGE_BYTES == 5_000_000
+
+
+def test_a_charset_that_is_not_a_web_charset_is_read_as_utf8():
+    # A site could name Python's "punycode" codec, whose decoder is quadratic.
+    body = page(text="Grüezi").encode("utf-8")
+    site = simple_site(**{"https://example.ch/": (
+        200, {"content-type": "text/html; charset=punycode"}, body)})
+    f, _ = fetcher(site)
+    assert "Grüezi" in f.fetch_site("https://example.ch").pages[0].html
+
+
+def test_a_robots_txt_with_a_hostile_charset_is_read_as_utf8():
+    robots = (200, {"content-type": "text/plain; charset=punycode"},
+              b"User-agent: *\nDisallow: /team\n")
+    f, _ = fetcher(simple_site(**{"https://example.ch/robots.txt": robots}))
+    assert "https://example.ch/team" not in [
+        p.url for p in f.fetch_site("https://example.ch").pages]
+
+
+def test_a_web_charset_named_by_the_site_is_still_used():
+    body = page(text="Grüezi").encode("latin-1")
+    site = simple_site(**{"https://example.ch/": (
+        200, {"content-type": "text/html; charset=ISO-8859-1"}, body)})
+    f, _ = fetcher(site)
+    assert "Grüezi" in f.fetch_site("https://example.ch").pages[0].html
