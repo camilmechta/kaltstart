@@ -20,7 +20,7 @@ from starlette.datastructures import FormData
 
 from kaltstart.api import rules
 from kaltstart.api.auth import Auth
-from kaltstart.api.session import RateLimit, Sessions, client_ip, csrf_ok, new_csrf, safe_next
+from kaltstart.api.session import RateLimit, Sessions, client_key, csrf_ok, new_csrf, safe_next
 from kaltstart.api.store import AppStore, ListFilters
 
 HERE = Path(__file__).parent
@@ -68,7 +68,9 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
     # minutes per address and per e-mail, so nobody can make Supabase block
     # the server's own address for every student.
     signup_limit, wrong_codes = RateLimit(10, 3600), RateLimit(30, 3600)
-    signin_by_ip, signin_by_email = RateLimit(10, 900), RateLimit(10, 900)
+    # Sign-in: per computer, and per e-mail from one computer. Never per e-mail
+    # alone, which let anyone who knows the address lock its owner out (D91).
+    signin_by_ip, signin_by_account = RateLimit(10, 900), RateLimit(10, 900)
     app.state.store, app.state.auth, app.state.page, app.state.now = store, auth, page, now
     app.state.sessions = sessions
 
@@ -155,8 +157,9 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
 
         email = (form.get("email") or "").strip().lower()[:254]
         target = safe_next(request.query_params.get("next") or form.get("next"))
-        if not (signin_by_ip.allow(client_ip(request, proxy_hops))
-                and signin_by_email.allow(email)):
+        computer = client_key(request, proxy_hops)
+        if not (signin_by_ip.allow(computer)
+                and signin_by_account.allow(f"{email} {computer}")):
             return page(request, "signin.html", status=429, next=target, email=email,
                         error="Too many attempts. Try again in 15 minutes.")
         tokens = auth.sign_in(email, form.get("password", ""))
@@ -179,7 +182,7 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
     @app.post("/signup")
     def signup(request: Request, form: FormData = Depends(posted_form)):
 
-        if wrong_codes.full("all") or not signup_limit.allow(client_ip(request, proxy_hops)):
+        if wrong_codes.full("all") or not signup_limit.allow(client_key(request, proxy_hops)):
             return page(request, "signup.html", status=429,
                         error="Too many attempts. Try again in an hour.")
         code = form.get("code", "")

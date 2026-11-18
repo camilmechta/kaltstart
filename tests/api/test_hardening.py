@@ -50,6 +50,13 @@ def test_a_faked_forwarded_address_does_not_reset_the_sign_up_limit(store, auth)
     assert signup(client, "wrong", forwarded="7.7.7.7, 1.2.3.4").status_code == 429
 
 
+def test_an_ipv6_network_counts_as_one_computer_at_sign_up(store, auth):
+    client = make_client(store, auth, proxy_hops=1)
+    for n in range(10):
+        signup(client, "wrong", forwarded=f"2001:db8:1:1::{n + 1:x}")
+    assert signup(client, CODE, forwarded="2001:db8:1:1::ff").status_code == 429
+
+
 def test_too_many_wrong_codes_close_sign_up_for_everyone(store, auth):
     client = make_client(store, auth, proxy_hops=1)
     for n in range(30):
@@ -57,15 +64,36 @@ def test_too_many_wrong_codes_close_sign_up_for_everyone(store, auth):
     assert signup(client, CODE, forwarded="8.8.8.8").status_code == 429
 
 
-def test_sign_in_attempts_are_limited_per_address(store, auth):
+def sign_in(client, password, forwarded, email="lea@example.com"):
+    return client.post("/signin", data={"email": email, "password": password,
+                                        "csrf": csrf(client)},
+                       headers={"X-Forwarded-For": forwarded})
+
+
+def test_sign_in_attempts_are_limited_per_computer(store, auth):
+    client = make_client(store, auth, proxy_hops=1)
+    sign_up_and_in(client)
+    for _ in range(10):
+        sign_in(client, "wrong-one", "4.4.4.4")
+    assert sign_in(client, "a-long-password", "4.4.4.4").status_code == 429
+
+
+def test_a_stranger_cannot_lock_a_student_out(store, auth):
+    # The limit per e-mail alone let anyone who knows the address block it.
     client = make_client(store, auth, proxy_hops=1)
     sign_up_and_in(client)
     for n in range(10):
-        client.post("/signin", data={"email": "lea@example.com", "password": "wrong-one",
-                                     "csrf": csrf(client)}, headers={"X-Forwarded-For": f"4.4.4.{n}"})
-    right = client.post("/signin", data={"email": "lea@example.com", "password": "a-long-password",
-                                         "csrf": csrf(client)}, headers={"X-Forwarded-For": "5.5.5.5"})
-    assert right.status_code == 429
+        sign_in(client, "wrong-one", f"4.4.4.{n}")
+    assert sign_in(client, "a-long-password", "5.5.5.5").status_code == 303
+
+
+def test_an_ipv6_network_counts_as_one_computer(store, auth):
+    # Anyone holding a /64 network has billions of addresses.
+    client = make_client(store, auth, proxy_hops=1)
+    sign_up_and_in(client)
+    for n in range(10):
+        sign_in(client, "wrong-one", f"2001:db8:1:1::{n + 1:x}", email=f"x{n}@example.com")
+    assert sign_in(client, "a-long-password", "2001:db8:1:1::ff").status_code == 429
 
 
 # --- 2. links from data and security headers ---------------------------------

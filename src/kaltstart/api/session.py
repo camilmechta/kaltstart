@@ -5,6 +5,7 @@ SESSION_SECRET. It is HttpOnly, Secure and SameSite=Lax; every form carries
 the CSRF token and every POST checks it."""
 
 import hmac
+import ipaddress
 import secrets
 import time
 from collections import defaultdict, deque
@@ -58,6 +59,19 @@ def client_ip(request: Request, hops: int) -> str:
         return peer
     entries = [e.strip() for e in request.headers.get("x-forwarded-for", "").split(",") if e.strip()]
     return entries[-hops] if len(entries) >= hops else peer
+
+
+def client_key(request: Request, hops: int) -> str:
+    """The client's address as the attempt limits count it: an IPv6 address
+    stands for its /64 network, which one holder can fill with addresses."""
+    address = client_ip(request, hops)
+    try:
+        ip = ipaddress.ip_address(address)
+    except ValueError:
+        return address
+    if ip.version == 6:
+        return str(ipaddress.ip_network(f"{ip}/64", strict=False))
+    return address
 
 
 class RateLimit:

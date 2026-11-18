@@ -11,6 +11,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   closed: a run of credentials after a name, a long run of address letters
   or one address repeated many times, and a page charset no website uses
   (D90).
+- Sign-in attempts are limited per computer and per e-mail from one
+  computer, so a stranger can no longer lock a student out; an IPv6 client
+  counts as its /64 network (D91).
 
 ### Added
 
