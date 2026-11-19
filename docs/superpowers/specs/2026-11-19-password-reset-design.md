@@ -61,3 +61,19 @@ Changing the password from the profile while signed in; e-mail change.
   changes the password (sign-in works with the new one, not the old one);
   a spent token is refused; mismatched or short passwords keep the form.
 - The sign-in page links to `/forgot-password`.
+
+## Change on 2026-11-19: Supabase's standard link
+
+Supabase no longer lets a project edit its e-mail templates without a custom
+SMTP, so the reset e-mail keeps Supabase's own link. That link checks the
+token at Supabase (opening it spends it), then opens the site's Site URL with
+a recovery session in the URL fragment. The server never sees a fragment, so
+`app.js` sends it to `/reset-password`, copies the access and refresh tokens
+into hidden fields of the form and removes them from the address bar; an
+error fragment (`error_code`) leads to `/reset-password?expired=1`. The POST
+uses `set_session` then `update_user`, then signs every session out. The
+reset e-mail is requested with the implicit flow, so no code verifier has to
+survive between requests. The `token_hash` path stays, for the day a custom
+SMTP allows editing the template. The owner only checks that the Site URL is
+`https://kaltstart.onrender.com`. Trade-off: a mail scanner that opens links
+can now spend the token, since the check happens at Supabase.

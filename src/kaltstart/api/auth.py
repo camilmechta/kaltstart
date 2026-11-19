@@ -40,6 +40,8 @@ class Auth(Protocol):
     def sign_in(self, email: str, password: str) -> Tokens | str: ...
     def request_password_reset(self, email: str) -> None: ...
     def reset_password(self, token_hash: str, password: str) -> str: ...
+    def reset_password_with_session(self, access_token: str, refresh_token: str,
+                                    password: str) -> str: ...
     def refresh(self, refresh_token: str) -> Tokens | None: ...
     def user_id(self, access_token: str) -> str | None: ...
     def delete_user(self, user_id: str) -> None: ...
@@ -101,6 +103,11 @@ class FakeAuth:
         self._refresh = {t: u for t, u in self._refresh.items() if u != user_id}
         return "ok"
 
+    def reset_password_with_session(self, access_token: str, refresh_token: str,
+                                    password: str) -> str:
+        """In the fake, the recovery session is the reset token itself."""
+        return self.reset_password(access_token, password)
+
     def refresh(self, refresh_token: str) -> Tokens | None:
         user_id = self._refresh.pop(refresh_token, None)
         return self._tokens(user_id) if user_id else None
@@ -156,10 +163,15 @@ class SupabaseAuth:
         return Tokens(session.access_token, session.refresh_token) if session else "unavailable"
 
     def request_password_reset(self, email: str) -> None:
-        """Supabase sends the e-mail; its template links to /reset-password with
-        the token hash. Nothing tells whether the address has an account."""
+        """Supabase sends its standard e-mail. Its link checks the token at
+        Supabase, then opens the site with a recovery session in the URL
+        fragment (implicit flow: no code verifier to keep between requests).
+        Nothing tells whether the address has an account."""
         try:
-            self._client(self._anon).auth.reset_password_for_email(email)
+            from supabase import create_client
+            from supabase.lib.client_options import SyncClientOptions
+            create_client(self._url, self._anon, SyncClientOptions(flow_type="implicit")) \
+                .auth.reset_password_for_email(email)
         except Exception:
             pass
 
@@ -174,6 +186,26 @@ class SupabaseAuth:
             # limit (429), a server error or no answer at all is a pause.
             status = getattr(exc, "status", None)
             return "expired" if status in (400, 401, 403, 404, 410, 422) else "unavailable"
+        if not session:
+            return "expired"
+        try:
+            client.auth.update_user({"password": password})
+        except Exception as exc:
+            return "weak" if getattr(exc, "code", None) in ("weak_password", "same_password") \
+                else "unavailable"
+        self.sign_out(session.access_token)
+        return "ok"
+
+    def reset_password_with_session(self, access_token: str, refresh_token: str,
+                                    password: str) -> str:
+        """The recovery session from the link's fragment, as Supabase gave it to
+        the browser: the new password is set on it, then every session ends."""
+        client = self._client(self._anon)
+        try:
+            session = client.auth.set_session(access_token, refresh_token).session
+        except Exception as exc:
+            status = getattr(exc, "status", None)
+            return "unavailable" if status == 429 or (status or 0) >= 500 else "expired"
         if not session:
             return "expired"
         try:

@@ -179,3 +179,50 @@ def test_supabase_reset_errors(exc, result, monkeypatch):
     real = SupabaseAuth("https://example.supabase.co", "anon", "service")
     monkeypatch.setattr(real, "_client", lambda key: _Raising(exc))
     assert real.reset_password("hash", NEW) == result
+
+
+# --- the default Supabase link (2026-11-19): templates cannot be edited without
+# a custom SMTP, so the e-mail keeps Supabase's own link. Supabase checks the
+# token, then sends the student to the site with a recovery session in the URL
+# fragment; a script puts it in the form.
+
+def session_reset(client, access, refresh="r", password=NEW, again=None):
+    page = client.get("/reset-password")
+    marker = 'name="csrf" value="'
+    token_csrf = page.text.split(marker, 1)[1].split('"', 1)[0]
+    return client.post("/reset-password", data={
+        "access_token": access, "refresh_token": refresh, "password": password,
+        "password_again": again or password, "csrf": token_csrf})
+
+
+def test_the_reset_page_has_fields_for_the_recovery_session(client):
+    page = client.get("/reset-password").text
+    assert 'name="access_token"' in page and 'name="refresh_token"' in page
+    assert "data-recovery" in page
+
+
+def test_a_recovery_session_changes_the_password(client, auth):
+    signed_up(client)
+    forgot(client, EMAIL)
+    response = session_reset(client, next(iter(auth.reset_tokens)))
+    assert response.status_code == 303 and response.headers["location"] == "/signin?reset=1"
+    assert sign_in(client, password=NEW).status_code == 303
+
+
+def test_a_wrong_recovery_session_is_refused(client, auth):
+    signed_up(client)
+    page = session_reset(client, "not-a-session")
+    assert page.status_code == 400 and "This link has expired." in page.text
+
+
+def test_an_expired_link_from_supabase_shows_the_spent_page(client):
+    page = client.get("/reset-password?expired=1").text
+    assert "This link has expired." in page and 'name="password"' not in page
+
+
+def test_the_script_sends_a_recovery_fragment_to_the_reset_page():
+    from pathlib import Path
+    script = (Path(__file__).parents[2] / "src" / "kaltstart" / "api" / "static" / "app.js").read_text()
+    for words in ('params.get("type") === "recovery"', "/reset-password", "history.replaceState",
+                  "access_token"):
+        assert words in script, words

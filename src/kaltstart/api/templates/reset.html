@@ -6,13 +6,13 @@
 {% if spent %}
 <p class="notice notice-error" role="alert">{{ error }}</p>
 <div class="actions"><a class="btn btn-primary" href="/forgot-password">Ask for a new link</a></div>
-{% elif not token_hash %}
-<p class="notice notice-error" role="alert">This link is not complete. Ask for a new one.</p>
-<div class="actions"><a class="btn btn-primary" href="/forgot-password">Ask for a new link</a></div>
 {% else %}
-<form method="post" action="/reset-password" class="card stack" data-submit-once>
+<form method="post" action="/reset-password" class="card stack" data-submit-once data-recovery>
   <input type="hidden" name="csrf" value="{{ csrf }}">
-  <input type="hidden" name="token_hash" value="{{ token_hash }}">
+  <input type="hidden" name="token_hash" value="{{ token_hash or '' }}">
+  {# Filled by the script from the link's fragment (Supabase's standard link). #}
+  <input type="hidden" name="access_token" value="">
+  <input type="hidden" name="refresh_token" value="">
   {% if error %}<p class="notice notice-error" role="alert">{{ error }}{% if 'expired' in error %} <a href="/forgot-password">Ask for a new one</a>.{% endif %}</p>{% endif %}
   <label>New password <input type="password" name="password" autocomplete="new-password" minlength="8" required></label>
   <span class="small muted">At least 8 characters.</span>

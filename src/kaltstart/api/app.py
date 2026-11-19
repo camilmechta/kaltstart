@@ -209,6 +209,8 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
 
     @app.get("/reset-password")
     def reset_form(request: Request):
+        if request.query_params.get("expired"):
+            return page(request, "reset.html", error=RESET_ERRORS["expired"], spent=True)
         return page(request, "reset.html",
                     token_hash=request.query_params.get("token_hash", "")[:200])
 
@@ -224,8 +226,14 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
             error = "The password needs at least 8 characters."
         elif password != again:
             error = "The two passwords are not the same."
+        access = (form.get("access_token") or "")[:4000]
+        refresh = (form.get("refresh_token") or "")[:200]
+        if error is None and not (token or access):
+            return page(request, "reset.html", status=400, error=RESET_ERRORS["expired"],
+                        spent=True)
         if error is None:
-            result = auth.reset_password(token, password)
+            result = (auth.reset_password(token, password) if token else
+                      auth.reset_password_with_session(access, refresh, password))
             if result == "ok":
                 return redirect(request, "/signin?reset=1")
             if result in ("expired", "weak"):

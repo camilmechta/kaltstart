@@ -46,6 +46,27 @@
     });
   });
 
+  // Password reset: Supabase's link opens the site with the recovery session
+  // in the URL fragment, which never reaches the server. Bring it to the reset
+  // page, put it in the form, then remove it from the address bar.
+  (function () {
+    var hash = window.location.hash.slice(1);
+    if (!hash) return;
+    var params = new URLSearchParams(hash);
+    var isRecovery = params.get("type") === "recovery" || params.has("error_code");
+    if (!isRecovery) return;
+    if (window.location.pathname !== "/reset-password") {
+      window.location.replace("/reset-password#" + hash);
+      return;
+    }
+    history.replaceState(null, "", "/reset-password");
+    if (params.has("error_code")) { window.location.replace("/reset-password?expired=1"); return; }
+    var form = document.querySelector("form[data-recovery]");
+    if (!form) return;
+    form.querySelector('input[name="access_token"]').value = params.get("access_token") || "";
+    form.querySelector('input[name="refresh_token"]').value = params.get("refresh_token") || "";
+  })();
+
   // Sign-in and sign-up: one click is enough. A second click would send the
   // form again after the first one changed its token.
   document.addEventListener("submit", function (event) {
