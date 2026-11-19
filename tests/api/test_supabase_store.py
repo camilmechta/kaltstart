@@ -172,3 +172,13 @@ def test_the_live_store_sets_unfit_addresses_aside():
     tables = dict(TABLES, contact_emails=[{"company_id": "c1", "address": "support@c1.example.ch"},
                                           {"company_id": "c2", "address": "info@c2.example.ch"}])
     assert store(Recorder(tables))._with_address() == {"c2"}
+
+
+def test_a_person_removed_on_request_is_found_by_key():
+    tables = dict(TABLES, contact_exclusions=[
+        {"id": 1, "company_id": "c1", "person_key": "k-mia", "address_key": None}])
+    recorder = Recorder(tables)
+    live = store(recorder)
+    live.person_excluded("c1", "k-mia")
+    request = recorder.of("GET", "contact_exclusions")[-1]
+    assert param(request, "company_id") == "eq.c1" and param(request, "person_key") == "eq.k-mia"

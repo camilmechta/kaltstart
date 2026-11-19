@@ -46,13 +46,13 @@
       <label class="option-card">
         <input type="radio" name="choice" value="typed" {% if form.get('choice') == 'typed' %}checked{% endif %}>
         <span class="option-title">A person you found yourself</span>
-        <p class="option-detail">Their name is used for this mail only. Goes to their own address if the website publishes it, otherwise to the company's careers or general address, asked to pass it on.</p>
+        <p class="option-detail">Their name is used for this mail only. Goes to the company's careers or general address, asked to pass it on, unless you give their address below.</p>
         <input type="text" name="typed_name" value="{{ form.get('typed_name', '') }}" maxlength="40" placeholder="First and last name" aria-label="A person you found yourself">
       </label>
       <label class="their-address">
         <span class="option-title">Their address, if you know it</span>
         <p class="option-detail">Optional, for the person you chose above. Kaltstart never guesses an address: if you found theirs yourself, your mail goes there and greets them by name. It is kept with this mail only.</p>
-        <input type="email" name="their_address" value="{{ form.get('their_address', '') }}" maxlength="254" placeholder="name@company.com" aria-label="Their address, if you know it">
+        <input type="text" inputmode="email" autocomplete="off" name="their_address" value="{{ form.get('their_address', '') }}" maxlength="254" placeholder="name@company.com" aria-label="Their address, if you know it">
       </label>
       <label class="option-card">
         <input type="radio" name="choice" value="team" {% if form.get('choice') == 'team' %}checked{% endif %}>
@@ -111,7 +111,7 @@
   <h2 class="step-title"><span class="step-number">3</span> Keep it, then copy it</h2>
   <p class="step-help">Read it. Change the style or your sentence and generate again as often as you like. When it is right, keep it.</p>
   <div class="mail-preview reveal">
-    <div class="mail-label">To</div><div>{{ recipient.person_name or (company.name ~ ' team') }} <span class="muted">· their e-mail address is shown once you keep this mail</span></div>
+    <div class="mail-label">To</div><div>{{ recipient.person_name or (company.name ~ ' team') }} <span class="muted">· {{ preview_goes_to }}{% if recipient.address_type != 'student' %} The address shows once you keep this mail.{% endif %}</span></div>
     <div class="mail-label" style="margin-top:8px">Subject</div><div>{{ preview.subject }}</div>
     <div class="mail-label" style="margin-top:8px">Text</div><div class="mail-body">{{ preview.body }}</div>
   </div>

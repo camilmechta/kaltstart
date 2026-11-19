@@ -116,6 +116,10 @@ def _person(contact: Contact) -> str | None:
     return name or None
 
 
+def first_name(person: str) -> str:
+    return _first_name(person)
+
+
 def _first_name(person: str) -> str:
     """The first word that is not a title ("Dr. Anna Muster" -> "Anna")."""
     words = person.split()
@@ -124,6 +128,7 @@ def _first_name(person: str) -> str:
 
 
 SHARED_ADDRESS_TYPES = ("careers", "generic")
+MAX_FORWARD_TITLE_WORDS = 8                            # the budget of MAX_FORWARDED_BODY_WORDS
 
 
 def _forwarded(contact: Contact) -> bool:
@@ -135,6 +140,8 @@ def _forward_line(style: str, language: str, contact: Contact) -> str:
     """Asks the team reading a shared address to pass the mail on."""
     person = _person(contact)
     title = " ".join((contact.person_title or "").split()) or None
+    if title and len(title.split()) > MAX_FORWARD_TITLE_WORDS:
+        title = None                                   # keeps the mail within its budget
     if language == "en" and style == "formal":
         who = f"{person}, {title}" if title else person
         return f"Could you please forward this message to {who}? Thank you."

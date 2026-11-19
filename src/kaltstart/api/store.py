@@ -209,6 +209,7 @@ class AppStore(Protocol):
     def company(self, company_id: str) -> CompanyRow | None: ...
     def people(self, company_id: str) -> list[PersonRow]: ...
     def emails(self, company_id: str) -> list[EmailRow]: ...
+    def person_excluded(self, company_id: str, person_key: str) -> bool: ...
     def contact_summary(self, company_ids: Sequence[str]) -> dict[str, tuple[int, bool]]: ...
     def mail_records(self) -> list[MailRecord]: ...
     def reserve(self, student_id: str, mail: NewMail, now: datetime) -> Refusal | str: ...
@@ -227,6 +228,7 @@ class InMemoryAppStore:
         self._people: dict[str, list[PersonRow]] = {}
         self._emails: dict[str, list[EmailRow]] = {}
         self._excluded: set[str] = set()
+        self._excluded_people: set[tuple[str, str]] = set()
         self._profiles: dict[str, Profile] = {}
         self._showcases: dict[str, list[Showcase]] = {}
         self._mails: list[Mail] = []
@@ -241,6 +243,13 @@ class InMemoryAppStore:
 
     def exclude_company(self, company_id: str) -> None:
         self._excluded.add(company_id)
+
+    def exclude_person(self, company_id: str, person_key: str) -> None:
+        """What exclude_person does in SQL, for the keys (tests)."""
+        self._excluded_people.add((company_id, person_key))
+
+    def person_excluded(self, company_id: str, person_key: str) -> bool:
+        return (company_id, person_key) in self._excluded_people
 
     def all_mails(self) -> list[Mail]:
         return list(self._mails)

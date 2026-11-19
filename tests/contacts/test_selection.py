@@ -143,3 +143,18 @@ def test_addresses_not_meant_for_an_application(local):
 def test_addresses_fit_for_an_application(local):
     from kaltstart.contacts.selection import usable_address
     assert usable_address(f"{local}@example.ch")
+
+
+@pytest.mark.parametrize("address", ["no_reply@example.ch", "no.reply@example.ch",
+                                     "noreply+news@example.ch", "support-de@example.ch",
+                                     "support.ch@example.ch", "Customer.Service@example.ch"])
+def test_variants_of_unfit_addresses(address):
+    from kaltstart.contacts.selection import usable_address
+    assert not usable_address(address)
+
+
+@pytest.mark.parametrize("address", ["supportive.team@example.ch", "info-de@example.ch",
+                                     "hello.ch@example.ch", "jobs-ch@example.ch"])
+def test_variants_that_stay_usable(address):
+    from kaltstart.contacts.selection import usable_address
+    assert usable_address(address)

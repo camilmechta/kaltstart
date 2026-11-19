@@ -184,6 +184,14 @@ class SupabaseAppStore:
                                        r["level"], r["source_url"], _d(r["read_at"]))
                              for r in rows])
 
+    def person_excluded(self, company_id: str, person_key: str) -> bool:
+        """A person removed on request (exclude_person) is never written to,
+        even by a name or an address a student types."""
+        rows = (self._client.table("contact_exclusions").select("id")
+                .eq("company_id", company_id).eq("person_key", person_key).limit(1)
+                .execute().data)
+        return bool(rows)
+
     def emails(self, company_id: str) -> list[EmailRow]:
         rows = (self._client.table("contact_emails").select("address,type,source_url")
                 .eq("company_id", company_id).order("address").execute().data)

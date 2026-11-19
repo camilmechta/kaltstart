@@ -26,8 +26,13 @@ UNFIT_LOCAL_PARTS = frozenset((
 
 
 def usable_address(address: str) -> bool:
-    """False for an address no application should go to (support@, noreply@...)."""
-    return address.split("@", 1)[0].strip().lower() not in UNFIT_LOCAL_PARTS
+    """False for an address no application should go to (support@, noreply@...),
+    also in its usual variants: no_reply@, no.reply@, noreply+news@, support-de@,
+    customer.service@."""
+    local = address.split("@", 1)[0].strip().lower().split("+", 1)[0]
+    words = [w for w in re.split(r"[._-]", local) if w]
+    candidates = {local, "".join(words), "-".join(words)} | ({words[0]} if words else set())
+    return not candidates & UNFIT_LOCAL_PARTS
 
 
 def address_owner(address: str, people: Sequence[FoundPerson]) -> FoundPerson | None:

@@ -219,7 +219,7 @@ def test_the_preview_never_shows_the_address(client):
     for choice in ("suggested", "team"):
         page = post(client, "preview", choice=choice).text
         assert "@c1.example.ch" not in page, choice
-        assert "their e-mail address is shown once you keep this mail" in page
+        assert "The address shows once you keep this mail." in page
         assert 'class="mail-preview reveal"' in page
 
 
@@ -361,3 +361,48 @@ def test_my_mails_says_when_a_mail_went_through_a_shared_address(client, store, 
     post(client, "keep", choice="other_on_list", person="0")
     page = client.get("/mails").text
     assert "To Ben Probe, via the careers address" in page
+
+
+# Final review of honest addresses (2026-11-19).
+def test_the_card_follows_the_address_the_student_gave(client):
+    ready(client)
+    import html
+    page = html.unescape(post(client, "preview", choice="suggested",
+                              their_address="anna.private@c1.example.ch").text)
+    assert "Goes to the address you gave." in page
+
+
+def test_the_preview_says_where_it_goes(client):
+    ready(client)
+    import html
+    page = html.unescape(post(client, "preview", choice="other_on_list", person="0").text)
+    preview = page.split('id="preview"', 1)[1]
+    assert "Goes to Example Co's careers address" in preview or "careers address" in preview
+    assert "their e-mail address is shown once you keep this mail" not in preview
+
+
+def test_the_typed_name_sentence_is_true(client):
+    ready(client)
+    page = client.get("/companies/c1").text
+    typed = page.split('value="typed"', 1)[1].split("</label>", 1)[0]
+    assert "careers or general address, asked to pass it on" in typed
+    assert "own address if the website publishes it" not in typed
+
+
+def test_the_address_field_does_not_block_other_choices(client):
+    ready(client)
+    page = client.get("/companies/c1").text
+    before, after = page.split('name="their_address"', 1)
+    tag = before.rsplit("<input", 1)[1] + after.split(">", 1)[0]
+    assert 'type="text"' in tag and 'inputmode="email"' in tag
+
+
+def test_a_person_removed_on_request_cannot_be_named(client, store, auth):
+    from kaltstart.contacts.exclusions import person_key
+    store.exclude_person("c1", person_key("c1", "Mia Muster"))
+    ready(client)
+    page = post(client, "keep", choice="typed", typed_name="Mia Muster",
+                their_address="mia@c1.example.ch")
+    assert page.status_code == 400
+    assert "This person asked not to be contacted through Kaltstart." in page.text
+    assert store.mails(user_id(auth)) == []

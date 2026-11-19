@@ -309,7 +309,14 @@ def register(app: FastAPI) -> None:
                     form=form, preview=preview, recipient=recipient, error=error,
                     error_link=error_link, size_info=SIZE_INFO[company.size_category],
                     why=compose.why(person, profile, company) if person else None,
-                    goes_to=suggested_destination(company, people, emails, profile, person),
+                    goes_to=(compose.where_it_goes(company.name, recipient.person_name,
+                                                   recipient.address_type)
+                             if recipient and recipient.person_choice == "suggested"
+                             else suggested_destination(company, people, emails, profile, person)),
+                    preview_goes_to=(compose.where_it_goes(company.name, recipient.person_name,
+                                                           recipient.address_type)
+                                     if recipient and recipient.person_name else
+                                     "Goes to the company's careers or general address."),
                     profile_missing=missing_for_mail(profile, store.showcases(student)),
                     places_left=rules.places_left(company.id, company.round_id,
                                                   company.size_category, store.mail_records(),
@@ -344,6 +351,8 @@ def register(app: FastAPI) -> None:
                           "else or write to the team.", None, 400)
         except ValueError:
             return None, ("Choose who you write to (step 1).", None, 400)
+        if recipient.person_key and store.person_excluded(company.id, recipient.person_key):
+            return None, ("This person asked not to be contacted through Kaltstart.", None, 400)
         records = store.mail_records()
         refused = rules.refusal(student, company.id, recipient.person_key, records,
                                 app.state.now(), round_id=company.round_id,

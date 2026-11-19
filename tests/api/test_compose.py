@@ -167,3 +167,16 @@ def test_a_shared_address_carries_the_title_to_the_mail():
 def test_where_the_mail_goes(address_type, sentence):
     from kaltstart.api.compose import where_it_goes
     assert where_it_goes("Example Co", "Anna Muster", address_type) == sentence
+
+
+def test_where_it_goes_skips_a_title_before_the_name():
+    from kaltstart.api.compose import where_it_goes
+    assert where_it_goes("Example Co", "Dr. Anna Muster", "personal") == "Goes to Anna's own address."
+
+
+@pytest.mark.parametrize("bad", ["ben\x00@c1.example.ch", "<ben>@c1.example.ch", 'b"en@c1.example.ch',
+                                 "ben@c1.example.ch?cc=x", "ben;x@c1.example.ch", "ben@c1.exa\tmple.ch"])
+def test_odd_characters_are_refused(bad):
+    from kaltstart.api.compose import BadAddress
+    with pytest.raises(BadAddress):
+        choose(C1, [BEN, ANNA], EMAILS, PROFILE, "other_on_list", person_index=0, their_address=bad)

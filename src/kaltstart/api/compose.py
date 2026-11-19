@@ -31,6 +31,9 @@ class BadAddress(ValueError):
 
 # One address: no space, one "@", a dot in the domain (honest addresses, point 4).
 _ADDRESS = re.compile(r"[^@\s]+@[^@\s]+\.[^@\s]+")
+# Characters no plain address needs: control characters, brackets, quotes,
+# separators of other mail headers or of a link.
+_ODD = re.compile(r"[\x00-\x1f\x7f<>\"(),;:\[\]\\?&]")
 MAX_ADDRESS = 254
 
 
@@ -39,7 +42,7 @@ def student_address(text: str | None) -> str | None:
     address = (text or "").strip()
     if not address:
         return None
-    if len(address) > MAX_ADDRESS or not _ADDRESS.fullmatch(address):
+    if len(address) > MAX_ADDRESS or not _ADDRESS.fullmatch(address) or _ODD.search(address):
         raise BadAddress("not an address")
     return address
 
@@ -132,7 +135,8 @@ def choose(company: CompanyRow, people: Sequence[PersonRow], emails: Sequence[Em
 def where_it_goes(company_name: str, person_name: str, address_type: str) -> str:
     """Where a mail to a named person goes, said before it is kept (honest
     addresses, 2026-11-19); the address itself shows once kept (D77)."""
-    first = person_name.split()[0]
+    from kaltstart.mailgen.generator import first_name
+    first = first_name(person_name)
     if address_type == "personal":
         return f"Goes to {first}'s own address."
     if address_type == "student":

@@ -240,3 +240,10 @@ def test_no_name_no_forward_line():
     body = mail(contact=contact(address="info@example.de", address_type="generic",
                                 person_name=None)).body
     assert body.startswith("Hi Example Robotics team!") and "pass this on" not in body
+
+
+def test_a_very_long_title_is_left_out_of_the_forward_line():
+    title = "Senior Vice President Global Product Management Strategy and Customer Operations Europe"
+    body = mail(contact=contact(address="info@example.de", address_type="generic",
+                                person_title=title)).body
+    assert body.split("\n\n")[1] == "Could you pass this on to Anna Muster? Thank you!"
