@@ -531,3 +531,26 @@ def test_the_counter_counts_like_linkedin(client, store, auth):
     page = client.get(response.headers["location"]).text
     assert f"{note_length(mail.subject)} / 200 characters" in page
     assert note_length(mail.subject) != len(mail.subject)
+
+
+# LinkedIn wording (owner, 2026-11-19).
+def test_the_linkedin_keep_button_and_where_to_find_it(client):
+    ready(client)
+    page = post(client, "preview", choice="other_on_list", person="0", channel="linkedin").text
+    keep_form = page.split('action="/companies/c1/keep', 1)[1].split("</form>", 1)[0]
+    assert "Keep this message" in keep_form and "Keep this mail" not in keep_form
+    assert "It stays in My mails, so you can copy the message once they accept." in keep_form
+
+
+def test_the_mail_keep_button_is_unchanged(client):
+    ready(client)
+    page = post(client, "preview", choice="other_on_list", person="0").text
+    keep_form = page.split('action="/companies/c1/keep', 1)[1].split("</form>", 1)[0]
+    assert "Keep this mail" in keep_form and "Keep this message" not in keep_form
+
+
+def test_the_kept_linkedin_page_says_where_to_come_back(client, store, auth):
+    ready(client)
+    response = post(client, "keep", choice="other_on_list", person="0", channel="linkedin")
+    page = client.get(response.headers["location"]).text
+    assert "Once they accept, open this message again from My mails and paste the message." in page

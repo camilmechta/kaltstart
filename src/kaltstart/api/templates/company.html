@@ -138,8 +138,13 @@
     {% for name in ('choice', 'person', 'typed_name', 'their_address', 'channel', 'style', 'language', 'showcase', 'company_line') %}
     <input type="hidden" name="{{ name }}" value="{{ form.get(name, '') }}">
     {% endfor %}
+    {% if recipient.address_type == 'linkedin' %}
+    <div class="actions"><button class="btn btn-primary" type="submit">Keep this message</button>
+      <span class="small muted">Keeping takes one of the 3 slots of {{ company.name }} for 30 days. It stays in My mails, so you can copy the message once they accept.</span></div>
+    {% else %}
     <div class="actions"><button class="btn btn-primary" type="submit">Keep this mail</button>
       <span class="small muted">Keeping takes one of the 3 slots of {{ company.name }} for 30 days.</span></div>
+    {% endif %}
   </form>
 </section>
 {% endif %}
