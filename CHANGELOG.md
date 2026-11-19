@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- The header shows "7 of 10 mails kept this week · 2 waiting" on every
+  signed-in page, `/about` says how many mails a student can keep, and
+  every limit shown comes from `rules.LIMITS` (D95).
+
 - A public privacy page, `/privacy`, linked from every page and from
   sign-up: what Kaltstart keeps about students and about people at
   companies, what it never does, where the data is, how to use one's
