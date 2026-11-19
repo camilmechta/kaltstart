@@ -5,6 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Show the value (D102): the landing page leads with "Internships that are
+  never posted", says why it works in three points and shows an honest
+  example (a general address with its PS, and the LinkedIn note); the list
+  opens with "For you" (recent rounds naming someone of the student's
+  field), rows say "Raised 5 days ago" and "{title} named: your field", and
+  a strip shows the student's kept, sent and replied mails.
+
 ### Added
 
 - LinkedIn as a second channel (D101): the app writes a connection note of
