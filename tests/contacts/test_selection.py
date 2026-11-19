@@ -100,3 +100,26 @@ def test_the_only_address_belongs_to_another_person_kept():
         "lena@example.ch", "Lena Beispiel", "high")
     # Without knowing whose address it is, nothing is proposed.
     assert choose_contact([own], None) is None
+
+
+# Technical roles (technical roles design, section 6).
+HEAD_ENG = person("Tim Muster", "Head of Engineering", ("engineering",))
+HEAD_RND = person("Eva Probe", "Head of R&D", ("rnd",))
+
+
+def test_a_technical_role_finds_its_head():
+    assert choose_person([FOUNDER, CTO, HEAD_ENG], "software", "small") == HEAD_ENG
+    assert choose_person([FOUNDER, CTO, HEAD_RND], "rnd", "medium") == HEAD_RND
+
+
+def test_a_technical_role_falls_back_to_the_cto_at_a_small_company():
+    assert choose_person([FOUNDER, CTO], "software", "small") == CTO
+    assert choose_person([FOUNDER, CTO], "rnd", "small") == CTO
+
+
+def test_business_roles_still_prefer_the_founder():
+    assert choose_person([CTO, FOUNDER], "growth", "small") == FOUNDER
+
+
+def test_a_technical_role_at_a_larger_company_goes_to_recruiting():
+    assert choose_person([CTO, HR], "software", "large") == HR

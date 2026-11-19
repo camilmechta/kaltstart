@@ -41,12 +41,18 @@ def _heads_first(people: list[FoundPerson]) -> FoundPerson | None:
     return sorted(people, key=lambda p: p.level != "head")[0] if people else None
 
 
+# Target roles whose fallback at a small company is the CTO, before a founder.
+TECHNICAL_ROLES = frozenset({"software", "rnd"})
+_CTO = re.compile(r"(?<!\w)(?:cto|chief technology officer)(?!\w)", re.IGNORECASE)
+
+
 def choose_person(people: Sequence[FoundPerson], target_role: str | None,
                   size_category: str) -> FoundPerson | None:
     """The person to write to, following section 5 of the people design.
 
     1. somebody in the category of the student's target role, a head before a
-       manager; 2. otherwise, at a small company, a leader, a founder first;
+       manager; 2. otherwise, at a small company, a leader: for a technical
+       role the CTO first, then a founder; for the others a founder first;
     3. otherwise, at a medium or large one, a recruiter; 4. otherwise nobody.
     """
     category = ROLE_TO_CATEGORY.get(target_role or "")
@@ -56,7 +62,11 @@ def choose_person(people: Sequence[FoundPerson], target_role: str | None,
             return chosen
     if size_category == "small":
         leaders = [p for p in people if "leadership" in p.categories]
-        return sorted(leaders, key=lambda p: not FOUNDER.search(p.title))[0] if leaders else None
+        if target_role in TECHNICAL_ROLES:
+            order = lambda p: (not _CTO.search(p.title), not FOUNDER.search(p.title))
+        else:
+            order = lambda p: not FOUNDER.search(p.title)
+        return sorted(leaders, key=order)[0] if leaders else None
     return _heads_first([p for p in people if "recruiting" in p.categories])
 
 
