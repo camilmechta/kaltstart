@@ -189,7 +189,8 @@ def eligible(companies: Sequence[CompanyRow], with_address: set[str], excluded: 
             continue
         if filters.sizes and c.size_category not in filters.sizes:
             continue
-        if filters.with_person and c.id not in with_person:
+        # A large company names nobody (owner, 2026-11-19).
+        if filters.with_person and (c.id not in with_person or c.size_category == "large"):
             continue
         rows.append(c)
     rows.sort(key=lambda c: (c.round_date, c.id), reverse=True)

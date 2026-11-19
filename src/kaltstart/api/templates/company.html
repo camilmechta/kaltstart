@@ -19,7 +19,11 @@
   <input type="hidden" name="csrf" value="{{ csrf }}">
   <section class="step">
     <h2 class="step-title"><span class="step-number">1</span> Who are you writing to?</h2>
+    {% if company.size_category == 'large' %}
+    <p class="step-help">At a company this size, applications go through the careers team: no names are suggested. If you know someone there, give their name and address below. You get the address when you keep your mail.</p>
+    {% else %}
     <p class="step-help">A mail to a named person gets read more often. Pick one; the right address is chosen for you. You get the address when you keep your mail.</p>
+    {% endif %}
     {% if profile_missing %}
     <p class="notice notice-warning" style="margin-bottom:12px">Complete your profile so we can suggest the right person for your target role: <a href="/profile">open your profile</a>.</p>
     {% endif %}

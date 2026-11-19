@@ -406,3 +406,26 @@ def test_a_person_removed_on_request_cannot_be_named(client, store, auth):
     assert page.status_code == 400
     assert "This person asked not to be contacted through Kaltstart." in page.text
     assert store.mails(user_id(auth)) == []
+
+
+def test_a_large_company_page_names_nobody(client, store):
+    from dataclasses import replace
+    store.add_company(replace(C1, id="c8", name="Big Co", size_category="large"),
+                      emails=EMAILS, people=[BEN, ANNA])
+    ready(client)
+    page = client.get("/companies/c8").text
+    assert 'value="suggested"' not in page and 'value="other_on_list"' not in page
+    assert "Ben Probe" not in page and "Anna Muster" not in page
+    assert 'value="team"' in page and 'value="typed"' in page
+    assert "no names are suggested" in page
+
+
+def test_the_list_shows_no_names_for_a_large_company(client, store):
+    from dataclasses import replace
+    store.add_company(replace(C1, id="c8", name="Big Co", size_category="large"),
+                      emails=EMAILS, people=[BEN, ANNA])
+    ready(client)
+    page = client.get("/companies?size=large").text
+    row = page.split("Big Co", 1)[1].split("</li>", 1)[0]
+    assert "named" not in row and "Careers address" in row
+    assert "Big Co" not in client.get("/companies?size=large&person=1").text

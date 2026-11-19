@@ -151,8 +151,9 @@ def register(app: FastAPI) -> None:
                    "A team is forming: the heads of product, growth or sales hire.",
                    "Fresh money and new teams: plenty of projects, and you learn from the "
                    "head of your field."),
-        "large": ("Large", "Recruiters", "Series B and later, over €20M",
-                  "A structured company: a recruiter or the HR team reads applications.",
+        "large": ("Large", "The careers team", "Series B and later, over €20M",
+                  "A structured company: applications go to the careers or HR team, so "
+                  "no names are suggested.",
                   "An internship programme, mentoring and a known name on your CV, but "
                   "more candidates."),
     }
@@ -201,8 +202,10 @@ def register(app: FastAPI) -> None:
         rows, total = store.companies(filters, request.state.user_id, now)
         records = store.mail_records()
         summary = store.contact_summary([c.id for c in rows])
-        items = [dict(company=c, round=round_text(c), contact=contact_kind(summary[c.id]),
-                      named=summary[c.id][0] > 0,
+        shown = {c.id: summary[c.id] if compose.names_people(c) else (0, summary[c.id][1])
+                 for c in rows}
+        items = [dict(company=c, round=round_text(c), contact=contact_kind(shown[c.id]),
+                      named=shown[c.id][0] > 0,
                       places_left=rules.places_left(c.id, c.round_id, c.size_category,
                                                     records, now)) for c in rows]
         student = request.state.user_id
@@ -299,7 +302,8 @@ def register(app: FastAPI) -> None:
                      error_link=None, status=200):
         student = request.state.user_id
         profile = store.profile(student)
-        people, emails = store.people(company.id), store.emails(company.id)
+        people = store.people(company.id) if compose.names_people(company) else []
+        emails = store.emails(company.id)
         person, style, language = defaults(company, profile, people, emails)
         form = form or {}
         return page(request, "company.html", status=status, company=company,

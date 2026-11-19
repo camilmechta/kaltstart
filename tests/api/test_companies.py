@@ -92,7 +92,8 @@ def test_each_row_shows_its_size_and_the_sizes_are_explained(client):
     legend = page.split('class="legend"', 1)[1].split("</section>", 1)[0]
     assert "Who reads your mail" in page
     for words in ("Small", "Founders", "Pre-seed or seed, under €7M", "Medium", "Team leads",
-                  "Series A, €7M to €20M", "Large", "Recruiters", "Series B and later, over €20M"):
+                  "Series A, €7M to €20M", "Large", "The careers team",
+                  "Series B and later, over €20M"):
         assert words in legend, words
 
 

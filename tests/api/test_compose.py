@@ -180,3 +180,26 @@ def test_odd_characters_are_refused(bad):
     from kaltstart.api.compose import BadAddress
     with pytest.raises(BadAddress):
         choose(C1, [BEN, ANNA], EMAILS, PROFILE, "other_on_list", person_index=0, their_address=bad)
+
+
+# Large companies (owner, 2026-11-19): applications go through the careers or
+# general address; no person is suggested or listed.
+LARGE = company(1, size="large")
+
+
+def test_no_one_is_suggested_at_a_large_company():
+    assert suggested(LARGE, [BEN, ANNA], PROFILE) is None
+
+
+@pytest.mark.parametrize("choice,extra", [("suggested", {}), ("other_on_list", {"person_index": 0})])
+def test_named_choices_are_refused_at_a_large_company(choice, extra):
+    with pytest.raises(ValueError):
+        choose(LARGE, [BEN, ANNA], EMAILS, PROFILE, choice, **extra)
+
+
+def test_the_team_and_a_typed_name_still_work_at_a_large_company():
+    team = choose(LARGE, [BEN, ANNA], EMAILS, PROFILE, "team")
+    assert team.address_type == "careers" and team.person_name is None
+    typed = choose(LARGE, [BEN, ANNA], EMAILS, PROFILE, "typed", typed_name="Mia Muster",
+                   their_address="mia@c1.example.ch")
+    assert typed.address_type == "student"

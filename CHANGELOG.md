@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Large companies (Series B and later) name nobody: the student writes to
+  the careers or general address, or names someone they know themselves;
+  the list and its "name people" filter follow (D100).
+
 ### Fixed
 
 - "Back" showed a mail as still kept after it was abandoned: the browser

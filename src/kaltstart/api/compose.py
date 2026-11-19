@@ -66,8 +66,17 @@ def _found_emails(emails: Sequence[EmailRow]) -> list[FoundEmail]:
     return [FoundEmail(e.address, e.type, e.source_url) for e in emails]
 
 
+def names_people(company: CompanyRow) -> bool:
+    """False for a large company (Series B and later): applications go through
+    its careers or general address, and no person is suggested or listed
+    (owner, 2026-11-19). A student may still name someone they know."""
+    return company.size_category != "large"
+
+
 def suggested(company: CompanyRow, people: Sequence[PersonRow],
               profile: Profile | None) -> PersonRow | None:
+    if not names_people(company):
+        return None
     role = ROLE_TO_SELECTION.get(profile.target_role or "") if profile else None
     chosen = choose_person(_found(people), role, company.size_category)
     return next((p for p in people if chosen and p.name == chosen.name), None)
@@ -91,6 +100,8 @@ def choose(company: CompanyRow, people: Sequence[PersonRow], emails: Sequence[Em
     if choice not in CHOICES:
         raise ValueError(f"unknown choice: {choice}")
     given = student_address(their_address) if choice != "team" else None
+    if choice in ("suggested", "other_on_list") and not names_people(company):
+        raise ValueError("no person is listed at a large company")
     if choice == "team":
         email = _shared_address(emails)
         return Recipient(None, None, email.address, email.type, "team", None)
