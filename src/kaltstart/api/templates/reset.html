@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Choose a new password · Kaltstart{% endblock %}
+{% block main_class %}container narrow{% endblock %}
+{% block content %}
+<h1 class="title-xl">Choose a new password</h1>
+{% if not token_hash %}
+<p class="notice notice-error" role="alert">This link is not complete. Ask for a new one.</p>
+<div class="actions"><a class="btn btn-primary" href="/forgot-password">Ask for a new link</a></div>
+{% else %}
+<form method="post" action="/reset-password" class="card stack" data-submit-once>
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <input type="hidden" name="token_hash" value="{{ token_hash }}">
+  {% if error %}<p class="notice notice-error" role="alert">{{ error }}{% if 'expired' in error %} <a href="/forgot-password">Ask for a new one</a>.{% endif %}</p>{% endif %}
+  <label>New password <input type="password" name="password" autocomplete="new-password" minlength="8" required></label>
+  <span class="small muted">At least 8 characters.</span>
+  <label>New password again <input type="password" name="password_again" autocomplete="new-password" minlength="8" required></label>
+  <button class="btn btn-primary" type="submit" data-sending="Changing…">Change my password</button>
+</form>
+{% endif %}
+{% endblock %}

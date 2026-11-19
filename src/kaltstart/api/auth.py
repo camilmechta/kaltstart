@@ -17,9 +17,29 @@ class Tokens:
     refresh: str
 
 
+# Why a sign-in failed, so the page can say what to do (design 2026-11-19).
+SIGN_IN_REASONS = ("credentials", "unconfirmed", "busy", "unavailable")
+# What a password reset can end with.
+RESET_RESULTS = ("ok", "expired", "weak", "unavailable")
+
+
+def sign_in_reason(exc: Exception) -> str:
+    """The reason of a failed Supabase sign-in, from its error code."""
+    code, status = getattr(exc, "code", None), getattr(exc, "status", None)
+    if code == "invalid_credentials":
+        return "credentials"
+    if code == "email_not_confirmed":
+        return "unconfirmed"
+    if status == 429:
+        return "busy"
+    return "unavailable"
+
+
 class Auth(Protocol):
     def sign_up(self, email: str, password: str, invitation_code: str) -> bool: ...
-    def sign_in(self, email: str, password: str) -> Tokens | None: ...
+    def sign_in(self, email: str, password: str) -> Tokens | str: ...
+    def request_password_reset(self, email: str) -> None: ...
+    def reset_password(self, token_hash: str, password: str) -> str: ...
     def refresh(self, refresh_token: str) -> Tokens | None: ...
     def user_id(self, access_token: str) -> str | None: ...
     def delete_user(self, user_id: str) -> None: ...
@@ -33,6 +53,8 @@ class FakeAuth:
         self.users: dict[str, tuple[str, str, str]] = {}      # email -> (salt, hash, id)
         self._access: dict[str, str] = {}
         self._refresh: dict[str, str] = {}
+        self.reset_tokens: dict[str, str] = {}             # token hash -> email
+        self.fail_sign_in_with: str | None = None          # a reason, to test the pages
 
     @staticmethod
     def _hash(salt: str, password: str) -> str:
@@ -52,11 +74,29 @@ class FakeAuth:
         self._refresh[tokens.refresh] = user_id
         return tokens
 
-    def sign_in(self, email: str, password: str) -> Tokens | None:
+    def sign_in(self, email: str, password: str) -> Tokens | str:
+        if self.fail_sign_in_with:
+            return self.fail_sign_in_with
         user = self.users.get(email.strip().lower())
         if not user or not secrets.compare_digest(user[1], self._hash(user[0], password)):
-            return None
+            return "credentials"
         return self._tokens(user[2])
+
+    def request_password_reset(self, email: str) -> None:
+        email = email.strip().lower()
+        if email in self.users:
+            self.reset_tokens[secrets.token_hex(16)] = email
+
+    def reset_password(self, token_hash: str, password: str) -> str:
+        email = self.reset_tokens.pop(token_hash, None)
+        if email is None or email not in self.users:
+            return "expired"
+        _salt, _hash, user_id = self.users[email]
+        salt = secrets.token_hex(8)
+        self.users[email] = (salt, self._hash(salt, password), user_id)
+        self._access = {t: u for t, u in self._access.items() if u != user_id}
+        self._refresh = {t: u for t, u in self._refresh.items() if u != user_id}
+        return "ok"
 
     def refresh(self, refresh_token: str) -> Tokens | None:
         user_id = self._refresh.pop(refresh_token, None)
@@ -104,13 +144,39 @@ class SupabaseAuth:
         except Exception:
             return False
 
-    def sign_in(self, email: str, password: str) -> Tokens | None:
+    def sign_in(self, email: str, password: str) -> Tokens | str:
         try:
             session = self._client(self._anon).auth.sign_in_with_password(
                 {"email": email, "password": password}).session
+        except Exception as exc:
+            return sign_in_reason(exc)
+        return Tokens(session.access_token, session.refresh_token) if session else "unavailable"
+
+    def request_password_reset(self, email: str) -> None:
+        """Supabase sends the e-mail; its template links to /reset-password with
+        the token hash. Nothing tells whether the address has an account."""
+        try:
+            self._client(self._anon).auth.reset_password_for_email(email)
         except Exception:
-            return None
-        return Tokens(session.access_token, session.refresh_token) if session else None
+            pass
+
+    def reset_password(self, token_hash: str, password: str) -> str:
+        """The recovery token is spent here, never on opening the link. The new
+        password is set on that session, then every session is signed out."""
+        client = self._client(self._anon)
+        try:
+            session = client.auth.verify_otp({"token_hash": token_hash, "type": "recovery"}).session
+        except Exception as exc:
+            return "unavailable" if getattr(exc, "status", 400) >= 500 else "expired"
+        if not session:
+            return "expired"
+        try:
+            client.auth.update_user({"password": password})
+        except Exception as exc:
+            return "weak" if getattr(exc, "code", None) in ("weak_password", "same_password") \
+                else "unavailable"
+        self.sign_out(session.access_token)
+        return "ok"
 
     def refresh(self, refresh_token: str) -> Tokens | None:
         try:

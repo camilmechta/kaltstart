@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Forgot your password · Kaltstart{% endblock %}
+{% block main_class %}container narrow{% endblock %}
+{% block content %}
+<h1 class="title-xl">Forgot your password?</h1>
+{% if sent %}
+<p class="notice notice-success" role="status">If an account uses this address, we sent a link to choose a new password. It works once, for one hour.</p>
+<div class="actions"><a class="btn btn-secondary" href="/signin">Back to sign in</a></div>
+{% else %}
+<p class="muted">Enter the address you signed up with. We send you a link to choose a new password.</p>
+<form method="post" action="/forgot-password" class="card stack" data-submit-once>
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  {% if error %}<p class="notice notice-error" role="alert">{{ error }}</p>{% endif %}
+  <label>E-mail <input type="email" name="email" value="{{ email or '' }}" autocomplete="email" required></label>
+  <button class="btn btn-primary" type="submit" data-sending="Sending…">Send the link</button>
+  <p class="small muted"><a href="/signin">Back to sign in</a></p>
+</form>
+{% endif %}
+{% endblock %}

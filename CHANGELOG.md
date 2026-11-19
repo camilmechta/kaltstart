@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- "Forgot your password?": a student asks for a link by e-mail and chooses
+  a new password on `/reset-password`; the link is spent only when the new
+  password is sent, and every session ends afterwards. The sign-in page now
+  says why it failed: wrong e-mail or password, e-mail not confirmed, too
+  many sign-ins, or sign-in not working (D97).
+
 ### Changed
 
 - The README is one page for visitors: what Kaltstart does, screenshots of

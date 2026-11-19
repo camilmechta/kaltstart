@@ -37,7 +37,7 @@ server calls `verify_otp(type="recovery")`, sets the new password with
 `update_user` on that session, then signs it out everywhere. On success:
 the sign-in page with "Your password is changed. Sign in with the new one."
 Errors: passwords differ or shorter than 8 characters (the form stays); a
-used or expired link ("This link has expired. Ask for a new one.").
+used or expired link ("This link has expired.", with a link to ask for a new one).
 
 **Owner, in Supabase (once):** Authentication, Emails, template "Reset
 Password": the link becomes

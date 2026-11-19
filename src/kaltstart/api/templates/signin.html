@@ -6,10 +6,12 @@
 <p class="muted">Write to the startups that just raised. Beta, by invitation.</p>
 <form method="post" action="/signin{% if next %}?next={{ next|urlencode }}{% endif %}" class="card stack" data-submit-once>
   <input type="hidden" name="csrf" value="{{ csrf }}">
+  {% if reset_done %}<p class="notice notice-success" role="status">Your password is changed. Sign in with the new one.</p>{% endif %}
   {% if error %}<p class="notice notice-error" role="alert">{{ error }}</p>{% endif %}
   <label>E-mail <input type="email" name="email" value="{{ email or '' }}" autocomplete="email" required></label>
   <label>Password <input type="password" name="password" autocomplete="current-password" required></label>
-  <button class="btn btn-primary" type="submit">Sign in</button>
+  <button class="btn btn-primary" type="submit" data-sending="Signing in…">Sign in</button>
+  <p class="small muted"><a href="/forgot-password">Forgot your password?</a></p>
   <p class="small muted">No account yet? <a href="/signup">Create one with your invitation code</a>.</p>
 </form>
 {% endblock %}

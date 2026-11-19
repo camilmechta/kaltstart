@@ -57,7 +57,7 @@
     if (button) {
       button.setAttribute("aria-disabled", "true");
       button.setAttribute("data-label", button.textContent);
-      button.textContent = button.textContent.indexOf("Create") === 0 ? "Creating your account…" : "Signing in…";
+      button.textContent = button.getAttribute("data-sending") || button.textContent;
     }
   });
   // Back to a page the browser kept: the form can be sent again.

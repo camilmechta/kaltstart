@@ -19,7 +19,7 @@ from starlette.concurrency import run_in_threadpool
 from starlette.datastructures import FormData
 
 from kaltstart.api import rules
-from kaltstart.api.auth import Auth
+from kaltstart.api.auth import Auth, Tokens
 from kaltstart.api.session import RateLimit, Sessions, client_key, csrf_ok, new_csrf, safe_next
 from kaltstart.api.store import AppStore, ListFilters
 
@@ -72,6 +72,8 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
     # Sign-in: per computer, and per e-mail from one computer. Never per e-mail
     # alone, which let anyone who knows the address lock its owner out (D91).
     signin_by_ip, signin_by_account = RateLimit(10, 900), RateLimit(10, 900)
+    # Password reset requests: the same limits as sign-in, kept apart.
+    reset_by_ip, reset_by_account = RateLimit(10, 900), RateLimit(10, 900)
     app.state.store, app.state.auth, app.state.page, app.state.now = store, auth, page, now
     app.state.sessions = sessions
 
@@ -163,7 +165,8 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
 
     @app.get("/signin")
     def signin_form(request: Request):
-        return page(request, "signin.html", next=request.query_params.get("next", ""))
+        return page(request, "signin.html", next=request.query_params.get("next", ""),
+                    reset_done=request.query_params.get("reset") == "1")
 
     @app.post("/signin")
     def signin(request: Request, form: FormData | None = Depends(signin_form_posted)):
@@ -178,13 +181,48 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
             return page(request, "signin.html", status=429, next=target, email=email,
                         error="Too many attempts. Try again in 15 minutes.")
         tokens = auth.sign_in(email, form.get("password", ""))
-        if not tokens:
-            return page(request, "signin.html", status=400, next=target,
-                        email=form.get("email", "")[:254],
-                        error="Wrong e-mail or password, or the e-mail is not confirmed yet.")
+        if not isinstance(tokens, Tokens):
+            status, error = SIGN_IN_ERRORS.get(tokens, SIGN_IN_ERRORS["unavailable"])
+            return page(request, "signin.html", status=status, next=target,
+                        email=form.get("email", "")[:254], error=error)
         request.state.session.update(access=tokens.access, refresh=tokens.refresh,
                                      csrf=new_csrf())
         return redirect(request, target)
+
+    @app.get("/forgot-password")
+    def forgot_form(request: Request):
+        return page(request, "forgot.html")
+
+    @app.post("/forgot-password")
+    def forgot(request: Request, form: FormData = Depends(posted_form)):
+        email = (form.get("email") or "").strip().lower()[:254]
+        computer = client_key(request, proxy_hops)
+        if not (reset_by_ip.allow(computer) and reset_by_account.allow(f"{email} {computer}")):
+            return page(request, "forgot.html", status=429, email=email,
+                        error="Too many requests. Try again in 15 minutes.")
+        if email:
+            auth.request_password_reset(email)
+        return page(request, "forgot.html", sent=True)
+
+    @app.get("/reset-password")
+    def reset_form(request: Request):
+        return page(request, "reset.html", token_hash=request.query_params.get("token_hash", ""))
+
+    @app.post("/reset-password")
+    def reset_password(request: Request, form: FormData = Depends(posted_form)):
+        token = (form.get("token_hash") or "")[:200]
+        password, again = form.get("password", ""), form.get("password_again", "")
+        error = None
+        if len(password) < 8:
+            error = "The password needs at least 8 characters."
+        elif password != again:
+            error = "The two passwords are not the same."
+        if error is None:
+            result = auth.reset_password(token, password)
+            if result == "ok":
+                return redirect(request, "/signin?reset=1")
+            error = RESET_ERRORS.get(result, RESET_ERRORS["unavailable"])
+        return page(request, "reset.html", status=400, token_hash=token, error=error)
 
     @app.get("/about")
     def about(request: Request):
@@ -229,6 +267,20 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
     from kaltstart.api import pages
     pages.register(app)
     return app
+
+
+# What the sign-in page says for each reason of auth.sign_in (design 2026-11-19).
+SIGN_IN_ERRORS = {
+    "credentials": (400, "Wrong e-mail or password."),
+    "unconfirmed": (400, "Confirm your e-mail address first: open the link we sent you."),
+    "busy": (429, "Too many sign-ins right now. Try again in a few minutes."),
+    "unavailable": (503, "Sign-in is not working right now. Try again in a moment."),
+}
+RESET_ERRORS = {
+    "expired": "This link has expired.",
+    "weak": "Choose another password: this one is too weak or the same as before.",
+    "unavailable": "The password could not be changed right now. Try again in a moment.",
+}
 
 
 # Sent with every response. Styles may be inline (style attributes in the
