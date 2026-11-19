@@ -55,6 +55,7 @@ class FakeAuth:
         self._refresh: dict[str, str] = {}
         self.reset_tokens: dict[str, str] = {}             # token hash -> email
         self.fail_sign_in_with: str | None = None          # a reason, to test the pages
+        self.refused_passwords: set[str] = set()           # refused as Supabase would
 
     @staticmethod
     def _hash(salt: str, password: str) -> str:
@@ -91,6 +92,8 @@ class FakeAuth:
         email = self.reset_tokens.pop(token_hash, None)
         if email is None or email not in self.users:
             return "expired"
+        if password in self.refused_passwords:
+            return "weak"                                  # the token is spent, as in Supabase
         _salt, _hash, user_id = self.users[email]
         salt = secrets.token_hex(8)
         self.users[email] = (salt, self._hash(salt, password), user_id)
@@ -167,7 +170,10 @@ class SupabaseAuth:
         try:
             session = client.auth.verify_otp({"token_hash": token_hash, "type": "recovery"}).session
         except Exception as exc:
-            return "unavailable" if getattr(exc, "status", 400) >= 500 else "expired"
+            # Only a refusal of the token itself means the link is spent; a
+            # limit (429), a server error or no answer at all is a pause.
+            status = getattr(exc, "status", None)
+            return "expired" if status in (400, 401, 403, 404, 410, 422) else "unavailable"
         if not session:
             return "expired"
         try:

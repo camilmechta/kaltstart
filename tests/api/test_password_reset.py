@@ -1,7 +1,5 @@
 """Clear sign-in errors and the password reset (design 2026-11-19)."""
 
-import types
-
 import pytest
 
 from kaltstart.api.auth import SupabaseAuth, sign_in_reason
@@ -139,3 +137,45 @@ def test_a_bad_new_password_keeps_the_form(client, auth, password, again, messag
     ("/forgot-password", "Sending…"), ("/reset-password?token_hash=x", "Changing…")])
 def test_each_sent_once_button_says_what_it_is_doing(client, path, label):
     assert f'data-sending="{label}"' in client.get(path).text
+
+
+
+# --- final review of the reset (2026-11-19) -----------------------------------
+
+def test_a_refused_new_password_says_the_link_is_used(client, auth):
+    signed_up(client)
+    forgot(client, EMAIL)
+    auth.refused_passwords.add(NEW)
+    page = reset(client, next(iter(auth.reset_tokens)))
+    assert page.status_code == 400
+    assert "This password was refused: it is too weak or the same as before." in page.text
+    assert "The link is now used" in page.text and 'href="/forgot-password"' in page.text
+    assert 'name="password"' not in page.text
+
+
+def test_reset_attempts_are_rate_limited(client):
+    for _ in range(10):
+        reset(client, "guess")
+    assert reset(client, "guess").status_code == 429
+
+
+class _Raising:
+    """A Supabase client whose verify_otp raises the given error."""
+    def __init__(self, exc):
+        self.auth = self
+        self._exc = exc
+
+    def verify_otp(self, params):
+        raise self._exc
+
+
+@pytest.mark.parametrize("exc,result", [
+    (error(403, "otp_expired"), "expired"),
+    (error(429, "over_request_rate_limit"), "unavailable"),
+    (error(500, "unexpected_failure"), "unavailable"),
+    (ConnectionError("down"), "unavailable"),
+])
+def test_supabase_reset_errors(exc, result, monkeypatch):
+    real = SupabaseAuth("https://example.supabase.co", "anon", "service")
+    monkeypatch.setattr(real, "_client", lambda key: _Raising(exc))
+    assert real.reset_password("hash", NEW) == result

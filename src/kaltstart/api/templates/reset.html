@@ -3,7 +3,10 @@
 {% block main_class %}container narrow{% endblock %}
 {% block content %}
 <h1 class="title-xl">Choose a new password</h1>
-{% if not token_hash %}
+{% if spent %}
+<p class="notice notice-error" role="alert">{{ error }}</p>
+<div class="actions"><a class="btn btn-primary" href="/forgot-password">Ask for a new link</a></div>
+{% elif not token_hash %}
 <p class="notice notice-error" role="alert">This link is not complete. Ask for a new one.</p>
 <div class="actions"><a class="btn btn-primary" href="/forgot-password">Ask for a new link</a></div>
 {% else %}

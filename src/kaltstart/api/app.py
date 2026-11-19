@@ -74,6 +74,9 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
     signin_by_ip, signin_by_account = RateLimit(10, 900), RateLimit(10, 900)
     # Password reset requests: the same limits as sign-in, kept apart.
     reset_by_ip, reset_by_account = RateLimit(10, 900), RateLimit(10, 900)
+    # New-password attempts: every one reaches Supabase from the server's own
+    # address, so one visitor must not use up its limit for every student.
+    newpass_by_ip, newpass_all = RateLimit(10, 900), RateLimit(100, 900)
     app.state.store, app.state.auth, app.state.page, app.state.now = store, auth, page, now
     app.state.sessions = sessions
 
@@ -206,11 +209,15 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
 
     @app.get("/reset-password")
     def reset_form(request: Request):
-        return page(request, "reset.html", token_hash=request.query_params.get("token_hash", ""))
+        return page(request, "reset.html",
+                    token_hash=request.query_params.get("token_hash", "")[:200])
 
     @app.post("/reset-password")
     def reset_password(request: Request, form: FormData = Depends(posted_form)):
         token = (form.get("token_hash") or "")[:200]
+        if not (newpass_by_ip.allow(client_key(request, proxy_hops)) and newpass_all.allow("all")):
+            return page(request, "reset.html", status=429, token_hash=token,
+                        error="Too many attempts. Try again in 15 minutes.")
         password, again = form.get("password", ""), form.get("password_again", "")
         error = None
         if len(password) < 8:
@@ -221,6 +228,10 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
             result = auth.reset_password(token, password)
             if result == "ok":
                 return redirect(request, "/signin?reset=1")
+            if result in ("expired", "weak"):
+                # The link is spent: no form to fill again, only a way to a new one.
+                return page(request, "reset.html", status=400, token_hash=token,
+                            error=RESET_ERRORS[result], spent=True)
             error = RESET_ERRORS.get(result, RESET_ERRORS["unavailable"])
         return page(request, "reset.html", status=400, token_hash=token, error=error)
 
@@ -278,7 +289,7 @@ SIGN_IN_ERRORS = {
 }
 RESET_ERRORS = {
     "expired": "This link has expired.",
-    "weak": "Choose another password: this one is too weak or the same as before.",
+    "weak": "This password was refused: it is too weak or the same as before. The link is now used.",
     "unavailable": "The password could not be changed right now. Try again in a moment.",
 }
 
