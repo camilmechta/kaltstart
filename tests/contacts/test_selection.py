@@ -123,3 +123,23 @@ def test_business_roles_still_prefer_the_founder():
 
 def test_a_technical_role_at_a_larger_company_goes_to_recruiting():
     assert choose_person([CTO, HR], "software", "large") == HR
+
+
+# Honest addresses (design 2026-11-19, point 3).
+@pytest.mark.parametrize("local", [
+    "support", "help", "helpdesk", "service", "customerservice", "kundenservice",
+    "noreply", "no-reply", "donotreply", "privacy", "datenschutz", "dpo", "gdpr",
+    "press", "presse", "media", "pr", "legal", "billing", "invoices", "rechnung",
+    "accounting", "buchhaltung", "orders", "shop", "newsletter", "webmaster",
+    "postmaster", "security", "compliance", "returns", "feedback", "api", "dev"])
+def test_addresses_not_meant_for_an_application(local):
+    from kaltstart.contacts.selection import usable_address
+    assert not usable_address(f"{local}@example.ch")
+    assert not usable_address(f"{local.upper()}@example.ch")
+
+
+@pytest.mark.parametrize("local", ["info", "hello", "contact", "jobs", "team", "office",
+                                   "kontakt", "anna.muster", "careers", "hr"])
+def test_addresses_fit_for_an_application(local):
+    from kaltstart.contacts.selection import usable_address
+    assert usable_address(f"{local}@example.ch")

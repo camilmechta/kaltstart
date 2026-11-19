@@ -13,6 +13,7 @@ from supabase import Client, create_client
 
 from kaltstart.api.rules import LIMITS, MailRecord, Refusal
 from kaltstart.contacts.names import clean_name
+from kaltstart.contacts.selection import usable_address
 from kaltstart.api.store import (
     RECENT_ROUND_DAYS, STATUSES, CompanyRow, EmailRow, ListFilters, Mail, NewMail, PersonRow,
     Profile, Showcase, eligible, shown_people)
@@ -146,7 +147,8 @@ class SupabaseAppStore:
 
     def _with_address(self) -> set[str]:
         return {r["company_id"] for r in self._read_all(
-            "contact_emails", "company_id", ("company_id", "address"))}
+            "contact_emails", "company_id,address", ("company_id", "address"))
+            if usable_address(r["address"])}
 
     def _excluded(self) -> set[str]:
         return {r["company_id"] for r in self._read_all(
@@ -185,7 +187,8 @@ class SupabaseAppStore:
     def emails(self, company_id: str) -> list[EmailRow]:
         rows = (self._client.table("contact_emails").select("address,type,source_url")
                 .eq("company_id", company_id).order("address").execute().data)
-        return [EmailRow(r["address"], r["type"], r["source_url"]) for r in rows]
+        return [EmailRow(r["address"], r["type"], r["source_url"]) for r in rows
+                if usable_address(r["address"])]
 
     def company_names(self, company_ids: Sequence[str]) -> dict[str, str]:
         """One read for a whole page; companies no longer listed keep their name."""

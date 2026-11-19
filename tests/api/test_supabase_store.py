@@ -62,7 +62,8 @@ TABLES = {
          "sectors": ["Robotics"], "website": "https://one.example.ch", "description": "Robots."},
         {"id": "c2", "name": "Example Two", "country": "Germany", "city": "Berlin",
          "sectors": ["Fintech"], "website": "https://two.example.de", "description": "Money."}],
-    "contact_emails": [{"company_id": "c1"}, {"company_id": "c2"}],
+    "contact_emails": [{"company_id": "c1", "address": "info@c1.example.ch"},
+                       {"company_id": "c2", "address": "info@c2.example.ch"}],
     "contact_exclusions": [{"company_id": "c2", "person_key": None, "address_key": None}],
     "mails": [],
 }
@@ -164,3 +165,10 @@ def test_a_company_page_follows_the_stores_clock():
     SupabaseAppStore(client, now=lambda: later).company("c1")
     since = (later - timedelta(days=365)).date().isoformat()
     assert param(recorder.of("GET", "rounds")[0], "date") == f"gte.{since}"
+
+
+def test_the_live_store_sets_unfit_addresses_aside():
+    """Honest addresses, point 3: a company with only support@ counts as without address."""
+    tables = dict(TABLES, contact_emails=[{"company_id": "c1", "address": "support@c1.example.ch"},
+                                          {"company_id": "c2", "address": "info@c2.example.ch"}])
+    assert store(Recorder(tables))._with_address() == {"c2"}

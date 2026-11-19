@@ -10,6 +10,26 @@ CAREERS_LOCAL_PARTS = ("careers", "career", "jobs", "talent", "hr", "karriere",
                        "recruiting")
 
 
+# Local parts that are not meant for an application: customer support,
+# no-reply, privacy, press, billing and the like (design 2026-11-19). The
+# crawler still stores them; the app never writes to them.
+UNFIT_LOCAL_PARTS = frozenset((
+    "support", "help", "helpdesk", "service", "services", "customerservice",
+    "customer-service", "customercare", "care", "kundenservice", "kundendienst",
+    "noreply", "no-reply", "donotreply", "do-not-reply", "privacy", "datenschutz", "dpo",
+    "gdpr", "dataprotection", "press", "presse", "media", "pr", "abuse", "legal",
+    "billing", "invoice", "invoices", "rechnung", "rechnungen", "accounting",
+    "buchhaltung", "finance", "orders", "order", "bestellung", "shop", "store",
+    "newsletter", "unsubscribe", "webmaster", "postmaster", "hostmaster", "security",
+    "compliance", "returns", "retoure", "feedback", "bugs", "status", "api", "dev",
+    "developers"))
+
+
+def usable_address(address: str) -> bool:
+    """False for an address no application should go to (support@, noreply@...)."""
+    return address.split("@", 1)[0].strip().lower() not in UNFIT_LOCAL_PARTS
+
+
 def address_owner(address: str, people: Sequence[FoundPerson]) -> FoundPerson | None:
     """The person whose name the local part carries, if any.
 

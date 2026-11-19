@@ -10,6 +10,7 @@ from typing import Protocol, Sequence
 
 from kaltstart.api import rules
 from kaltstart.api.rules import MailRecord, Refusal
+from kaltstart.contacts.selection import usable_address
 
 PAGE_SIZE = 50
 RECENT_ROUND_DAYS = 365
@@ -280,7 +281,7 @@ class InMemoryAppStore:
 
     def companies(self, filters: ListFilters, student_id: str,
                   now: datetime) -> tuple[list[CompanyRow], int]:
-        with_address = {cid for cid, rows in self._emails.items() if rows}
+        with_address = {cid for cid in self._emails if self.emails(cid)}
         with_person = {cid for cid, rows in self._people.items() if rows}
         return eligible(list(self._companies.values()), with_address, self._excluded,
                         self.mail_records(), filters, student_id, now, with_person)
@@ -289,7 +290,7 @@ class InMemoryAppStore:
         return sorted({c.sector for c in self._companies.values() if c.sector})
 
     def company(self, company_id: str) -> CompanyRow | None:
-        if company_id in self._excluded or not self._emails.get(company_id):
+        if company_id in self._excluded or not self.emails(company_id):
             return None
         return self._companies.get(company_id)
 
@@ -297,7 +298,8 @@ class InMemoryAppStore:
         return shown_people(self._people.get(company_id, []))
 
     def emails(self, company_id: str) -> list[EmailRow]:
-        return list(self._emails.get(company_id, []))
+        """The addresses an application may go to (never support@, noreply@...)."""
+        return [e for e in self._emails.get(company_id, []) if usable_address(e.address)]
 
     def contact_summary(self, company_ids: Sequence[str]) -> dict[str, tuple[int, bool]]:
         """For each company: how many people are named, and whether a careers

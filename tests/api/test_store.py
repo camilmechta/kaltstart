@@ -167,3 +167,20 @@ def test_the_in_memory_store_applies_the_round_cap_and_keeps_the_variant():
         assert isinstance(store.reserve(f"s{n}", mail, NOW - timedelta(days=40 * (6 - n))), str)
     assert store.reserve("s9", mail, NOW) == Refusal("round_full", None)
     assert {m.variant for m in store.mails("s0")} == {2}
+
+
+# Honest addresses (design 2026-11-19, point 3): support@ and the like are never used.
+def test_a_company_with_only_an_unfit_address_has_none():
+    from datetime import datetime, timezone
+    from kaltstart.api.store import InMemoryAppStore, ListFilters
+    store = InMemoryAppStore(invitation="code-123")
+    store.add_company(company(1), emails=[EmailRow("support@c1.example.ch", "generic", "u")],
+                      people=[])
+    store.add_company(company(2), emails=[EmailRow("support@c2.example.ch", "generic", "u"),
+                                          EmailRow("info@c2.example.ch", "generic", "u")],
+                      people=[])
+    now = datetime.now(timezone.utc)
+    ids = {r.id for r in store.companies(ListFilters(), "s1", now)[0]}
+    assert "c1" not in ids and "c2" in ids
+    assert store.company("c1") is None
+    assert [e.address for e in store.emails("c2")] == ["info@c2.example.ch"]
