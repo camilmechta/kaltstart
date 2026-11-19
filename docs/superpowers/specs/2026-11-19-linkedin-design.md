@@ -67,8 +67,9 @@ note always exists.
 name, one line thanking them for connecting, the opening on the round, the
 student's showcase sentence, the role paragraph or the student's company
 line, the closing question, the name. No subject, no programme line, no CV
-sentence (a CV cannot be attached to a first message), no PS. At most 150
-words.
+sentence (a CV cannot be attached to a first message), no PS. At most 190
+words: measured worst case 187 with every student text at its longest;
+about 100 words usually. (150 in the first draft of this design.)
 
 **On the page.** A "Channel" choice (E-mail / LinkedIn) at the top of step
 2. With LinkedIn, the preview shows the note with a live count ("143 / 200
@@ -111,7 +112,7 @@ texts and the person's name, as for a mail; it never visits LinkedIn.
   company, person, university and programme names allowed and every round
   stage, `len(note) <= 200`; the shortest candidate exists for every input;
   the richest candidate is used when it fits.
-- Message: within 150 words in the same matrix; no subject, no CV line.
+- Message: within 190 words in the same matrix; no subject, no CV line.
 - Page: the channel choice; LinkedIn refused for "team"; at a large company
   only a typed name; the kept page shows both texts, the count and the
   search link (URL-encoded name and company); My mails wording.
