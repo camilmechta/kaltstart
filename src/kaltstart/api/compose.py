@@ -143,6 +143,32 @@ def choose(company: CompanyRow, people: Sequence[PersonRow], emails: Sequence[Em
                      person_key(company.id, person.name), person.title)
 
 
+def linkedin_recipient(company: CompanyRow, people: Sequence[PersonRow], profile: Profile | None,
+                       choice: str, *, person_index: int | None = None,
+                       typed_name: str | None = None) -> Recipient:
+    """The person of a LinkedIn message: no address is needed or looked for
+    (LinkedIn review, 2026-11-19). The same rules as a mail for who may be named."""
+    if choice not in CHOICES or choice == "team":
+        raise ValueError("LinkedIn needs a person")
+    if choice in ("suggested", "other_on_list") and not names_people(company):
+        raise ValueError("no person is listed at a large company")
+    if choice == "typed":
+        name = " ".join((typed_name or "").split())
+        if not name or len(name) > MAX_TYPED_NAME:
+            raise ValueError("a name of 1 to 40 characters is required")
+        return Recipient(name, None, None, "linkedin", "typed", person_key(company.id, name))
+    if choice == "suggested":
+        person = suggested(company, people, profile)
+        if person is None:
+            raise ValueError("no person is suggested for this company")
+    else:
+        if person_index is None or not 0 <= person_index < len(people):
+            raise ValueError("unknown person")
+        person = people[person_index]
+    return Recipient(person.name, person.source_url, None, "linkedin", choice,
+                     person_key(company.id, person.name), person.title)
+
+
 def where_it_goes(company_name: str, person_name: str, address_type: str) -> str:
     """Where a mail to a named person goes, said before it is kept (honest
     addresses, 2026-11-19); the address itself shows once kept (D77)."""

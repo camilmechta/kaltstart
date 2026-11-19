@@ -125,7 +125,7 @@
     {% if recipient.address_type == 'linkedin' %}
     <div class="mail-label">To</div><div>{{ recipient.person_name }} <span class="muted">· on LinkedIn</span></div>
     <div class="mail-label" style="margin-top:8px">Connection note</div><div class="mail-body">{{ preview.subject }}</div>
-    <div class="small muted">{{ preview.subject|length }} / 200 characters</div>
+    <div class="small muted">{{ preview.subject|note_length }} / 200 characters</div>
     <div class="mail-label" style="margin-top:8px">Message, once they accept</div><div class="mail-body">{{ preview.body }}</div>
     {% else %}
     <div class="mail-label">To</div><div>{{ recipient.person_name or (company.name ~ ' team') }} <span class="muted">· {{ preview_goes_to }}{% if recipient.address_type != 'student' %} The address shows once you keep this mail.{% endif %}</span></div>

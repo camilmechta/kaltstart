@@ -24,7 +24,7 @@
 </ol>
 <div class="mail-preview" style="margin-top:24px">
   <div class="copy-row"><div><div class="mail-label">Connection note</div><div class="mail-body" id="copy-subject">{{ mail.subject or '' }}</div>
-    <div class="small muted">{{ (mail.subject or '')|length }} / 200 characters</div></div>
+    <div class="small muted">{{ (mail.subject or '')|note_length }} / 200 characters</div></div>
     <button class="btn btn-secondary" type="button" data-copy="copy-subject">Copy</button></div>
   <div class="copy-row"><div><div class="mail-label">Message, once they accept</div><div class="mail-body" id="copy-body">{{ mail.body or '' }}</div></div>
     <button class="btn btn-secondary" type="button" data-copy="copy-body" data-copied-form="copied-form">Copy</button></div>

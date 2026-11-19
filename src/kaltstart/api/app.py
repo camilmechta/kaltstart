@@ -62,6 +62,8 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
     env.filters["web_link"] = web_link
     from kaltstart.contacts.names import title_hint
     env.filters["title_hint"] = title_hint
+    from kaltstart.mailgen.linkedin import note_length
+    env.filters["note_length"] = note_length          # counted as LinkedIn counts
     sessions = Sessions(session_secret)
     page = Page(env, sessions, removal_contact)
     # Sign-up: 10 tries an hour per address, and sign-up closes for an hour

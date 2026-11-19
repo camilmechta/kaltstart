@@ -348,10 +348,15 @@ def register(app: FastAPI) -> None:
         except ValueError:
             index = None
         try:
-            recipient = compose.choose(company, store.people(company.id), store.emails(company.id),
-                                       profile, choice, person_index=index,
-                                       typed_name=form.get("typed_name"),
-                                       their_address=None if linkedin else form.get("their_address"))
+            if linkedin:
+                recipient = compose.linkedin_recipient(company, store.people(company.id), profile,
+                                                       choice, person_index=index,
+                                                       typed_name=form.get("typed_name"))
+            else:
+                recipient = compose.choose(company, store.people(company.id),
+                                           store.emails(company.id), profile, choice,
+                                           person_index=index, typed_name=form.get("typed_name"),
+                                           their_address=form.get("their_address"))
         except compose.BadAddress:
             return None, ("This address does not look right: check it, or leave the field "
                           "empty.", None, 400)
@@ -376,7 +381,11 @@ def register(app: FastAPI) -> None:
             showcase = int(form.get("showcase") or 1)
         except ValueError:
             showcase = 1
-        inputs = compose.to_mailgen(profile, showcases, company, recipient, showcase)
+        # A LinkedIn message is checked as a mail to the team would be: the
+        # profile and the texts, never an address or a forwarded body.
+        checked = (replace(recipient, address="team@example.invalid", address_type="generic",
+                           person_name=None) if linkedin else recipient)
+        inputs = compose.to_mailgen(profile, showcases, company, checked, showcase)
         try:
             k = rules.variant_for(company.id, company.round_id, records)
             mail = generate(*inputs, style=style, language=language,
@@ -397,7 +406,6 @@ def register(app: FastAPI) -> None:
                                        company_line=form.get("company_line") or None, variant=k)
             mail = mg.Mail(subject=note, body=message, language=language, style=style,
                            used_company_line=mail.used_company_line)
-            recipient = replace(recipient, address=None, address_type="linkedin")
         return recipient, (mail, k)
 
     @app.get("/companies/{company_id}")

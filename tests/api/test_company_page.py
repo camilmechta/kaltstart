@@ -503,3 +503,31 @@ def test_the_linkedin_preview_does_not_promise_an_address(client):
     ready(client)
     page = post(client, "preview", choice="other_on_list", person="0", channel="linkedin").text
     assert "the address shows once you keep it" not in page
+
+
+# Final review of LinkedIn (2026-11-19).
+def test_linkedin_does_not_need_an_address_for_the_person(client, store, auth):
+    from dataclasses import replace
+    from kaltstart.api.store import EmailRow
+    # The only address belongs to Anna: a mail to Ben is impossible, LinkedIn is not.
+    store.add_company(replace(C1, id="c7", name="Only Anna Co"),
+                      emails=[EmailRow("anna.muster@c7.example.ch", "personal", "u")],
+                      people=[BEN, ANNA])
+    ready(client)
+    data = {"style": "direct", "language": "en", "showcase": "1", "company_line": "",
+            "choice": "other_on_list", "person": "0", "channel": "linkedin",
+            "csrf": csrf(client, "/companies/c7")}
+    response = client.post("/companies/c7/keep", data=data)
+    assert response.status_code == 303
+    mail = store.mails(user_id(auth))[0]
+    assert (mail.person_name, mail.address_type, mail.address) == ("Ben Probe", "linkedin", None)
+
+
+def test_the_counter_counts_like_linkedin(client, store, auth):
+    from kaltstart.mailgen.linkedin import note_length
+    ready(client)
+    response = post(client, "keep", choice="typed", typed_name="😀Ann Muster", channel="linkedin")
+    mail = store.mails(user_id(auth))[0]
+    page = client.get(response.headers["location"]).text
+    assert f"{note_length(mail.subject)} / 200 characters" in page
+    assert note_length(mail.subject) != len(mail.subject)

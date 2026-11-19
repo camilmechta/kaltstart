@@ -15,6 +15,15 @@ MAX_NOTE_CHARS = 200             # a free LinkedIn account's limit (300 before 2
 MAX_MESSAGE_WORDS = 190          # the longest case measured: 187, every student text at its longest
 
 
+def note_length(text: str) -> int:
+    """The length LinkedIn counts: UTF-16 units, so an emoji counts 2."""
+    return len(text.encode("utf-16-le")) // 2
+
+
+def _clean(text: str | None) -> str:
+    return " ".join((text or "").split())
+
+
 def _first(name: str) -> str:
     return g.first_name(" ".join(name.split()))
 
@@ -31,13 +40,13 @@ def _note_candidates(student: Student, company: Company, round: Round, person: s
                      style: str, language: str) -> list[str]:
     person = " ".join(person.split())
     first = _first(person)
-    me = (f"{student.first_name.strip()} {student.last_name.strip()}" if style == "formal"
-          else student.first_name.strip())
+    me = (f"{_clean(student.first_name)} {_clean(student.last_name)}" if style == "formal"
+          else _clean(student.first_name))
     uni = " ".join((student.university or "HSG").split())
     stage = round_name(round.stage, language)
     role = role_words(student.role, language)
     level = _level(student, language)
-    name = company.name.strip()
+    name = _clean(company.name)
     part_time = student.request == "part_time"
     if language == "en":
         req = f"a part-time role in {role}" if part_time else f"an internship in {role}"
@@ -45,24 +54,24 @@ def _note_candidates(student: Student, company: Company, round: Round, person: s
         who = f"a {level} student at {uni}" if level else f"a student at {uni}"
         if style == "formal":
             return [
-                f"Dear {person}, congratulations on {name}'s {stage}. I am {who} seeking {req} "
+                f"Dear {person}, congratulations on the {stage} at {name}. I am {who} seeking {req} "
                 f"and would be glad to connect. {me}",
                 f"Dear {person}, congratulations on the funding round at {name}. I am {who} "
                 f"seeking {req} and would be glad to connect. {me}",
-                f"Dear {person}, congratulations on {name}'s round. I am a student seeking {req} "
+                f"Dear {person}, congratulations on the round at {name}. I am a student seeking {req} "
                 f"and would be glad to connect. {me}",
                 f"Dear {person}, congratulations on your round. I would be glad to connect about "
                 f"{short}. {me}",
                 f"Congratulations on your round. I would be glad to connect about {short}.",
             ]
         return [
-            f"Hi {first}, congrats on {name}'s {stage}! I'm {who} looking for {req} and would "
+            f"Hi {first}, congrats on the {stage} at {name}! I'm {who} looking for {req} and would "
             f"love to connect. {me}",
             f"Hi {first}, congrats on the funding round at {name}! I'm {who} looking for {req} "
             f"and would love to connect. {me}",
-            f"Hi {first}, congrats on {name}'s round! I'm a student looking for {req} and would "
+            f"Hi {first}, congrats on the round at {name}! I'm a student looking for {req} and would "
             f"love to connect. {me}",
-            f"Hi {first}, congrats on {name}'s round! I'd love to connect about {short}. {me}",
+            f"Hi {first}, congrats on the round at {name}! I'd love to connect about {short}. {me}",
             f"Hi {first}, congrats on your round! I'd love to connect about {short}. {me}",
             f"Congrats on your round! I'd love to connect about {short}.",
         ]
@@ -87,15 +96,16 @@ def _note_candidates(student: Student, company: Company, round: Round, person: s
         ]
     return [
         f"Hallo {first}, Glückwunsch zur {stage} von {name}! {studies} und suche {req}. "
-        f"Ich würde mich freuen, mich zu vernetzen. {me}",
+        f"Ich würde mich freuen, mich mit dir zu vernetzen. {me}",
         f"Hallo {first}, Glückwunsch zur Finanzierungsrunde! {studies} und suche {req}. "
-        f"Ich würde mich freuen, mich zu vernetzen. {me}",
+        f"Ich würde mich freuen, mich mit dir zu vernetzen. {me}",
         f"Hallo {first}, Glückwunsch zur Finanzierungsrunde! Ich suche {req} und würde mich "
-        f"gerne vernetzen. {me}",
+        f"gerne mit dir vernetzen. {me}",
         f"Hallo {first}, Glückwunsch zur Finanzierungsrunde! Ich suche {short} und würde "
-        f"mich gerne vernetzen. {me}",
-        f"Hallo {first}, Glückwunsch zur Finanzierungsrunde! Gerne würde ich mich vernetzen.",
-        "Glückwunsch zur Finanzierungsrunde! Gerne würde ich mich vernetzen.",
+        f"mich gerne mit dir vernetzen. {me}",
+        f"Hallo {first}, Glückwunsch zur Finanzierungsrunde! Gerne würde ich mich mit dir "
+        f"vernetzen.",
+        "Glückwunsch zur Finanzierungsrunde! Ich würde mich freuen, uns zu vernetzen.",
     ]
 
 
@@ -103,7 +113,7 @@ def linkedin_note(student: Student, company: Company, round: Round, person_name:
                   style: str, language: str) -> str:
     """The richest connection note that fits in MAX_NOTE_CHARS characters."""
     candidates = _note_candidates(student, company, round, person_name, style, language)
-    return next(text for text in candidates if len(text) <= MAX_NOTE_CHARS)
+    return next(text for text in candidates if note_length(text) <= MAX_NOTE_CHARS)
 
 
 _THANKS = {("en", False): "Thanks for connecting!",
