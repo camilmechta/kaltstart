@@ -285,6 +285,16 @@ def register(app: FastAPI) -> None:
                                                           company.country, company.city, None))
         return person, style, language
 
+    def suggested_destination(company, people, emails, profile, person):
+        """Where the mail to the suggested person goes, or None."""
+        if person is None:
+            return None
+        try:
+            r = compose.choose(company, people, emails, profile, "suggested")
+        except ValueError:
+            return None
+        return compose.where_it_goes(company.name, person.name, r.address_type)
+
     def company_view(request, company, *, form=None, preview=None, recipient=None, error=None,
                      error_link=None, status=200):
         student = request.state.user_id
@@ -299,6 +309,7 @@ def register(app: FastAPI) -> None:
                     form=form, preview=preview, recipient=recipient, error=error,
                     error_link=error_link, size_info=SIZE_INFO[company.size_category],
                     why=compose.why(person, profile, company) if person else None,
+                    goes_to=suggested_destination(company, people, emails, profile, person),
                     profile_missing=missing_for_mail(profile, store.showcases(student)),
                     places_left=rules.places_left(company.id, company.round_id,
                                                   company.size_category, store.mail_records(),

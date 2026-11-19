@@ -129,6 +129,19 @@ def choose(company: CompanyRow, people: Sequence[PersonRow], emails: Sequence[Em
                      person_key(company.id, person.name), person.title)
 
 
+def where_it_goes(company_name: str, person_name: str, address_type: str) -> str:
+    """Where a mail to a named person goes, said before it is kept (honest
+    addresses, 2026-11-19); the address itself shows once kept (D77)."""
+    first = person_name.split()[0]
+    if address_type == "personal":
+        return f"Goes to {first}'s own address."
+    if address_type == "student":
+        return "Goes to the address you gave."
+    kind = "careers" if address_type == "careers" else "general"
+    return (f"Goes to {company_name}'s {kind} address: {first}'s own address is not "
+            "published. The mail asks them to pass it on.")
+
+
 def to_mailgen(profile: Profile, showcases: Sequence[Showcase], company: CompanyRow,
                recipient: Recipient, chosen_showcase: int = 1):
     """The inputs of mailgen.generate."""

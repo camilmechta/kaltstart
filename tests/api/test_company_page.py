@@ -340,3 +340,24 @@ def test_the_keep_form_carries_their_address(client):
                 their_address="ben@c1.example.ch").text
     keep_form = page.split('action="/companies/c1/keep', 1)[1]
     assert 'name="their_address" value="ben@c1.example.ch"' in keep_form
+
+
+def test_the_page_says_where_each_choice_goes(client, store):
+    from dataclasses import replace
+    store.add_company(replace(C1, id="c9", name="Shared Co"),
+                      emails=[e for e in EMAILS if e.type == "generic"], people=[BEN, ANNA])
+    ready(client)
+    import html
+    page = html.unescape(client.get("/companies/c9").text)
+    assert ("Goes to Shared Co's general address: Anna's own address is not published. "
+            "The mail asks them to pass it on.") in page
+    assert ("Goes to their own address if the website publishes it, otherwise to the "
+            "company's careers or general address, asked to pass it on.") in page
+    assert "Goes to the company's careers or general address." in page
+
+
+def test_my_mails_says_when_a_mail_went_through_a_shared_address(client, store, auth):
+    ready(client)
+    post(client, "keep", choice="other_on_list", person="0")
+    page = client.get("/mails").text
+    assert "To Ben Probe, via the careers address" in page

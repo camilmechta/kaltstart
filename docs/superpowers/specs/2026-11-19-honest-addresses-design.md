@@ -42,14 +42,15 @@ LinkedIn messages (a later, separate feature); changing the crawler.
 **1. Destination shown.** On the company page, under the suggested person:
 
 - "Goes to Anna's own address." (a personal address of that person)
+- "Goes to the address you gave." (an address the student typed, point 4)
 - "Goes to Example Robotics's careers address: Anna's own address is not
-  published." (careers)
+  published. The mail asks them to pass it on." (careers)
 - "Goes to Example Robotics's general address: Anna's own address is not
   published. The mail asks them to pass it on." (generic)
 
 "Someone else from their website" and "A person you found yourself" get one
 line: "Goes to their own address if the website publishes it, otherwise to
-the company's careers or general address." "No name" says it goes to the
+the company's careers or general address, asked to pass it on." "No name" says it goes to the
 careers or general address. My mails says "To Anna Muster, via the
 general address" for such mails.
 
@@ -113,3 +114,11 @@ that an address a student types is kept in that mail only.
   address keeps the form with an error; a valid one gives a kept mail with
   that address and type `student`.
 - Migration `0010` and the migration check column `m0010_student`.
+
+## Changes while building
+
+- A forwarded mail may hold 230 words instead of 210: with the longest texts
+  and an eight-word title, the forward line adds up to 20 words
+  (`MAX_FORWARDED_BODY_WORDS`). Shortening it would make the mail less clear.
+- The address field is one field under the choices, not one per choice; it
+  applies to the named choice and is ignored for "No name".

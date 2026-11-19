@@ -153,3 +153,17 @@ def test_a_shared_address_carries_the_title_to_the_mail():
     assert r.address_type == "careers" and r.person_title == "CTO"
     contact = to_mailgen(PROFILE, [Showcase(1, "I did a thing that matters.", None)], C1, r)[3]
     assert contact.person_title == "CTO"
+
+
+# Honest addresses (design 2026-11-19, point 1): where the mail goes, said before "Keep".
+@pytest.mark.parametrize("address_type,sentence", [
+    ("personal", "Goes to Anna's own address."),
+    ("student", "Goes to the address you gave."),
+    ("careers", "Goes to Example Co's careers address: Anna's own address is not published. "
+                "The mail asks them to pass it on."),
+    ("generic", "Goes to Example Co's general address: Anna's own address is not published. "
+                "The mail asks them to pass it on."),
+])
+def test_where_the_mail_goes(address_type, sentence):
+    from kaltstart.api.compose import where_it_goes
+    assert where_it_goes("Example Co", "Anna Muster", address_type) == sentence
