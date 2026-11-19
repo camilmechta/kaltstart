@@ -96,8 +96,8 @@ Two new categories, `engineering` and `rnd`, added to `CATEGORIES`.
 
 | Category | Head level | Manager level |
 |---|---|---|
-| `engineering` | VP, Head, Director, Lead of Engineering, Software, AI, Machine Learning, ML, Platform, Technology; Chief AI Officer; German "Leiter Softwareentwicklung" | Engineering Manager, Software Manager |
-| `rnd` | Head, Director, VP, Lead of R&D, Research, Hardware, Electronics, Mechanical, Forschung, Entwicklung; Chief Scientific Officer (CSO in a title that also reads as science); German "Entwicklungsleiter(in)", "Leiter Forschung & Entwicklung" | R&D Manager, Hardware Manager |
+| `engineering` | VP, Head, Director, Lead of Engineering, Software, AI, Machine Learning, ML; Chief AI Officer; German "Leiter Softwareentwicklung" | Engineering Manager, Software Manager |
+| `rnd` | Head, Director, VP, Lead of R&D, Research, Hardware, Electronics, Mechanical, Forschung, Entwicklung; Chief Scientific Officer (in full words); German "Entwicklungsleiter(in)", "Leiter Forschung & Entwicklung" | R&D Manager, Hardware Manager |
 
 Rules for the builder:
 - The CTO stays in `leadership`, as today; it is not added to either new
@@ -105,9 +105,12 @@ Rules for the builder:
 - "Development" alone is **not** an R&D word: it would catch "Head of
   Business Development". "Entwicklung" is matched only as a whole word, so
   "Geschäftsentwicklung" does not match.
-- Titles are split on `&` and `/` today (`_PARTS`). "Head of R&D" and
-  "Head of AI/ML" must still read as one function: protect "R&D", "F&E"
-  and "AI/ML" before splitting.
+- "Head of R&D" and "Head of AI/ML" must read as one function. (The
+  classifier only splits titles on `&` and `/` to drop a past job, so this
+  holds today; a test pins it.)
+- "Technology" and "Platform" are left out of the engineering words: they
+  also appear in business titles ("Head of Technology Partnerships"), and
+  the CTO already covers the technology lead. (Decided while planning.)
 - "CSO" is ambiguous (chief scientific, security or strategy officer):
   only the full words "Chief Scientific Officer" count unless the builder
   finds a safe way to read the short form.
