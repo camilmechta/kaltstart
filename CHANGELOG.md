@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- The README is one page for visitors: what Kaltstart does, screenshots of
+  the demo mode, the main product decisions, how it works, figures and how
+  it was built with Claude Code. Operations moved to `docs/operations.md`
+  and the crawler measurements to `docs/measurements/README.md`.
+
 ### Fixed
 
 - A second click on "Sign in" showed "This form has expired" although the

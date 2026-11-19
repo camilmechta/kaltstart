@@ -2,7 +2,8 @@
 
 Kaltstart ingests startup funding rounds from the Tech.eu Funding Explorer API
 into Supabase, finds contacts, and prepares spontaneous application mails for
-HSG students. See PRD.md for scope and DECISIONS.md for the decision log.
+students (invitation-only beta, any university). See PRD.md for scope and
+DECISIONS.md for the decision log.
 
 ## Commands
 
