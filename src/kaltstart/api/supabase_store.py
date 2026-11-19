@@ -16,7 +16,7 @@ from kaltstart.contacts.names import clean_name
 from kaltstart.contacts.selection import usable_address
 from kaltstart.api.store import (
     RECENT_ROUND_DAYS, STATUSES, CompanyRow, EmailRow, ListFilters, Mail, NewMail, PersonRow,
-    Profile, Showcase, eligible, shown_people)
+    Profile, Showcase, eligible, field_people_of, shown_people)
 
 PAGE_SIZE = 1000
 _PROFILE_FIELDS = ("first_name", "last_name", "programme", "degree_level", "attach_cv", "university", "languages",
@@ -183,6 +183,21 @@ class SupabaseAppStore:
         return shown_people([PersonRow(r["name"], r["title"], tuple(r["categories"] or ()),
                                        r["level"], r["source_url"], _d(r["read_at"]))
                              for r in rows])
+
+    def field_people(self, company_ids: Sequence[str], category: str) -> dict[str, PersonRow]:
+        """One read for a page: the first person of `category` per company."""
+        ids = list(company_ids)
+        if not ids:
+            return {}
+        rows = (self._client.table("contact_people")
+                .select("company_id,name,title,categories,level,source_url,read_at")
+                .in_("company_id", ids).execute().data)
+        by_company: dict[str, list[PersonRow]] = {}
+        for r in rows:
+            by_company.setdefault(r["company_id"], []).append(
+                PersonRow(r["name"], r["title"], tuple(r["categories"] or ()), r["level"],
+                          r["source_url"], _d(r["read_at"])))
+        return field_people_of({c: shown_people(p) for c, p in by_company.items()}, category)
 
     def person_excluded(self, company_id: str, person_key: str) -> bool:
         """A person removed on request (exclude_person) is never written to,

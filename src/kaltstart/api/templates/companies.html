@@ -21,6 +21,24 @@
   </div>
 </section>
 {% endif %}
+{% if progress %}
+<a class="progress-strip" href="/mails">Your applications: {{ progress.kept }} kept · {{ progress.sent }} sent · {{ progress.replies }} {{ 'reply' if progress.replies == 1 else 'replies' }} <span aria-hidden="true">→</span></a>
+{% endif %}
+{% if for_you %}
+<section class="for-you" aria-labelledby="for-you-title">
+  <h2 id="for-you-title" class="title-lg">For you</h2>
+  <p class="muted small">Recent rounds where someone of your field is named on the company's own site, newest first.</p>
+  <div class="for-you-cards">
+    {% for f in for_you %}{% set c = f.company %}
+    <a class="for-you-card" href="/companies/{{ c.id }}">
+      <span class="for-you-name">{{ c.name }}</span>
+      <span class="small">{{ f.round }}{% if f.age %} · {{ f.age }}{% endif %}</span>
+      {% if f.person %}<span class="small contact-person">{{ f.person.name }}, {{ f.person.title }}: your field</span>{% endif %}
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
 <p class="kicker" id="companies">New rounds · Switzerland · Germany · Austria</p>
 <h1 class="title-xl">Who just raised money</h1>
 <p class="muted">{{ total }} {{ "company matches" if total == 1 else "companies match" }} your filters, newest rounds first. Each company takes at most 3 mails a month, so founders are not flooded.</p>
@@ -67,9 +85,9 @@
   {% for item in items %}{% set c = item.company %}
   <li><a class="row" href="/companies/{{ c.id }}">
     <div><span class="row-title">{{ c.name }}</span><div class="row-detail"><span class="size size-{{ c.size_category }}">{{ size_info[c.size_category][0] }}</span> {{ c.sector or '' }}</div></div>
-    <div><span class="amount">{{ item.round }}</span><div class="row-detail">{{ c.round_date.strftime('%b %Y') }}</div></div>
+    <div><span class="amount">{{ item.round }}</span><div class="row-detail">{% if item.age %}<span class="fresh">{{ item.age }}</span>{% else %}{{ c.round_date.strftime('%b %Y') }}{% endif %}</div></div>
     <div class="row-detail">{{ c.city or '' }}{% if c.city %} · {% endif %}{{ c.country }}</div>
-    <div class="row-detail">{% if item.places_left in (1, 2) %}<span class="last-slot">{{ item.places_left }} place{{ '' if item.places_left == 1 else 's' }} left</span> · {% endif %}<span class="{{ 'contact-person' if item.named else '' }}">{{ item.contact }}</span></div>
+    <div class="row-detail">{% if item.places_left in (1, 2) %}<span class="last-slot">{{ item.places_left }} place{{ '' if item.places_left == 1 else 's' }} left</span> · {% endif %}{% if item.field %}<span class="contact-person">{{ item.field.title }} named: your field</span>{% else %}<span class="{{ 'contact-person' if item.named else '' }}">{{ item.contact }}</span>{% endif %}</div>
   </a></li>
   {% endfor %}
 </ul>

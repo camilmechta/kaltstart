@@ -212,6 +212,11 @@ _ROLE_CATEGORY = {"product": "product", "growth": "growth", "data": "data",
 _CTO = re.compile(r"(?<!\w)(?:cto|chief technology officer)(?!\w)", re.IGNORECASE)
 
 
+def field_category(profile: Profile | None) -> str | None:
+    """The crawler category of the student's target role, or None."""
+    return _ROLE_CATEGORY.get(profile.target_role) if profile and profile.target_role else None
+
+
 def why(person: PersonRow, profile: Profile | None, company: CompanyRow) -> str:
     """One sentence saying why this person is suggested, following the order
     of contacts.selection.choose_person."""

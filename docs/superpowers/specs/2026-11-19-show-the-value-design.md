@@ -31,7 +31,9 @@ student whose profile is complete: up to three companies. Candidates: the
 newest 50 within the student's preferred countries and sectors, rounds of
 the last 3 months, not written to yet. Score: a head or manager of the
 student's field named on the site (not at a large company, D100) +2, a round
-in the last 30 days +1. Kept: score 2 or more. Each card: name, "raised €8M,
+in the last 30 days +1. Kept: score 2 or more, so someone of the field is
+always named; ordered by score, then newest round. The block says "Recent
+rounds", not "fresh" (a kept round may be up to 3 months old). Each card: name, "raised €8M,
 3 weeks ago", and "Anna Muster, Head of Growth: your field" or the round.
 
 **C. Row hooks.** In the list, a round of the last 30 days shows "Raised N

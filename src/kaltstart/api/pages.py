@@ -10,6 +10,22 @@ from kaltstart.api.session import safe_next
 log = logging.getLogger("kaltstart.api")
 
 
+def raised_ago(day, now) -> str | None:
+    """ "Raised 5 days ago" for a round of the last 30 days, else None
+    (show the value, 2026-11-19)."""
+    days = (now.date() - day).days
+    if days < 0 or days >= 30:
+        return None
+    if days == 0:
+        return "Raised today"
+    if days == 1:
+        return "Raised yesterday"
+    if days < 7:
+        return f"Raised {days} days ago"
+    weeks = days // 7
+    return f"Raised {weeks} week{'' if weeks == 1 else 's'} ago"
+
+
 def register(app: FastAPI) -> None:
     from kaltstart.api.app import error_page
     page, signed_in = app.state.page, app.state.signed_in
@@ -204,14 +220,29 @@ def register(app: FastAPI) -> None:
         summary = store.contact_summary([c.id for c in rows])
         shown = {c.id: summary[c.id] if compose.names_people(c) else (0, summary[c.id][1])
                  for c in rows}
+        category = compose.field_category(profile)
+        field = store.field_people([c.id for c in rows if compose.names_people(c)],
+                                   category) if category else {}
         items = [dict(company=c, round=round_text(c), contact=contact_kind(shown[c.id]),
-                      named=shown[c.id][0] > 0,
+                      named=shown[c.id][0] > 0, age=raised_ago(c.round_date, now),
+                      field=field.get(c.id),
                       places_left=rules.places_left(c.id, c.round_id, c.size_category,
                                                     records, now)) for c in rows]
         student = request.state.user_id
-        get_started = None
-        if not any(m.student_id == student for m in records):
-            get_started = {"profile_done": not missing_for_mail(profile, store.showcases(student))}
+        own = [m for m in records if m.student_id == student]
+        profile_done = not missing_for_mail(profile, store.showcases(student))
+        get_started = None if own else {"profile_done": profile_done}
+        progress = None
+        if own:
+            shown_statuses = [rules.shown_status(m, now) for m in own]
+            progress = {"kept": len(own),
+                        "sent": sum(s in ("sent", "human_reply", "positive_reply", "presumed_sent")
+                                    for s in shown_statuses),
+                        "replies": sum(s in ("human_reply", "positive_reply")
+                                       for s in shown_statuses)}
+        for_you = []
+        if profile_done and category and page_number == 1 and not filters.query:
+            for_you = pick_for_you(profile, category, {m.company_id for m in own}, now)
         base = [("q", filters.query)] + [("country", c) for c in countries] + \
                [("sector", s) for s in sectors] + [("size", s) for s in filters.sizes] + \
                [("months", str(months))] + ([("person", "1")] if filters.with_person else [])
@@ -222,7 +253,25 @@ def register(app: FastAPI) -> None:
                     page_number=page_number, pages=pages,
                     previous=link(page_number - 1) if page_number > 1 else None,
                     next_page=link(page_number + 1) if page_number < pages else None,
-                    get_started=get_started, saved=q.get("saved") == "1")
+                    get_started=get_started, saved=q.get("saved") == "1",
+                    progress=progress, for_you=for_you)
+
+    def pick_for_you(profile, category, written, now):
+        """Up to three fresh companies naming someone of the student's field
+        (show the value, 2026-11-19)."""
+        candidates, _ = store.companies(
+            ListFilters(countries=profile.preferred_countries, sectors=profile.preferred_sectors,
+                        months=3), profile.id, now)
+        candidates = [c for c in candidates if c.id not in written and compose.names_people(c)]
+        field = store.field_people([c.id for c in candidates], category)
+        scored = []
+        for c in candidates:
+            score = (2 if c.id in field else 0) + (1 if raised_ago(c.round_date, now) else 0)
+            if score >= 2:
+                scored.append((score, c.round_date, c))
+        scored.sort(key=lambda t: (t[0], t[1]), reverse=True)
+        return [dict(company=c, round=round_text(c), age=raised_ago(c.round_date, now),
+                     person=field.get(c.id)) for _s, _d, c in scored[:3]]
 
     from kaltstart.api import compose
     from kaltstart.api.forms import missing_for_mail

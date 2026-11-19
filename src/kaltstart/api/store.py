@@ -161,6 +161,18 @@ def shown_people(rows: Sequence[PersonRow]) -> list[PersonRow]:
     return shown
 
 
+def field_people_of(people: dict[str, Sequence["PersonRow"]],
+                    category: str) -> dict[str, "PersonRow"]:
+    """For each company, its first person of `category`, a head before a manager."""
+    found = {}
+    for company_id, rows in people.items():
+        match = sorted((p for p in rows if category in p.categories),
+                       key=lambda p: p.level != "head")
+        if match:
+            found[company_id] = match[0]
+    return found
+
+
 def eligible(companies: Sequence[CompanyRow], with_address: set[str], excluded: set[str],
              mails: Sequence[MailRecord], filters: ListFilters, student_id: str,
              now: datetime, with_person: set[str] = frozenset()) -> tuple[list[CompanyRow], int]:
@@ -211,6 +223,7 @@ class AppStore(Protocol):
     def people(self, company_id: str) -> list[PersonRow]: ...
     def emails(self, company_id: str) -> list[EmailRow]: ...
     def person_excluded(self, company_id: str, person_key: str) -> bool: ...
+    def field_people(self, company_ids: Sequence[str], category: str) -> dict[str, PersonRow]: ...
     def contact_summary(self, company_ids: Sequence[str]) -> dict[str, tuple[int, bool]]: ...
     def mail_records(self) -> list[MailRecord]: ...
     def reserve(self, student_id: str, mail: NewMail, now: datetime) -> Refusal | str: ...
@@ -251,6 +264,9 @@ class InMemoryAppStore:
 
     def person_excluded(self, company_id: str, person_key: str) -> bool:
         return (company_id, person_key) in self._excluded_people
+
+    def field_people(self, company_ids: Sequence[str], category: str) -> dict[str, PersonRow]:
+        return field_people_of({c: self.people(c) for c in company_ids}, category)
 
     def all_mails(self) -> list[Mail]:
         return list(self._mails)
