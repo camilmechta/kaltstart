@@ -42,6 +42,7 @@ class Page:
         html = self._env.get_template(name).render(
             request=request, user_id=getattr(state, "user_id", None),
             csrf=state.session["csrf"], pending=getattr(state, "pending", 0),
+            week=getattr(state, "week", 0), limits=rules.LIMITS,
             removal_contact=self._removal, path=request.url.path, versions=self._versions,
             **context)
         # The session cookie is saved by the middleware, on every response.
@@ -93,6 +94,7 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
         if request.state.user_id:
             own = [m.record() for m in store.mails(request.state.user_id)]
             request.state.pending = rules.pending_count(request.state.user_id, own, now())
+            request.state.week = rules.week_count(request.state.user_id, own, now())
 
     @app.middleware("http")
     async def attach_session(request: Request, call_next):

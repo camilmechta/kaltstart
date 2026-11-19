@@ -87,6 +87,17 @@ def pending_count(student_id: str, mails: Sequence[MailRecord], now: datetime) -
                and shown_status(m, now) in _PENDING)
 
 
+def week_count(student_id: str, mails: Sequence[MailRecord], now: datetime) -> int:
+    """Mails the student kept in the last `speed_days` days, abandoned ones
+    included: the count the weekly limit applies to."""
+    return len(_this_week(student_id, mails, now))
+
+
+def _this_week(student_id: str, mails: Sequence[MailRecord], now: datetime) -> list[datetime]:
+    return sorted(m.created_at for m in mails if m.student_id == student_id
+                  and _age(m, now) < timedelta(days=LIMITS.speed_days))
+
+
 def refusal(student_id: str, company_id: str, person_key: str | None,
             mails: Sequence[MailRecord], now: datetime, *, round_id: str | None = None,
             size: str | None = None) -> Refusal | None:
@@ -97,8 +108,7 @@ def refusal(student_id: str, company_id: str, person_key: str | None,
     cap = _round_cap(size)
     if cap is not None and len(_in_round(company_id, round_id, mails)) >= cap:
         return Refusal("round_full", None)
-    recent = sorted(m.created_at for m in mails if m.student_id == student_id
-                    and _age(m, now) < timedelta(days=LIMITS.speed_days))
+    recent = _this_week(student_id, mails, now)
     if student_id and len(recent) >= LIMITS.speed:
         return Refusal("student_speed", (recent[0] + timedelta(days=LIMITS.speed_days)).date())
     if pending_count(student_id, mails, now) >= LIMITS.pending:

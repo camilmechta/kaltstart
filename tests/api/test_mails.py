@@ -27,7 +27,7 @@ def test_my_mails_lists_the_students_mails_newest_first(client, store, auth):
     keep(store, me, "dev02", days=1, subject="Second?")
     page = client.get("/mails").text
     assert page.index("Second?") < page.index("First?")
-    assert "2 of 5 mails in progress" in page
+    assert "2 of 10 mails kept this week · 2 waiting" in page
 
 
 def test_another_students_mails_are_not_listed_nor_reachable(client, store, auth):

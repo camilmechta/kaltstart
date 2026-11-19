@@ -22,7 +22,17 @@ def test_the_navigation_once_signed_in(client):
     page = client.get("/companies").text
     for link in ('href="/companies"', 'href="/mails"', 'href="/profile"'):
         assert link in page
-    assert '<a class="pill" href="/mails"' in page and "0 of 5 mails in progress" in page
+    assert '<a class="pill" href="/mails"' in page
+    assert "0 of 10 mails kept this week · 0 waiting" in page
+
+
+TEMPLATES = Path(__file__).parents[2] / "src" / "kaltstart" / "api" / "templates"
+
+
+def test_no_template_writes_a_limit_by_hand():
+    for template in TEMPLATES.glob("*.html"):
+        text = template.read_text()
+        assert "of 5" not in text and "of 10" not in text, template.name
 
 
 def test_the_css_defines_every_design_token_in_both_themes():
@@ -57,10 +67,11 @@ def test_assets_carry_a_version_so_browsers_reload_them(client):
 
 
 
-def test_my_mails_explains_mails_in_progress(client):
+def test_my_mails_explains_waiting_mails_and_the_week(client):
     sign_up_and_in(client)
     page = client.get("/mails").text
-    assert "in progress" in page and "not marked as sent or abandoned" in page
+    assert "waiting" in page and "not marked it as sent or abandoned" in page
+    assert "You can keep 10 mails in 7 days, abandoned ones included." in page
 
 
 def test_figures_and_tags_use_the_main_font_and_inputs_are_styled():

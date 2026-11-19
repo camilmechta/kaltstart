@@ -3,7 +3,7 @@ from datetime import date, datetime, timedelta, timezone
 from kaltstart.api.rules import (
     CAP_DAYS, COMPANY_CAP, PENDING_LIMIT, PRESUMED_SENT_DAYS, REMINDER_HOURS, MailRecord,
     LIMITS, Refusal, needs_reminder, pending_count, places_left, refusal, shown_status,
-    variant_for)
+    variant_for, week_count)
 
 NOW = datetime(2026, 11, 16, 12, 0, tzinfo=timezone.utc)
 
@@ -151,3 +151,16 @@ def test_variant_counts_every_mail_of_the_round():
 
 def test_the_presumed_sent_window_is_a_limit_too():
     assert LIMITS.presumed_sent_days == 7 and LIMITS.as_json()["presumed_sent_days"] == 7
+
+
+# Visible sending limits (design 2026-11-19).
+def test_week_count_counts_kept_mails_of_the_last_seven_days():
+    mails = [mail(1, days=1), mail(2, status="abandoned", days=3), mail(3, status="sent", days=6.9),
+             mail(4, days=7.1), mail(5, student="s2", days=1)]
+    assert week_count("s1", mails, NOW) == 3
+
+
+def test_the_weekly_refusal_agrees_with_the_count():
+    mails = [mail(n, company=f"c{n}", status="sent", days=n * 0.5) for n in range(1, 11)]
+    assert week_count("s1", mails, NOW) == LIMITS.speed
+    assert refusal("s1", "new", None, mails, NOW).reason == "student_speed"

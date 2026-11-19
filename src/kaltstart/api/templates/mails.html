@@ -4,7 +4,7 @@
 {% block content %}
 <p class="kicker">Your applications</p>
 <h1 class="title-xl">My mails</h1>
-<p class="muted">{{ pending }} of 5 mails in progress. A mail is in progress when you kept it but have not marked as sent or abandoned yet. You can have 5 at a time: mark them as you go, so you can keep new ones. After 7 days without news, a mail counts as sent.</p>
+<p class="muted">{{ week }} of {{ limits.speed }} mails kept this week · {{ pending }} waiting. You can keep {{ limits.speed }} mails in {{ limits.speed_days }} days, abandoned ones included. A mail is waiting when you kept it but have not marked it as sent or abandoned yet. You can have {{ limits.pending }} at a time: mark them as you go, so you can keep new ones. After 7 days without news, a mail counts as sent.</p>
 {% for mail, days in reminders %}
 <div class="notice notice-warning" style="margin-top:16px">
   Your mail to <b>{{ companies[mail.company_id] }}</b> was kept {{ days }} days ago: did you send it?
