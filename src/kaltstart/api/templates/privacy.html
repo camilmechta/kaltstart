@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Privacy · Kaltstart{% endblock %}
+{% block main_class %}container column{% endblock %}
+{% block content %}
+<p class="kicker">Privacy</p>
+<h1 class="title-xl">Your data on Kaltstart</h1>
+<div class="stack" style="margin-top:24px">
+  <div class="card stack">
+    <h2 class="title-lg">Who runs Kaltstart</h2>
+    <p>Kaltstart is a non-commercial student project, in beta and by invitation. For any question about your data, write to <a href="mailto:{{ removal_contact }}">{{ removal_contact }}</a>.</p>
+  </div>
+  <div class="card stack">
+    <h2 class="title-lg">If you have an account</h2>
+    <p>Kaltstart keeps your e-mail address, your first and last name, your university, degree and programme, your languages, your target role, what you are looking for and when, your link if you add one, your preferred countries and sectors, your showcase sentences, and the mails you keep with their status.</p>
+    <p>It uses them to prepare your mails and to apply the limits that keep Kaltstart fair to companies.</p>
+    <p>You can delete your account at any time from your profile. Your account, profile and showcase sentences are removed at once. Mails you kept stay counted for the companies, without your name or their text.</p>
+  </div>
+  <div class="card stack">
+    <h2 class="title-lg">If you work at a company in the list</h2>
+    <p>Kaltstart keeps your name, your job title and the page of your company's own website where it was read, and the addresses your company publishes. Nothing comes from social networks or other websites.</p>
+    <p>A name is only a suggestion: a student must confirm it before using it in a mail.</p>
+    <p>It is removed when your company's last funding round is more than 12 months old, when your company's page no longer shows it, or as soon as you ask at <a href="mailto:{{ removal_contact }}">{{ removal_contact }}</a>.</p>
+  </div>
+  <div class="card stack">
+    <h2 class="title-lg">What Kaltstart never does</h2>
+    <p>Kaltstart never sends a mail: students send their own, from their own mailbox. It never sells or shares data, shows no ads, and has no visit statistics and no tracking. One cookie keeps you signed in, for 14 days.</p>
+  </div>
+  <div class="card stack">
+    <h2 class="title-lg">Where the data is</h2>
+    <p>The app runs on Render in Frankfurt, Germany. The database is on Supabase in Paris, France. Funding rounds come from the Tech.eu Funding Explorer, licence CC BY 4.0.</p>
+  </div>
+  <div class="card stack">
+    <h2 class="title-lg">Your rights</h2>
+    <p>You can ask for a copy of your data, a correction or a deletion at <a href="mailto:{{ removal_contact }}">{{ removal_contact }}</a>. You get an answer within 30 days.</p>
+  </div>
+  <div class="card stack">
+    <h2 class="title-lg">When the project ends</h2>
+    <p>When the beta ends, all personal data is deleted. Only totals without any name are kept, such as how many mails received a reply.</p>
+  </div>
+  <p class="muted small">Last updated: 19 November 2026</p>
+</div>
+{% endblock %}

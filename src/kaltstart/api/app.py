@@ -175,6 +175,10 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
     def about(request: Request):
         return page(request, "about.html")
 
+    @app.get("/privacy")
+    def privacy(request: Request):
+        return page(request, "privacy.html")
+
     @app.get("/signup")
     def signup_form(request: Request):
         return page(request, "signup.html")
