@@ -6,9 +6,12 @@ def test_visitors_land_on_a_page_that_explains_the_product(client, store):
     page = client.get("/")
     assert page.status_code == 200
     text = page.text
-    for words in ("Write to startups while the money is fresh", "The right moment",
-                  "The right person", "A mail that stands out", "How it works",
-                  "3 mails", "the part that gets you hired is yours"):
+    for words in ("Internships that are never posted.",
+                  "Startups that just raised money hire in the next months, but most never "
+                  "post the job.", "Roles no one has posted yet", "The right person, not a form",
+                  "Two minutes, not two hours", "New rounds every night",
+                  "The right moment", "The right person", "A mail that stands out",
+                  "How it works", "3 mails", "the part that gets you hired is yours"):
         assert words in text, words
     assert 'href="/signup"' in text and 'href="/signin"' in text
     _rows, total = store.companies(ListFilters(), "", NOW)
@@ -63,3 +66,15 @@ def test_the_landing_page_shows_an_example_of_the_product(client):
 def test_the_hero_rises_in_order(client):
     hero = client.get("/").text.split('class="hero"', 1)[1].split("</section>", 1)[0]
     assert hero.count('class="rise') >= 4 or hero.count(' rise"') + hero.count('class="rise') >= 4
+
+
+
+def test_the_example_is_honest_and_shows_linkedin(client):
+    import html
+    from kaltstart.mailgen.linkedin import note_length
+    text = html.unescape(client.get("/").text)
+    example = text.split('product-example"', 1)[1].split("</section>", 1)[0]
+    assert "mara.keller@" not in example and "hello@glacier.example.ch" in example
+    assert "PS:" in example and "Or on LinkedIn" in example
+    note = example.split('class="example-note-text">', 1)[1].split("<", 1)[0]
+    assert 0 < note_length(note) <= 200

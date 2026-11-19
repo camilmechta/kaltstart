@@ -1,21 +1,38 @@
 {% extends "base.html" %}
-{% block title %}Kaltstart · Write to startups while the money is fresh{% endblock %}
+{% block title %}Kaltstart · Internships that are never posted{% endblock %}
 {% block main_class %}landing{% endblock %}
 {% block content %}
 <section class="hero">
   <div class="hero-inner">
     <p class="kicker rise" style="--d:0">Beta · by invitation</p>
-    <h1 class="hero-title rise" style="--d:1">Write to startups while the money is fresh.</h1>
-    <p class="hero-sub rise" style="--d:2">Kaltstart lists the startups in Switzerland, Germany and Austria that just raised, finds the right person to write to, and drafts a short, personal application around what you have done. You send it yourself.</p>
+    <h1 class="hero-title rise" style="--d:1">Internships that are never posted.</h1>
+    <p class="hero-sub rise" style="--d:2">Startups that just raised money hire in the next months, but most never post the job. Kaltstart finds them every night in Switzerland, Germany and Austria, tells you who to write to, and drafts your application in two minutes. You send it yourself.</p>
     <div class="actions hero-actions rise" style="--d:3">
       <a class="btn btn-primary btn-large" href="/signup">Create your account</a>
       <a class="btn btn-secondary btn-large" href="/signin">Sign in</a>
     </div>
     <ul class="stats rise" style="--d:4">
       <li><b>{{ total }} companies</b><span>raised money in the last 12 months</span></li>
-      <li><b>3 countries</b><span>Switzerland, Germany, Austria</span></li>
+      <li><b>New rounds every night</b><span>the list updates itself, so you write while the money is fresh</span></li>
       <li><b>3 mails</b><span>at most per company a month, so founders read them</span></li>
     </ul>
+  </div>
+</section>
+
+<section class="section-block" aria-labelledby="why-title">
+  <div class="container-inner">
+    <h2 class="section-title" id="why-title">Why it works</h2>
+    <ol class="how-cards" data-reveal>
+      <li class="how-card" style="--i:0">
+        <h3>Roles no one has posted yet</h3>
+        <p>A company that just raised is about to hire, but rarely says so. Few students write at that moment: you do.</p></li>
+      <li class="how-card" style="--i:1">
+        <h3>The right person, not a form</h3>
+        <p>Who reads applications there, read on the company's own website, and the address that reaches them.</p></li>
+      <li class="how-card" style="--i:2">
+        <h3>Two minutes, not two hours</h3>
+        <p>The round, the contact and a first draft built around what you have done are ready. You add one line of your own.</p></li>
+    </ol>
   </div>
 </section>
 
@@ -35,16 +52,21 @@
         <p class="example-label play-item" style="--i:2"><span class="step-number">2</span> The right person</p>
         <div class="option-card suggested-card example-person play-item" style="--i:3">
           <span class="option-title">Mara Keller, Head of Growth</span> <span class="tag">Suggested</span>
-          <p class="option-detail">Their title matches your target role. Found on the company's own team page.</p>
+          <p class="option-detail">Their title matches your target role. Found on the company's own team page. Mara's own address is not published, so the mail goes to the general address and asks that it reach Mara.</p>
         </div>
       </div>
       <div class="example-col">
         <p class="example-label play-item" style="--i:4"><span class="step-number">3</span> A mail that stands out</p>
         <div class="mail-preview example-mail play-item" style="--i:5">
-          <div class="mail-label">To</div><div class="mail-address">mara.keller@glacier.example.ch</div>
+          <div class="mail-label">To</div><div class="mail-address">hello@glacier.example.ch</div>
           <div class="mail-label" style="margin-top:8px">Subject</div><div>Glacier Systems internship?</div>
           <div class="mail-label" style="margin-top:8px">Text</div>
-          <div class="mail-body example-body"><span class="type-line" style="--j:0">Hi Mara!</span><span class="type-line" style="--j:1">Congrats on the €12M Series A! I'm studying Business Innovation at HSG and have an internship window from 1 April for 3 months.</span><span class="type-line" style="--j:2">A bit about me: I grew our student association's newsletter from 0 to 4,000 readers in one year.</span><span class="type-line" style="--j:3">I'd love to help with growth. Would that work?</span></div>
+          <div class="mail-body example-body"><span class="type-line" style="--j:0">Hi Mara!</span><span class="type-line" style="--j:1">Congrats on the €12M Series A! I'm studying Business Innovation at HSG and have an internship window from 1 April for 3 months.</span><span class="type-line" style="--j:2">A bit about me: I grew our student association's newsletter from 0 to 4,000 readers in one year.</span><span class="type-line" style="--j:3">I'd love to help with growth. Would that work?</span><span class="type-line" style="--j:4">PS: I couldn't find your direct address, so I wrote to this general address. If someone else reads it first, I'd be grateful if it could reach Mara.</span></div>
+        </div>
+        <p class="example-label play-item" style="--i:6">Or on LinkedIn</p>
+        <div class="mail-preview example-mail play-item" style="--i:6">
+          <div class="mail-label">Connection note</div><div class="mail-body"><span class="example-note-text">Hi Mara, congrats on the Series A at Glacier Systems! I'm a Master's student at HSG looking for an internship in growth and would love to connect. Lea</span></div>
+          <div class="small muted">At most 200 characters, and a longer message for once Mara accepts.</div>
         </div>
         <p class="example-note play-item" style="--i:6">Built around your own showcase sentence. You make it yours and send it.</p>
       </div>
