@@ -3,7 +3,8 @@
 from dataclasses import dataclass
 from datetime import date
 
-ROLES = ("product", "growth", "data", "operations", "business_development")
+ROLES = ("product", "growth", "data", "operations", "business_development",
+         "software_ai", "rd_hardware")
 REQUESTS = ("internship", "part_time")
 STYLES = ("direct", "round", "formal")
 LANGUAGES = ("en", "de")

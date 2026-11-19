@@ -17,7 +17,7 @@ from kaltstart.mailgen.models import (
     MAX_PROGRAMME_CHARS, MAX_TEXT_CHARS, MAX_UNIVERSITY_CHARS, MAX_TEXT_WORDS, REQUESTS,
     ROLES, STYLES, Company, Contact, Mail, MissingData, Round, Student, TooLong)
 from kaltstart.mailgen.phrases import (
-    amount, investor_phrase, request_phrase, role_name, role_paragraph, round_name,
+    amount, investor_phrase, request_phrase, role_name, role_paragraph, role_words, round_name,
     student_text)
 
 _TITLES = frozenset(("dr", "prof", "mag", "ing", "dipl", "lic", "phd", "mba",
@@ -67,8 +67,7 @@ def _role_words(role: str, language: str) -> str:
     """The role inside a sentence: "growth" in English; in German the name of
     the field, which the sentences introduce with "Bereich" ("im Bereich
     Produkt"), since "Produkt" or "Data" cannot stand alone."""
-    name = role_name(role, language)
-    return name.lower() if language == "en" else name
+    return role_words(role, language)
 
 
 # --- openings, section 8.1: three wordings for Direct and Round, one for Formal

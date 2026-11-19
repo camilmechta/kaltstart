@@ -5,7 +5,7 @@ import pytest
 from kaltstart.mailgen.models import ROLES
 from kaltstart.mailgen.phrases import (
     amount, investor_phrase, long_date, request_phrase, role_name, role_paragraph,
-    round_name, student_text)
+    role_words, round_name, student_text)
 from tests.mailgen.helpers import round_, student
 
 
@@ -94,8 +94,34 @@ def test_student_text(text, expected):
 
 def test_role_names():
     assert [role_name(r, "en") for r in ROLES] == [
-        "Product", "Growth", "Data", "Operations", "Business development"]
+        "Product", "Growth", "Data", "Operations", "Business development",
+        "Software & AI", "R&D & Hardware"]
     assert role_name("product", "de") == "Produkt"
+    assert role_name("software_ai", "de") == "Software & KI"
+    assert role_name("rd_hardware", "de") == "Forschung & Entwicklung"
+
+
+@pytest.mark.parametrize("role,language,expected", [
+    ("growth", "en", "growth"), ("product", "de", "Produkt"),
+    ("software_ai", "en", "software and AI"), ("rd_hardware", "en", "R&D and hardware"),
+    ("software_ai", "de", "Software & KI"), ("rd_hardware", "de", "Forschung & Entwicklung")])
+def test_role_words(role, language, expected):
+    assert role_words(role, language) == expected
+
+
+def test_technical_paragraphs():
+    assert role_paragraph("software_ai", "en", False) == (
+        "After a round, the team must ship faster. I would like to help build "
+        "and ship the next features.")
+    assert role_paragraph("rd_hardware", "en", False) == (
+        "New funding turns prototypes into products. I would like to help design, "
+        "build and test the next iterations.")
+    assert role_paragraph("software_ai", "de", False) == (
+        "Nach einer Runde muss das Team schneller liefern. Ich würde gerne helfen, "
+        "die nächsten Features zu bauen und auszuliefern.")
+    assert role_paragraph("rd_hardware", "de", False) == (
+        "Neues Kapital macht aus Prototypen Produkte. Ich würde gerne helfen, "
+        "die nächsten Iterationen zu entwerfen, zu bauen und zu testen.")
 
 
 @pytest.mark.parametrize("role", ROLES)

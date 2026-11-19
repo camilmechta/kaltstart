@@ -9,7 +9,8 @@ from kaltstart.mailgen.models import (
 
 COUNTRIES = ("Switzerland", "Germany", "Austria")
 ROLE_LABELS = {"product": "Product", "growth": "Growth", "data": "Data",
-               "operations": "Operations", "business_development": "Business development"}
+               "operations": "Operations", "business_development": "Business development",
+               "software_ai": "Software & AI", "rd_hardware": "R&D & Hardware"}
 
 
 def _text(form, name: str) -> str:

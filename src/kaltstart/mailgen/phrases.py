@@ -25,9 +25,16 @@ _MONTHS = {
 }
 _ROLE_NAMES = {
     "en": {"product": "Product", "growth": "Growth", "data": "Data",
-           "operations": "Operations", "business_development": "Business development"},
+           "operations": "Operations", "business_development": "Business development",
+           "software_ai": "Software & AI", "rd_hardware": "R&D & Hardware"},
     "de": {"product": "Produkt", "growth": "Growth", "data": "Data",
-           "operations": "Operations", "business_development": "Business Development"},
+           "operations": "Operations", "business_development": "Business Development",
+           "software_ai": "Software & KI", "rd_hardware": "Forschung & Entwicklung"},
+}
+# A role inside a sentence, where lower case would break the name
+# ("software & ai"); other roles use their name, in lower case in English.
+_ROLE_WORDS = {
+    ("en", "software_ai"): "software and AI", ("en", "rd_hardware"): "R&D and hardware",
 }
 # What the student would do in that function at a company that has just raised.
 _ROLE_PARAGRAPHS = {
@@ -51,6 +58,14 @@ _ROLE_PARAGRAPHS = {
                           "Engpässe zu finden und Abläufe aufzusetzen, die mitwachsen.",
     ("de", "business_development"): "Eine neue Runde öffnet Türen zu Partnern und Märkten. Ich "
                                     "würde gerne helfen, Kontakte zu recherchieren und Gespräche vorzubereiten.",
+    ("en", "software_ai"): "After a round, the team must ship faster. I would like to help build "
+                           "and ship the next features.",
+    ("en", "rd_hardware"): "New funding turns prototypes into products. I would like to help "
+                           "design, build and test the next iterations.",
+    ("de", "software_ai"): "Nach einer Runde muss das Team schneller liefern. Ich würde gerne "
+                           "helfen, die nächsten Features zu bauen und auszuliefern.",
+    ("de", "rd_hardware"): "Neues Kapital macht aus Prototypen Produkte. Ich würde gerne helfen, "
+                           "die nächsten Iterationen zu entwerfen, zu bauen und zu testen.",
 }
 
 
@@ -109,6 +124,13 @@ def investor_phrase(round: Round, language: str) -> str | None:
 
 def role_name(role: str, language: str) -> str:
     return _ROLE_NAMES[language][role]
+
+
+def role_words(role: str, language: str) -> str:
+    """The role inside a sentence: "growth" or "software and AI" in English;
+    in German the name of the field, introduced by "im Bereich"."""
+    name = role_name(role, language)
+    return _ROLE_WORDS.get((language, role), name.lower() if language == "en" else name)
 
 
 def role_paragraph(role: str, language: str, formal: bool) -> str:

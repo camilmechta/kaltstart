@@ -181,6 +181,14 @@ def test_the_round_opening_names_the_role_once(language, number):
         assert opening.lower().count("growth") + opening.lower().count("wachstum") <= 1, opening
 
 
+@pytest.mark.parametrize("style", ["direct", "round"])
+def test_technical_roles_read_right_inside_a_sentence(style):
+    en = mail(style=style, student=student(role="software_ai")).body
+    assert "software and AI" in en and "software & ai" not in en.lower().replace("software and ai", "")
+    de = mail(style=style, language="de", student=student(role="rd_hardware")).body
+    assert "Bereich Forschung & Entwicklung" in de
+
+
 def test_round_keeps_the_role_paragraph_apart():
     paragraphs = mail(style="round").body.split("\n\n")
     assert paragraphs[2] == f"What I bring: {student().examples[0].text_en}"

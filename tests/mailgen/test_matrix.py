@@ -56,4 +56,4 @@ def test_every_combination(style, language):
         if language == "de":
             assert "ß" not in m.body + m.subject, case
         count += 1
-    assert count == 2880   # 3 sizes x 5 roles x 2 requests x 4 missing x 2 lines x 6 variants x 2 persons
+    assert count == 4032   # 3 sizes x 7 roles x 2 requests x 4 missing x 2 lines x 6 variants x 2 persons
