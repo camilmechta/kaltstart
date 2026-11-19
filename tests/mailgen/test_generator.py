@@ -199,3 +199,44 @@ def test_round_keeps_the_role_paragraph_apart():
 def test_german_team_greeting(style, greeting):
     text = mail(style=style, language="de", contact=contact(person_name=None)).body
     assert text.startswith(greeting)
+
+
+# Honest addresses (design 2026-11-19, point 2): a named person reached through a
+# shared address. The team is greeted and asked to pass the mail on.
+@pytest.mark.parametrize("style,language,greeting,forward", [
+    ("direct", "en", "Hi Example Robotics team!",
+     "Could you pass this on to Anna Muster (VP of Product)? Thank you!"),
+    ("round", "en", "Hi Example Robotics team,",
+     "Could you pass this on to Anna Muster (VP of Product)? Thank you!"),
+    ("formal", "en", "Dear Example Robotics team,",
+     "Could you please forward this message to Anna Muster, VP of Product? Thank you."),
+    ("direct", "de", "Hallo zusammen!",
+     "Könntet ihr das bitte an Anna Muster (VP of Product) weiterleiten? Danke!"),
+    ("formal", "de", "Guten Tag,",
+     "Könnten Sie diese Nachricht bitte an Anna Muster (VP of Product) weiterleiten? Vielen Dank."),
+])
+@pytest.mark.parametrize("address_type", ["generic", "careers"])
+def test_a_shared_address_asks_the_team_to_pass_it_on(style, language, greeting, forward,
+                                                      address_type):
+    body = mail(style=style, language=language, contact=contact(
+        address="info@example.de", address_type=address_type,
+        person_title="VP of Product")).body
+    paragraphs = body.split("\n\n")
+    assert paragraphs[0] == greeting and paragraphs[1] == forward
+
+
+def test_the_forward_line_without_a_title():
+    body = mail(contact=contact(address="info@example.de", address_type="generic")).body
+    assert body.split("\n\n")[1] == "Could you pass this on to Anna Muster? Thank you!"
+
+
+@pytest.mark.parametrize("address_type", ["personal", "student"])
+def test_the_persons_own_address_greets_them(address_type):
+    body = mail(contact=contact(address_type=address_type, person_title="VP of Product")).body
+    assert body.startswith("Hi Anna!") and "pass this on" not in body
+
+
+def test_no_name_no_forward_line():
+    body = mail(contact=contact(address="info@example.de", address_type="generic",
+                                person_name=None)).body
+    assert body.startswith("Hi Example Robotics team!") and "pass this on" not in body

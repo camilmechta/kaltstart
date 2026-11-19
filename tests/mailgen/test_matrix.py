@@ -5,7 +5,7 @@ import re
 
 import pytest
 
-from kaltstart.mailgen.generator import MAX_BODY_WORDS, generate
+from kaltstart.mailgen.generator import MAX_BODY_WORDS, MAX_FORWARDED_BODY_WORDS, generate
 from kaltstart.mailgen.models import LANGUAGES, REQUESTS, ROLES, STYLES, Example
 from tests.mailgen.helpers import company, contact, round_, student
 
@@ -24,10 +24,18 @@ MISSING = {"none": {}, "no_amount": dict(amount_eur=None, amount_native=None),
 GAPS = re.compile(r"[{}]|\bNone\b|  | [.,!?:]|\n\n\n|led by|angeführt")
 
 
+# A person's own address, a person reached through a shared address with the
+# longest title met on real sites (honest addresses, 2026-11-19), and no name.
+PERSONS = (("Prof. Dr. Anna Maria Muster", "personal", None),
+           ("Prof. Dr. Anna Maria Muster", "generic",
+            "Vice President Product Management and Customer Growth"),
+           (None, "generic", None))
+
+
 def cases(style):
     variants = (0, 1, 2, 3, 4, 5)       # every wording of every axis, both orders
     return itertools.product(("small", "medium", "large"), ROLES, REQUESTS, MISSING,
-                             (True, False), variants, ("Prof. Dr. Anna Maria Muster", None))
+                             (True, False), variants, PERSONS)
 
 
 @pytest.mark.parametrize("style", STYLES)
@@ -45,15 +53,23 @@ def test_every_combination(style, language):
                       stage=STAGES[(ROLES.index(role) + number) % len(STAGES)])
         values.update(MISSING[missing])
         rnd = round_(**values)
-        m = generate(stu, company(name=LONG_COMPANY), rnd, contact(person_name=person),
+        name, address_type, title = person
+        m = generate(stu, company(name=LONG_COMPANY), rnd,
+                     contact(person_name=name, address_type=address_type, person_title=title),
                      style=style, language=language,
                      company_line=LONG_LINE if with_line else None, variant=number)
         case = (style, language, size, role, kind, missing, with_line, number, person)
         assert not GAPS.search(m.body), (case, m.body)
-        assert len(m.body.split()) <= MAX_BODY_WORDS, (case, len(m.body.split()))
+        limit = MAX_FORWARDED_BODY_WORDS if name and address_type == "generic" else MAX_BODY_WORDS
+        assert len(m.body.split()) <= limit, (case, len(m.body.split()))
         assert 0 < len(m.subject) <= 60, (case, m.subject)
         assert m.used_company_line is with_line
         if language == "de":
             assert "ß" not in m.body + m.subject, case
         count += 1
-    assert count == 4032   # 3 sizes x 7 roles x 2 requests x 4 missing x 2 lines x 6 variants x 2 persons
+    assert count == 6048   # 3 sizes x 7 roles x 2 requests x 4 missing x 2 lines x 6 variants x 3 persons
+
+
+
+def test_the_limits():
+    assert (MAX_BODY_WORDS, MAX_FORWARDED_BODY_WORDS) == (210, 230)

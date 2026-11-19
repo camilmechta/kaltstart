@@ -13,7 +13,7 @@ from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 from kaltstart.mailgen.choices import axes, subject, variant as choose_variant
 from kaltstart.mailgen.models import (
-    LANGUAGES, MAX_BODY_WORDS, MAX_EXAMPLE_CHARS, MAX_EXAMPLE_WORDS, MAX_NAME_CHARS,
+    LANGUAGES, MAX_BODY_WORDS, MAX_EXAMPLE_CHARS, MAX_FORWARDED_BODY_WORDS, MAX_EXAMPLE_WORDS, MAX_NAME_CHARS,
     MAX_PROGRAMME_CHARS, MAX_TEXT_CHARS, MAX_UNIVERSITY_CHARS, MAX_TEXT_WORDS, REQUESTS,
     ROLES, STYLES, Company, Contact, Mail, MissingData, Round, Student, TooLong)
 from kaltstart.mailgen.phrases import (
@@ -123,7 +123,34 @@ def _first_name(person: str) -> str:
     return names[0] if names else words[-1]
 
 
+SHARED_ADDRESS_TYPES = ("careers", "generic")
+
+
+def _forwarded(contact: Contact) -> bool:
+    """A named person whose own address is not the one the mail goes to."""
+    return _person(contact) is not None and contact.address_type in SHARED_ADDRESS_TYPES
+
+
+def _forward_line(style: str, language: str, contact: Contact) -> str:
+    """Asks the team reading a shared address to pass the mail on."""
+    person = _person(contact)
+    title = " ".join((contact.person_title or "").split()) or None
+    if language == "en" and style == "formal":
+        who = f"{person}, {title}" if title else person
+        return f"Could you please forward this message to {who}? Thank you."
+    who = f"{person} ({title})" if title else person
+    if language == "en":
+        return f"Could you pass this on to {who}? Thank you!"
+    if style == "formal":
+        return f"Könnten Sie diese Nachricht bitte an {who} weiterleiten? Vielen Dank."
+    return f"Könntet ihr das bitte an {who} weiterleiten? Danke!"
+
+
 def _greeting(style: str, language: str, contact: Contact, company: Company) -> str:
+    if _forwarded(contact):
+        team = Contact(contact.address, contact.address_type, None)
+        return (f"{_greeting(style, language, team, company)}\n\n"
+                f"{_forward_line(style, language, contact)}")
     person = _person(contact)
     first = _first_name(person) if person else None
     if style == "formal":
@@ -309,7 +336,8 @@ def generate(student: Student, company: Company, round: Round, contact: Contact,
     # each axis takes its own wording from it (spec of 2026-11-16, section 4).
     k = choose_variant(student.id, company.id) if variant is None else variant
     subject_n, opening_n, lead_in_n, close_n, order = axes(k)
-    team = _person(contact) is None
+    # Through a shared address, the team reads the mail: it is spoken to.
+    team = _person(contact) is None or _forwarded(contact)
     link = (student.link or "").strip() or None
     # A name ending in a full stop ("Example Holdings Inc.") must not double it.
     opening = _opening(style, language, round, company, student.role, opening_n).replace("..", ".")
@@ -336,7 +364,7 @@ def generate(student: Student, company: Company, round: Round, contact: Contact,
     body = template.render(showcase=f"{lead_in} {student_text(example)}",
                            company_line=line and student_text(line), link=link,
                            **parts).strip()
-    if len(body.split()) > MAX_BODY_WORDS:
+    if len(body.split()) > (MAX_FORWARDED_BODY_WORDS if _forwarded(contact) else MAX_BODY_WORDS):
         raise TooLong("body")
     return Mail(
         subject=subject(style, language, company.name, round_name(round.stage, language),

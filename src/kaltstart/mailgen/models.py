@@ -14,6 +14,9 @@ VARIANTS = 3
 # (decision D72). The showcase sentence may be longer than the sentence
 # about the company: it is the heart of every mail.
 MAX_BODY_WORDS = 210
+# A mail passed on by a team carries one more short paragraph (honest
+# addresses, 2026-11-19): 20 more words at most, with the longest texts.
+MAX_FORWARDED_BODY_WORDS = 230
 MAX_EXAMPLE_CHARS = 400
 MAX_EXAMPLE_WORDS = 60
 MAX_TEXT_CHARS = 200
@@ -71,10 +74,14 @@ class Round:
 
 @dataclass(frozen=True)
 class Contact:
-    """`person_name` is set only for a person the student confirmed (D60)."""
+    """`person_name` is set only for a person the student confirmed (D60).
+    `address_type` is personal, careers, generic, or student (an address the
+    student gave for that person); a named person reached through a careers
+    or general address is greeted through the team (design 2026-11-19)."""
     address: str | None
     address_type: str
     person_name: str | None
+    person_title: str | None = None
 
 
 @dataclass(frozen=True)
