@@ -76,3 +76,13 @@ def test_a_mail_to_an_address_the_student_gave_is_kept(db):
                      address_type="student", person_name="Ben Probe",
                      person_choice="other_on_list", round_id=f"r-{cid}")
     assert result["ok"], result
+
+
+def test_a_linkedin_message_is_kept(db):
+    """LinkedIn (2026-11-19): address type `linkedin`, no address (migration 0011)."""
+    sid = student(db)
+    cid = company(db, cid=f"li-{uuid.uuid4().hex[:6]}")
+    result = reserve(db, sid, cid, person_key="k-ben", address=None, address_type="linkedin",
+                     person_name="Ben Probe", person_choice="other_on_list",
+                     subject="Hi Ben, congrats on the round!", round_id=f"r-{cid}")
+    assert result["ok"], result

@@ -22,4 +22,6 @@ select
   coalesce((select pg_get_constraintdef(oid) from pg_constraint
             where conname = 'profiles_target_role_check') like '%rd_hardware%', false) as m0009_roles,
   coalesce((select pg_get_constraintdef(oid) from pg_constraint
-            where conname = 'mails_address_type_check') like '%student%', false) as m0010_student;
+            where conname = 'mails_address_type_check') like '%student%', false) as m0010_student,
+  coalesce((select pg_get_constraintdef(oid) from pg_constraint
+            where conname = 'mails_address_type_check') like '%linkedin%', false) as m0011_linkedin;

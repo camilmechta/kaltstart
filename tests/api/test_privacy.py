@@ -64,3 +64,8 @@ def test_the_page_mentions_the_address_a_student_gives(client):
     page = client.get("/privacy").text
     assert "A student may also type a name or an address they found themselves" in page
     assert "Kaltstart never guesses an address" in page
+
+
+def test_the_page_mentions_linkedin(client):
+    page = client.get("/privacy").text
+    assert "For a LinkedIn message, Kaltstart keeps the texts and the person's name, as for a mail; it never visits LinkedIn." in page.replace("&#39;", "'")

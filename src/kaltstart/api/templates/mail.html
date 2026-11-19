@@ -4,14 +4,30 @@
 {% block main_class %}container column{% endblock %}
 {% block content %}
 <p class="small"><a href="/mails">← My mails</a></p>
-<h1 class="title-xl">Your mail to {{ company_name }}</h1>
-{% if kept and not mail.redacted %}<p class="notice notice-success" role="status" style="margin-top:16px">Kept. Copy it and send it from your own mailbox.</p>{% endif %}
-{% if attach_cv and not mail.redacted and mail.status in ('generated', 'copied') %}<p class="notice" style="margin-top:12px">Attach your CV before you send it. The mail says it is attached.</p>{% endif %}
+{% set linkedin = mail.address_type == 'linkedin' %}
+<h1 class="title-xl">{% if linkedin %}Your LinkedIn message to {{ company_name }}{% else %}Your mail to {{ company_name }}{% endif %}</h1>
+{% if kept and not mail.redacted %}<p class="notice notice-success" role="status" style="margin-top:16px">{% if linkedin %}Kept. Send it on LinkedIn yourself.{% else %}Kept. Copy it and send it from your own mailbox.{% endif %}</p>{% endif %}
+{% if attach_cv and not linkedin and not mail.redacted and mail.status in ('generated', 'copied') %}<p class="notice" style="margin-top:12px">Attach your CV before you send it. The mail says it is attached.</p>{% endif %}
 {% if mail.redacted %}
 <p class="muted" style="margin-top:12px"><span class="status-pill status-{{ shown }}">{{ labels[shown] }}</span></p>
 <div class="notice" role="status" style="margin-top:16px">
   <p><b>Removed on request.</b> The person or the company asked to be removed from Kaltstart, so the address and the text of this mail were deleted here.</p>
   <p class="small" style="margin-top:8px">Kaltstart cannot remove a copy you already pasted into your mailbox. If you have not sent it yet, please do not.</p>
+</div>
+{% elif linkedin %}
+<p class="muted" style="margin-top:12px"><span class="status-pill status-{{ shown }}">{{ labels[shown] }}</span> Kaltstart never visits LinkedIn: you find the person and send both texts yourself.</p>
+<ol class="steps-list small" style="margin-top:12px">
+  <li><a href="https://www.linkedin.com/search/results/people/?keywords={{ (mail.person_name ~ ' ' ~ company_name)|urlencode }}" rel="noopener noreferrer" target="_blank">Find {{ mail.person_name }} on LinkedIn</a>, and check it is the right person.</li>
+  <li>Click "Connect", then "Add a note", and paste the note. If LinkedIn says your free notes for the month are used up, connect without it.</li>
+  <li>Once they accept, paste the message.</li>
+  <li>Mark it here when you have sent the request.</li>
+</ol>
+<div class="mail-preview" style="margin-top:24px">
+  <div class="copy-row"><div><div class="mail-label">Connection note</div><div class="mail-body" id="copy-subject">{{ mail.subject or '' }}</div>
+    <div class="small muted">{{ (mail.subject or '')|length }} / 200 characters</div></div>
+    <button class="btn btn-secondary" type="button" data-copy="copy-subject">Copy</button></div>
+  <div class="copy-row"><div><div class="mail-label">Message, once they accept</div><div class="mail-body" id="copy-body">{{ mail.body or '' }}</div></div>
+    <button class="btn btn-secondary" type="button" data-copy="copy-body" data-copied-form="copied-form">Copy</button></div>
 </div>
 {% else %}
 <p class="muted" style="margin-top:12px"><span class="status-pill status-{{ shown }}">{{ labels[shown] }}</span> Copy each part into your own mailbox. Read it once more first: one line of your own makes the difference.</p>

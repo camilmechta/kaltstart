@@ -477,3 +477,23 @@ def test_once_per_person_spans_both_channels(client, store, auth):
     post(client, "keep", choice="other_on_list", person="0", channel="linkedin")
     again = post(client, "keep", choice="other_on_list", person="0", channel="email")
     assert again.status_code == 409 and len(store.mails(user_id(auth))) == 1
+
+
+def test_the_kept_linkedin_page(client, store, auth):
+    ready(client)
+    response = post(client, "keep", choice="other_on_list", person="0", channel="linkedin")
+    import html
+    page = html.unescape(client.get(response.headers["location"]).text)
+    assert "Your LinkedIn message to" in page
+    assert "Connection note" in page and "Message, once they accept" in page
+    assert ("https://www.linkedin.com/search/results/people/?keywords=Ben%20Probe%20"
+            "Example%20Co") in page or "linkedin.com/search/results/people/?keywords=Ben%20Probe" in page
+    assert "Find Ben Probe on LinkedIn" in page
+    assert "Attach your CV" not in page and "Subject" not in page
+    assert "/ 200 characters" in page
+
+
+def test_my_mails_says_on_linkedin(client, store, auth):
+    ready(client)
+    post(client, "keep", choice="other_on_list", person="0", channel="linkedin")
+    assert "To Ben Probe, on LinkedIn" in client.get("/mails").text
