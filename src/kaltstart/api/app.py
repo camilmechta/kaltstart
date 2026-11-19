@@ -120,6 +120,11 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
             response = HTMLResponse("<!doctype html><title>Kaltstart</title><p>Something went "
                                     "wrong. Please try again in a moment.</p>", status_code=500)
         response.headers.update(SECURITY_HEADERS)
+        if not static:
+            # Pages hold a student's data and its current state: the browser
+            # never keeps them, so "Back" shows what is true now, and nobody can
+            # page back through a signed-out student's mails on a shared computer.
+            response.headers["Cache-Control"] = "no-store"
         return response
 
     @app.exception_handler(HTTPException)

@@ -302,3 +302,19 @@ def test_the_client_address_behind_render_and_cloudflare():
     plain = FakeRequest("8.8.4.4, 104.23.1.1, 10.0.0.2")
     forged = FakeRequest("9.9.9.9, 8.8.4.4, 104.23.1.1, 10.0.0.2")
     assert client_ip(plain, hops=3) == client_ip(forged, hops=3) == "8.8.4.4"
+
+
+# The back button showed a mail as still kept after it was abandoned
+# (owner, 2026-11-19): pages are never kept by the browser, static files are.
+def test_pages_are_never_stored_by_the_browser(client):
+    from tests.api.conftest import sign_up_and_in
+    for path in ("/", "/signin", "/about"):
+        assert client.get(path).headers.get("cache-control") == "no-store", path
+    sign_up_and_in(client)
+    for path in ("/companies", "/mails", "/profile"):
+        assert client.get(path).headers.get("cache-control") == "no-store", path
+
+
+def test_static_files_still_cache(client):
+    response = client.get("/static/app.css")
+    assert response.status_code == 200 and response.headers.get("cache-control") != "no-store"

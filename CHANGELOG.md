@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- "Back" showed a mail as still kept after it was abandoned: the browser
+  showed its saved copy. Pages are now sent with `Cache-Control: no-store`,
+  static files still cache (D99).
+
 ### Added
 
 - Honest addresses (D98): the company page says where each mail goes
