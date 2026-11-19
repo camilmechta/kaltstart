@@ -261,8 +261,8 @@ a.row:hover { text-decoration: none; border-color: var(--border-strong); backgro
 .option-card input[type="radio"] { position: absolute; left: var(--space-4); top: 19px;
   accent-color: var(--primary); width: 16px; height: 16px; margin: 0; }
 .option-card:has(input[type="radio"]:checked) { border-color: var(--primary); background: var(--primary-soft); }
-.option-card .option-title { font-weight: 600; }
-.option-card .option-detail { color: var(--muted); font-size: var(--text-sm); line-height: 20px; margin-top: var(--space-1); }
+.option-card .option-title, .their-address .option-title { font-weight: 600; }
+.option-card .option-detail, .their-address .option-detail { color: var(--muted); font-size: var(--text-sm); line-height: 20px; margin-top: var(--space-1); }
 .option-card select, .option-card input[type="text"] { margin-top: var(--space-2); }
 .suggested-card { border-left: 3px solid var(--primary); }
 
@@ -408,7 +408,7 @@ details.legend[open] > summary.legend-title { margin-bottom: var(--space-2); }
 .legend-rounds, .legend-why { font-size: var(--text-md); line-height: 22px; }
 .style-cards { grid-template-columns: repeat(3, 1fr); }
 @media (max-width: 640px) { .style-cards { grid-template-columns: 1fr; } }
-.option-card .option-detail { font-size: var(--text-md); line-height: 22px; }
+.option-card .option-detail, .their-address .option-detail { font-size: var(--text-md); line-height: 22px; }
 /* Five role cards: three on the first row, two wider ones on the second. */
 .role-cards:not(.style-cards) { grid-template-columns: repeat(6, 1fr); }
 .role-cards:not(.style-cards) > .role-card { grid-column: span 2; }

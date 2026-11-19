@@ -7,6 +7,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Honest addresses (D98): the company page says where each mail goes
+  (the person's own address, or the company's careers or general address);
+  a mail to a named person through a shared address greets the team and
+  asks them to pass it on; support, no-reply, privacy, press, billing and
+  similar addresses are never used; a student can give the person's
+  address they found themselves (migration `0010`). My mails says "via the
+  general address" for such mails. Kaltstart still never guesses an
+  address.
+
 - "Forgot your password?": a student asks for a link by e-mail and chooses
   a new password on `/reset-password`; the link is spent only when the new
   password is sent, and every session ends afterwards. The sign-in page now
