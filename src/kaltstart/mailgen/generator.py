@@ -128,7 +128,6 @@ def _first_name(person: str) -> str:
 
 
 SHARED_ADDRESS_TYPES = ("careers", "generic")
-MAX_FORWARD_TITLE_WORDS = 8                            # the budget of MAX_FORWARDED_BODY_WORDS
 
 
 def _forwarded(contact: Contact) -> bool:
@@ -136,28 +135,28 @@ def _forwarded(contact: Contact) -> bool:
     return _person(contact) is not None and contact.address_type in SHARED_ADDRESS_TYPES
 
 
-def _forward_line(style: str, language: str, contact: Contact) -> str:
-    """Asks the team reading a shared address to pass the mail on."""
+def _ps(style: str, language: str, contact: Contact) -> str:
+    """Why the mail went to a shared address, and a wish that it reach the person."""
     person = _person(contact)
-    title = " ".join((contact.person_title or "").split()) or None
-    if title and len(title.split()) > MAX_FORWARD_TITLE_WORDS:
-        title = None                                   # keeps the mail within its budget
-    if language == "en" and style == "formal":
-        who = f"{person}, {title}" if title else person
-        return f"Could you please forward this message to {who}? Thank you."
-    who = f"{person} ({title})" if title else person
+    first = _first_name(person)
+    careers = contact.address_type == "careers"
     if language == "en":
-        return f"Could you pass this on to {who}? Thank you!"
+        kind = "careers" if careers else "general"
+        if style == "formal":
+            return (f"PS: As I could not find a direct address, I am writing to this {kind} "
+                    f"address. I would be grateful if this message could be forwarded to {person}.")
+        return (f"PS: I couldn't find your direct address, so I wrote to this {kind} address. "
+                f"If someone else reads it first, I'd be grateful if it could reach {first}.")
+    kind = "Karriere-Adresse" if careers else "allgemeine Adresse"
     if style == "formal":
-        return f"Könnten Sie diese Nachricht bitte an {who} weiterleiten? Vielen Dank."
-    return f"Könntet ihr das bitte an {who} weiterleiten? Danke!"
+        return (f"PS: Da ich keine direkte Adresse gefunden habe, schreibe ich an diese {kind}. "
+                f"Ich wäre dankbar, wenn diese Nachricht an {person} weitergeleitet würde.")
+    return (f"PS: Ich habe keine direkte Adresse von dir gefunden und deshalb an diese {kind} "
+            f"geschrieben. Falls jemand anderes das zuerst liest: Ich freue mich, wenn es "
+            f"{first} erreicht.")
 
 
 def _greeting(style: str, language: str, contact: Contact, company: Company) -> str:
-    if _forwarded(contact):
-        team = Contact(contact.address, contact.address_type, None)
-        return (f"{_greeting(style, language, team, company)}\n\n"
-                f"{_forward_line(style, language, contact)}")
     person = _person(contact)
     first = _first_name(person) if person else None
     if style == "formal":
@@ -343,8 +342,7 @@ def generate(student: Student, company: Company, round: Round, contact: Contact,
     # each axis takes its own wording from it (spec of 2026-11-16, section 4).
     k = choose_variant(student.id, company.id) if variant is None else variant
     subject_n, opening_n, lead_in_n, close_n, order = axes(k)
-    # Through a shared address, the team reads the mail: it is spoken to.
-    team = _person(contact) is None or _forwarded(contact)
+    team = _person(contact) is None
     link = (student.link or "").strip() or None
     # A name ending in a full stop ("Example Holdings Inc.") must not double it.
     opening = _opening(style, language, round, company, student.role, opening_n).replace("..", ".")
@@ -371,6 +369,9 @@ def generate(student: Student, company: Company, round: Round, contact: Contact,
     body = template.render(showcase=f"{lead_in} {student_text(example)}",
                            company_line=line and student_text(line), link=link,
                            **parts).strip()
+    if _forwarded(contact):
+        # Through a shared address: the person is greeted, the PS says why.
+        body = f"{body}\n\n{_ps(style, language, contact)}"
     if len(body.split()) > (MAX_FORWARDED_BODY_WORDS if _forwarded(contact) else MAX_BODY_WORDS):
         raise TooLong("body")
     return Mail(

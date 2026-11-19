@@ -160,9 +160,9 @@ def test_a_shared_address_carries_the_title_to_the_mail():
     ("personal", "Goes to Anna's own address."),
     ("student", "Goes to the address you gave."),
     ("careers", "Goes to Example Co's careers address: Anna's own address is not published. "
-                "The mail asks them to pass it on."),
+                "A PS at the end asks that it reach them."),
     ("generic", "Goes to Example Co's general address: Anna's own address is not published. "
-                "The mail asks them to pass it on."),
+                "A PS at the end asks that it reach them."),
 ])
 def test_where_the_mail_goes(address_type, sentence):
     from kaltstart.api.compose import where_it_goes

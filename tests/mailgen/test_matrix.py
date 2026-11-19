@@ -72,4 +72,4 @@ def test_every_combination(style, language):
 
 
 def test_the_limits():
-    assert (MAX_BODY_WORDS, MAX_FORWARDED_BODY_WORDS) == (210, 230)
+    assert (MAX_BODY_WORDS, MAX_FORWARDED_BODY_WORDS) == (210, 235)

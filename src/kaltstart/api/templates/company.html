@@ -37,7 +37,7 @@
       <label class="option-card">
         <input type="radio" name="choice" value="other_on_list" {% if form.get('choice') == 'other_on_list' %}checked{% endif %}>
         <span class="option-title">Someone else from their website</span>
-        <p class="option-detail">Goes to their own address if the website publishes it, otherwise to the company's careers or general address, asked to pass it on.</p>
+        <p class="option-detail">Goes to their own address if the website publishes it, otherwise to the company's careers or general address, with a PS asking that it reach them.</p>
         <select name="person" aria-label="Someone else from their website">
           {% for p in people %}{% if not (suggested and not profile_missing and p.name == suggested.name) %}<option value="{{ loop.index0 }}" {% if form.get('person') == loop.index0|string %}selected{% endif %}>{{ p.name }}, {{ p.title }}{% if p.title|title_hint %} ({{ p.title|title_hint }}){% endif %}</option>{% endif %}{% endfor %}
         </select>
@@ -46,7 +46,7 @@
       <label class="option-card">
         <input type="radio" name="choice" value="typed" {% if form.get('choice') == 'typed' %}checked{% endif %}>
         <span class="option-title">A person you found yourself</span>
-        <p class="option-detail">Their name is used for this mail only. Goes to the company's careers or general address, asked to pass it on, unless you give their address below.</p>
+        <p class="option-detail">Their name is used for this mail only. Goes to the company's careers or general address, with a PS asking that it reach them, unless you give their address below.</p>
         <input type="text" name="typed_name" value="{{ form.get('typed_name', '') }}" maxlength="40" placeholder="First and last name" aria-label="A person you found yourself">
       </label>
       <label class="their-address">

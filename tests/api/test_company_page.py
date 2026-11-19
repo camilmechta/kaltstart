@@ -350,9 +350,9 @@ def test_the_page_says_where_each_choice_goes(client, store):
     import html
     page = html.unescape(client.get("/companies/c9").text)
     assert ("Goes to Shared Co's general address: Anna's own address is not published. "
-            "The mail asks them to pass it on.") in page
+            "A PS at the end asks that it reach them.") in page
     assert ("Goes to their own address if the website publishes it, otherwise to the "
-            "company's careers or general address, asked to pass it on.") in page
+            "company's careers or general address, with a PS asking that it reach them.") in page
     assert "Goes to the company's careers or general address." in page
 
 
@@ -385,7 +385,7 @@ def test_the_typed_name_sentence_is_true(client):
     ready(client)
     page = client.get("/companies/c1").text
     typed = page.split('value="typed"', 1)[1].split("</label>", 1)[0]
-    assert "careers or general address, asked to pass it on" in typed
+    assert "careers or general address, with a PS asking that it reach them" in typed
     assert "own address if the website publishes it" not in typed
 
 

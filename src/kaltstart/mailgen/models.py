@@ -14,9 +14,9 @@ VARIANTS = 3
 # (decision D72). The showcase sentence may be longer than the sentence
 # about the company: it is the heart of every mail.
 MAX_BODY_WORDS = 210
-# A mail passed on by a team carries one more short paragraph (honest
-# addresses, 2026-11-19): 20 more words at most, with the longest texts.
-MAX_FORWARDED_BODY_WORDS = 230
+# A mail to a named person through a shared address ends with a PS saying why
+# (honest addresses, 2026-11-19): 25 more words at most, with the longest texts.
+MAX_FORWARDED_BODY_WORDS = 235
 MAX_EXAMPLE_CHARS = 400
 MAX_EXAMPLE_WORDS = 60
 MAX_TEXT_CHARS = 200

@@ -15,8 +15,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Honest addresses (D98): the company page says where each mail goes
   (the person's own address, or the company's careers or general address);
-  a mail to a named person through a shared address greets the team and
-  asks them to pass it on; support, no-reply, privacy, press, billing and
+  a mail to a named person through a shared address greets them by first
+  name and ends with a PS asking that it reach them; support, no-reply, privacy, press, billing and
   similar addresses are never used; a student can give the person's
   address they found themselves (migration `0010`). My mails says "via the
   general address" for such mails. Kaltstart still never guesses an

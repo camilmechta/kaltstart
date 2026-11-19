@@ -122,3 +122,11 @@ that an address a student types is kept in that mail only.
   (`MAX_FORWARDED_BODY_WORDS`). Shortening it would make the mail less clear.
 - The address field is one field under the choices, not one per choice; it
   applies to the named choice and is ignored for "No name".
+- **Point 2 revised (owner, same evening):** the forward line at the top read
+  as an administrative request before the student had said who they are, and
+  at a small company the person named often reads `hello@` themselves. The
+  mail now greets the person by first name, as a mail to their own address
+  does, and ends with a PS: "PS: I couldn't find your direct address, so I
+  wrote to this general address. If someone else reads it first, I'd be
+  grateful if it could reach Anna." (Formal and German versions alike; no
+  title.) Such a mail may hold 235 words.

@@ -143,7 +143,7 @@ def where_it_goes(company_name: str, person_name: str, address_type: str) -> str
         return "Goes to the address you gave."
     kind = "careers" if address_type == "careers" else "general"
     return (f"Goes to {company_name}'s {kind} address: {first}'s own address is not "
-            "published. The mail asks them to pass it on.")
+            "published. A PS at the end asks that it reach them.")
 
 
 def to_mailgen(profile: Profile, showcases: Sequence[Showcase], company: CompanyRow,
