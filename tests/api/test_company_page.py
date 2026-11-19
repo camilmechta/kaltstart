@@ -497,3 +497,9 @@ def test_my_mails_says_on_linkedin(client, store, auth):
     ready(client)
     post(client, "keep", choice="other_on_list", person="0", channel="linkedin")
     assert "To Ben Probe, on LinkedIn" in client.get("/mails").text
+
+
+def test_the_linkedin_preview_does_not_promise_an_address(client):
+    ready(client)
+    page = post(client, "preview", choice="other_on_list", person="0", channel="linkedin").text
+    assert "the address shows once you keep it" not in page

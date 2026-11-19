@@ -5,6 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- LinkedIn as a second channel (D101): the app writes a connection note of
+  at most 200 characters (counted by code on every combination) and a
+  message for once the request is accepted; the kept page links to a
+  LinkedIn people search and lists four steps; it counts in every limit and
+  in the reply statistics like a mail; migration `0011`. Kaltstart never
+  visits LinkedIn.
+
 ### Changed
 
 - Large companies (Series B and later) name nobody: the student writes to

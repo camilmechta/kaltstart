@@ -113,7 +113,7 @@
     {% if error %}<p class="notice notice-error" role="alert">{{ error }}{% if error_link %} <a href="{{ error_link }}">{{ 'Open your profile' if error_link == '/profile' else 'Open My mails' }}</a>{% endif %}</p>{% endif %}
     </div>
     <div class="actions"><button class="btn {{ 'btn-secondary' if preview else 'btn-primary' }}" type="submit">{{ 'Generate again' if preview else 'Generate my mail' }}</button>
-      <span class="small muted">A free preview: nothing is kept yet, and the address shows once you keep it.</span></div>
+      <span class="small muted">{% if form.get('channel') == 'linkedin' %}A free preview: nothing is kept yet.{% else %}A free preview: nothing is kept yet, and the address shows once you keep it.{% endif %}</span></div>
   </section>
 </form>
 
