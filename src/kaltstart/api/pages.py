@@ -230,7 +230,9 @@ def register(app: FastAPI) -> None:
     from kaltstart.mailgen.choices import suggested_style
     from kaltstart.mailgen.language import choose_language
     from kaltstart.mailgen import models as mg
+    from dataclasses import replace
     from kaltstart.mailgen.generator import generate
+    from kaltstart.mailgen.linkedin import linkedin_message, linkedin_note
     from kaltstart.mailgen.models import MissingData, TooLong
 
     REFUSALS = {
@@ -338,6 +340,9 @@ def register(app: FastAPI) -> None:
         choice = form.get("choice") or ""
         if choice not in compose.CHOICES:
             return None, ("Choose who you write to (step 1).", None, 400)
+        linkedin = form.get("channel") == "linkedin"
+        if linkedin and choice == "team":
+            return None, ("LinkedIn needs a person: choose someone in step 1.", None, 400)
         try:
             index = int(form.get("person")) if form.get("person") not in (None, "") else None
         except ValueError:
@@ -346,7 +351,7 @@ def register(app: FastAPI) -> None:
             recipient = compose.choose(company, store.people(company.id), store.emails(company.id),
                                        profile, choice, person_index=index,
                                        typed_name=form.get("typed_name"),
-                                       their_address=form.get("their_address"))
+                                       their_address=None if linkedin else form.get("their_address"))
         except compose.BadAddress:
             return None, ("This address does not look right: check it, or leave the field "
                           "empty.", None, 400)
@@ -381,6 +386,18 @@ def register(app: FastAPI) -> None:
             return None, ("Missing for this mail: " + ", ".join(words) + ".", "/profile", 400)
         except TooLong as exc:
             return None, (TOO_LONG.get(exc.field, "A text is too long."), None, 400)
+        if linkedin:
+            # The mail above checked the profile; LinkedIn keeps a note (in the
+            # subject) and a message (in the body), and no address (design 2026-11-19).
+            student_in, company_in, round_in = inputs[0], inputs[1], inputs[2]
+            note = linkedin_note(student_in, company_in, round_in, recipient.person_name,
+                                 style=style, language=language)
+            message = linkedin_message(student_in, company_in, round_in, recipient.person_name,
+                                       style=style, language=language,
+                                       company_line=form.get("company_line") or None, variant=k)
+            mail = mg.Mail(subject=note, body=message, language=language, style=style,
+                           used_company_line=mail.used_company_line)
+            recipient = replace(recipient, address=None, address_type="linkedin")
         return recipient, (mail, k)
 
     @app.get("/companies/{company_id}")

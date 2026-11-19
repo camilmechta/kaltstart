@@ -429,3 +429,51 @@ def test_the_list_shows_no_names_for_a_large_company(client, store):
     row = page.split("Big Co", 1)[1].split("</li>", 1)[0]
     assert "named" not in row and "Careers address" in row
     assert "Big Co" not in client.get("/companies?size=large&person=1").text
+
+
+# LinkedIn (design 2026-11-19).
+def test_the_page_offers_the_linkedin_channel(client):
+    ready(client)
+    page = client.get("/companies/c1").text
+    assert 'name="channel" value="email"' in page and 'name="channel" value="linkedin"' in page
+
+
+def test_a_linkedin_preview_shows_the_note_its_length_and_the_message(client, store, auth):
+    ready(client)
+    import html
+    page = html.unescape(post(client, "preview", choice="other_on_list", person="0",
+                              channel="linkedin").text)
+    preview = page.split('id="preview"', 1)[1]
+    assert "Connection note" in preview and "/ 200 characters" in preview
+    assert "Thanks for connecting!" in preview
+    assert store.mails(user_id(auth)) == []
+
+
+def test_keeping_a_linkedin_message(client, store, auth):
+    ready(client)
+    post(client, "keep", choice="other_on_list", person="0", channel="linkedin")
+    mail = store.mails(user_id(auth))[0]
+    assert (mail.address, mail.address_type, mail.person_name) == (None, "linkedin", "Ben Probe")
+    assert len(mail.subject) <= 200 and mail.subject.startswith("Hi Ben")
+    assert "Thanks for connecting!" in mail.body
+
+
+def test_linkedin_needs_a_name(client, store, auth):
+    ready(client)
+    page = post(client, "preview", choice="team", channel="linkedin")
+    assert page.status_code == 400
+    assert "LinkedIn needs a person: choose someone in step 1." in page.text
+
+
+def test_the_keep_form_carries_the_channel(client):
+    ready(client)
+    page = post(client, "preview", choice="other_on_list", person="0", channel="linkedin").text
+    keep_form = page.split('action="/companies/c1/keep', 1)[1]
+    assert 'name="channel" value="linkedin"' in keep_form
+
+
+def test_once_per_person_spans_both_channels(client, store, auth):
+    ready(client)
+    post(client, "keep", choice="other_on_list", person="0", channel="linkedin")
+    again = post(client, "keep", choice="other_on_list", person="0", channel="email")
+    assert again.status_code == 409 and len(store.mails(user_id(auth))) == 1

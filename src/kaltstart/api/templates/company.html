@@ -70,6 +70,13 @@
     <h2 class="step-title"><span class="step-number">2</span> Your mail</h2>
     <p class="step-help">Built around your showcase sentence. Add one line about {{ company.name }} if you know them: it makes the mail stand out.</p>
     <fieldset>
+      <legend class="field-label">Channel</legend>
+      <div class="chips">
+        {% for value, label in (('email', 'E-mail'), ('linkedin', 'LinkedIn')) %}<label class="chip-toggle"><input type="radio" name="channel" value="{{ value }}" {% if form.get('channel', 'email') == value %}checked{% endif %}><span>{{ label }}</span></label>{% endfor %}
+      </div>
+      <p class="small muted">LinkedIn: a connection note of at most 200 characters, and a message for once they accept. It needs a person (step 1). Kaltstart never visits LinkedIn: you find them and send it yourself.</p>
+    </fieldset>
+    <fieldset>
       <legend class="field-label">Style</legend>
       <div class="role-cards style-cards">
         {% for value, label, hint in (('direct', 'Direct', 'Short and warm, ends on an easy question. Best for founders and small teams.'),
@@ -115,13 +122,20 @@
   <h2 class="step-title"><span class="step-number">3</span> Keep it, then copy it</h2>
   <p class="step-help">Read it. Change the style or your sentence and generate again as often as you like. When it is right, keep it.</p>
   <div class="mail-preview reveal">
+    {% if recipient.address_type == 'linkedin' %}
+    <div class="mail-label">To</div><div>{{ recipient.person_name }} <span class="muted">· on LinkedIn</span></div>
+    <div class="mail-label" style="margin-top:8px">Connection note</div><div class="mail-body">{{ preview.subject }}</div>
+    <div class="small muted">{{ preview.subject|length }} / 200 characters</div>
+    <div class="mail-label" style="margin-top:8px">Message, once they accept</div><div class="mail-body">{{ preview.body }}</div>
+    {% else %}
     <div class="mail-label">To</div><div>{{ recipient.person_name or (company.name ~ ' team') }} <span class="muted">· {{ preview_goes_to }}{% if recipient.address_type != 'student' %} The address shows once you keep this mail.{% endif %}</span></div>
     <div class="mail-label" style="margin-top:8px">Subject</div><div>{{ preview.subject }}</div>
     <div class="mail-label" style="margin-top:8px">Text</div><div class="mail-body">{{ preview.body }}</div>
+    {% endif %}
   </div>
   <form method="post" action="/companies/{{ company.id }}/keep#generate">
     <input type="hidden" name="csrf" value="{{ csrf }}">
-    {% for name in ('choice', 'person', 'typed_name', 'their_address', 'style', 'language', 'showcase', 'company_line') %}
+    {% for name in ('choice', 'person', 'typed_name', 'their_address', 'channel', 'style', 'language', 'showcase', 'company_line') %}
     <input type="hidden" name="{{ name }}" value="{{ form.get(name, '') }}">
     {% endfor %}
     <div class="actions"><button class="btn btn-primary" type="submit">Keep this mail</button>
