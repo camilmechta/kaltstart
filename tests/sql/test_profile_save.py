@@ -66,3 +66,16 @@ def test_the_server_role_may_save(db):
     sid = student(db)
     as_role(db, "service_role")
     save(db, sid, PROFILE, [])
+
+
+@pytest.mark.parametrize("role", ["software_ai", "rd_hardware"])
+def test_a_technical_role_is_saved(db, role):
+    sid = student(db)
+    save(db, sid, dict(PROFILE, target_role=role), [])
+    assert db.execute("select target_role from profiles where id = %s", (sid,)).fetchone()[0] == role
+
+
+def test_an_unknown_role_is_refused(db):
+    sid = student(db)
+    with pytest.raises(psycopg.errors.CheckViolation):
+        save(db, sid, dict(PROFILE, target_role="engineering"), [])

@@ -18,4 +18,6 @@ select
   exists (select 1 from information_schema.columns where table_schema = 'public'
           and table_name = 'mails' and column_name = 'redacted_at')            as m0007_redacted,
   coalesce(pg_get_functiondef(to_regprocedure('public.reserve_mail(uuid,text,text,jsonb)'))
-           not like '%copied_at is not null%', false)                          as m0008_slots;
+           not like '%copied_at is not null%', false)                          as m0008_slots,
+  coalesce((select pg_get_constraintdef(oid) from pg_constraint
+            where conname = 'profiles_target_role_check') like '%rd_hardware%', false) as m0009_roles;
