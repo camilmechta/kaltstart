@@ -308,3 +308,35 @@ def test_people_are_cleaned_when_shown_and_german_titles_explained(client, store
     page = client.get("/companies/c3").text
     assert "MSc ETH" not in page and "Was Einkauf" not in page
     assert "Lina Beispiel, Geschäftsführerin (Managing director)" in page
+
+
+# Honest addresses (design 2026-11-19, point 4).
+def test_the_page_offers_a_field_for_their_address(client):
+    ready(client)
+    page = client.get("/companies/c1").text
+    assert 'name="their_address"' in page and "Their address, if you know it" in page
+
+
+def test_keeping_with_their_address_stores_it(client, store, auth):
+    ready(client)
+    post(client, "keep", choice="other_on_list", person="0", their_address="ben@c1.example.ch")
+    mail = store.mails(user_id(auth))[0]
+    assert (mail.address, mail.address_type, mail.person_name) == (
+        "ben@c1.example.ch", "student", "Ben Probe")
+    assert mail.body.startswith("Hi Ben!")
+
+
+def test_a_wrong_address_keeps_the_form(client, store, auth):
+    ready(client)
+    page = post(client, "preview", choice="other_on_list", person="0", their_address="ben@")
+    assert page.status_code == 400
+    assert "This address does not look right: check it, or leave the field empty." in page.text
+    assert store.mails(user_id(auth)) == []
+
+
+def test_the_keep_form_carries_their_address(client):
+    ready(client)
+    page = post(client, "preview", choice="other_on_list", person="0",
+                their_address="ben@c1.example.ch").text
+    keep_form = page.split('action="/companies/c1/keep', 1)[1]
+    assert 'name="their_address" value="ben@c1.example.ch"' in keep_form

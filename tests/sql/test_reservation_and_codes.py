@@ -66,3 +66,13 @@ def test_an_abandoned_mail_keeps_its_slot_even_never_copied(db):
     db.execute("update mails set status = 'abandoned', copied_at = null where id = %s",
                (first["id"],))
     assert reserve(db, student(db), cid, round_id=f"r-{cid}")["reason"] == "company_full"
+
+
+def test_a_mail_to_an_address_the_student_gave_is_kept(db):
+    """Honest addresses (2026-11-19, point 4): address type `student` (migration 0010)."""
+    sid = student(db)
+    cid = company(db, cid=f"own-{uuid.uuid4().hex[:6]}")
+    result = reserve(db, sid, cid, person_key="k-ben", address="ben@own.example.ch",
+                     address_type="student", person_name="Ben Probe",
+                     person_choice="other_on_list", round_id=f"r-{cid}")
+    assert result["ok"], result

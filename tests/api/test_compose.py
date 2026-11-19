@@ -30,7 +30,7 @@ def test_choosing_the_suggested_person_uses_their_own_address():
     r = choose(C1, [BEN, ANNA], EMAILS, PROFILE, "suggested")
     assert r == Recipient("Anna Muster", "https://c1.example.ch/team",
                           "anna.muster@c1.example.ch", "personal", "suggested",
-                          person_key("c1", "Anna Muster"))
+                          person_key("c1", "Anna Muster"), "Head of Growth")
 
 
 def test_someone_else_on_the_list_gets_the_careers_address():
@@ -119,3 +119,37 @@ def test_a_technical_head_matches_the_technical_role():
     assert suggested(C1, [CTO, HEAD_ENG], with_role("software_ai")).name == "Tim Muster"
     assert why(HEAD_ENG, with_role("software_ai"), C1) == (
         "Their title, Head of Engineering, matches your target role: Software & AI.")
+
+
+# Honest addresses (design 2026-11-19, point 4): an address the student gives.
+def test_the_students_address_is_used_for_a_named_person():
+    r = choose(C1, [BEN, ANNA], EMAILS, PROFILE, "other_on_list", person_index=0,
+               their_address=" ben@c1.example.ch ")
+    assert (r.person_name, r.address, r.address_type) == ("Ben Probe", "ben@c1.example.ch", "student")
+    assert r.person_title == "CTO"
+
+
+def test_the_students_address_with_a_typed_name():
+    r = choose(C1, [BEN, ANNA], EMAILS, PROFILE, "typed", typed_name="Mia Muster",
+               their_address="mia@c1.example.ch")
+    assert (r.address, r.address_type, r.person_title) == ("mia@c1.example.ch", "student", None)
+
+
+def test_the_students_address_is_ignored_without_a_name():
+    r = choose(C1, [BEN, ANNA], EMAILS, PROFILE, "team", their_address="mia@c1.example.ch")
+    assert r.address_type in ("careers", "generic") and r.address != "mia@c1.example.ch"
+
+
+@pytest.mark.parametrize("bad", ["ben", "ben@", "@c1.example.ch", "ben@c1", "ben @c1.example.ch",
+                                 "a@b@c1.example.ch", "x" * 250 + "@c1.example.ch"])
+def test_a_wrong_student_address_is_refused(bad):
+    from kaltstart.api.compose import BadAddress
+    with pytest.raises(BadAddress):
+        choose(C1, [BEN, ANNA], EMAILS, PROFILE, "other_on_list", person_index=0, their_address=bad)
+
+
+def test_a_shared_address_carries_the_title_to_the_mail():
+    r = choose(C1, [BEN, ANNA], EMAILS, PROFILE, "other_on_list", person_index=0)
+    assert r.address_type == "careers" and r.person_title == "CTO"
+    contact = to_mailgen(PROFILE, [Showcase(1, "I did a thing that matters.", None)], C1, r)[3]
+    assert contact.person_title == "CTO"

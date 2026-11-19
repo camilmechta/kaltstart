@@ -58,3 +58,9 @@ def test_the_page_describes_the_cookie_and_the_ip_counting(client):
 
 def test_the_page_mentions_the_sign_in_logs_of_supabase(client):
     assert "Supabase, which handles sign-in, keeps its own technical logs" in client.get("/privacy").text
+
+
+def test_the_page_mentions_the_address_a_student_gives(client):
+    page = client.get("/privacy").text
+    assert "A student may also type a name or an address they found themselves" in page
+    assert "Kaltstart never guesses an address" in page

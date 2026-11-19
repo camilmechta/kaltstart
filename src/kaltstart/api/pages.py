@@ -323,7 +323,11 @@ def register(app: FastAPI) -> None:
         try:
             recipient = compose.choose(company, store.people(company.id), store.emails(company.id),
                                        profile, choice, person_index=index,
-                                       typed_name=form.get("typed_name"))
+                                       typed_name=form.get("typed_name"),
+                                       their_address=form.get("their_address"))
+        except compose.BadAddress:
+            return None, ("This address does not look right: check it, or leave the field "
+                          "empty.", None, 400)
         except compose.NoAddress:
             return None, ("This company publishes no address for this choice. Choose someone "
                           "else or write to the team.", None, 400)

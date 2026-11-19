@@ -25,6 +25,25 @@ class NoAddress(ValueError):
     """The company publishes no address this choice can use."""
 
 
+class BadAddress(ValueError):
+    """The address the student gave does not look like one."""
+
+
+# One address: no space, one "@", a dot in the domain (honest addresses, point 4).
+_ADDRESS = re.compile(r"[^@\s]+@[^@\s]+\.[^@\s]+")
+MAX_ADDRESS = 254
+
+
+def student_address(text: str | None) -> str | None:
+    """The address the student gave for the person, or None when left empty."""
+    address = (text or "").strip()
+    if not address:
+        return None
+    if len(address) > MAX_ADDRESS or not _ADDRESS.fullmatch(address):
+        raise BadAddress("not an address")
+    return address
+
+
 @dataclass(frozen=True)
 class Recipient:
     person_name: str | None
@@ -33,6 +52,7 @@ class Recipient:
     address_type: str
     person_choice: str
     person_key: str | None
+    person_title: str | None = None
 
 
 def _found(people: Sequence[PersonRow]) -> list[FoundPerson]:
@@ -64,9 +84,10 @@ def _shared_address(emails: Sequence[EmailRow]) -> EmailRow:
 
 def choose(company: CompanyRow, people: Sequence[PersonRow], emails: Sequence[EmailRow],
            profile: Profile | None, choice: str, *, person_index: int | None = None,
-           typed_name: str | None = None) -> Recipient:
+           typed_name: str | None = None, their_address: str | None = None) -> Recipient:
     if choice not in CHOICES:
         raise ValueError(f"unknown choice: {choice}")
+    given = student_address(their_address) if choice != "team" else None
     if choice == "team":
         email = _shared_address(emails)
         return Recipient(None, None, email.address, email.type, "team", None)
@@ -74,6 +95,8 @@ def choose(company: CompanyRow, people: Sequence[PersonRow], emails: Sequence[Em
         name = " ".join((typed_name or "").split())
         if not name or len(name) > MAX_TYPED_NAME:
             raise ValueError("a name of 1 to 40 characters is required")
+        if given:
+            return Recipient(name, None, given, "student", "typed", person_key(company.id, name))
         email = _shared_address(emails)
         return Recipient(name, None, email.address, email.type, "typed",
                          person_key(company.id, name))
@@ -82,6 +105,9 @@ def choose(company: CompanyRow, people: Sequence[PersonRow], emails: Sequence[Em
         person = suggested(company, people, profile)
         if person is None:
             raise ValueError("no person is suggested for this company")
+        if given:
+            return Recipient(person.name, person.source_url, given, "student", choice,
+                             person_key(company.id, person.name), person.title)
         contact = choose_contact(_found_emails(emails), _found([person])[0], _found(people))
         if contact is None:
             raise NoAddress("no address")
@@ -93,11 +119,14 @@ def choose(company: CompanyRow, people: Sequence[PersonRow], emails: Sequence[Em
         if person_index is None or not 0 <= person_index < len(people):
             raise ValueError("unknown person")
         person = people[person_index]
+        if given:
+            return Recipient(person.name, person.source_url, given, "student", choice,
+                             person_key(company.id, person.name), person.title)
         own = next((e for e in emails if e.type == "personal"
                     and address_owner(e.address, _found([person]))), None)
         email = own or _shared_address(emails)
     return Recipient(person.name, person.source_url, email.address, email.type, choice,
-                     person_key(company.id, person.name))
+                     person_key(company.id, person.name), person.title)
 
 
 def to_mailgen(profile: Profile, showcases: Sequence[Showcase], company: CompanyRow,
@@ -118,7 +147,8 @@ def to_mailgen(profile: Profile, showcases: Sequence[Showcase], company: Company
             mg.Company(company.id, company.name, company.country, company.city, None),
             mg.Round(company.stage, company.amount_eur, company.amount_native,
                      company.currency, company.investors, company.size_category),
-            mg.Contact(recipient.address, recipient.address_type, recipient.person_name))
+            mg.Contact(recipient.address, recipient.address_type, recipient.person_name,
+                       recipient.person_title))
 
 
 # The categories of contacts.titles for each target role.

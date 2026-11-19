@@ -254,6 +254,10 @@ a.row:hover { text-decoration: none; border-color: var(--border-strong); backgro
   var(--space-4) 44px; color: var(--text); font-size: var(--text-md); cursor: pointer;
   transition: border-color 120ms, background-color 120ms; }
 .option-card:hover { border-color: var(--border-strong); }
+/* An optional field under the choices, not a choice: no radio, a dashed edge. */
+.their-address { display: block; border: 1px dashed var(--border); border-radius: var(--radius-lg);
+  padding: var(--space-4); color: var(--text); font-size: var(--text-md); }
+.their-address input { margin-top: var(--space-2); }
 .option-card input[type="radio"] { position: absolute; left: var(--space-4); top: 19px;
   accent-color: var(--primary); width: 16px; height: 16px; margin: 0; }
 .option-card:has(input[type="radio"]:checked) { border-color: var(--primary); background: var(--primary-soft); }
