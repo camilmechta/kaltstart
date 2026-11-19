@@ -194,3 +194,19 @@ def test_personal_before_another_word_is_not_human_resources(text):
 ])
 def test_german_personal_is_still_human_resources(text):
     assert "recruiting" in classify_title(text).categories
+
+
+# Final review of the technical roles: a technical word that is only part of
+# another field does not make the title technical.
+@pytest.mark.parametrize("text", [
+    "Head of User Research", "Head of UX Research", "Product Research Lead",
+    "Head of Equity Research", "Head of Investment Research", "Head of Business Research",
+    "Head of R&D Tax", "Head of R&D Finance", "Head of Electronics Procurement",
+    "Head of Hardware Supply Chain", "Head of Research Grants", "Head of Research Communications",
+    "Head of AI Ethics", "Head of AI Policy", "Head of AI Compliance", "Head of AI Strategy",
+    "Head of Software Licensing", "Head of AI Customer Success",
+    "Head of Sales Engineering", "Head of Solutions Engineering", "Head of Customer Engineering",
+])
+def test_a_technical_word_inside_another_field_is_not_technical(text):
+    title = classify_title(text)
+    assert not (title and {"engineering", "rnd"} & set(title.categories)), (text, title)

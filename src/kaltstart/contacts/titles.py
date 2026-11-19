@@ -74,7 +74,18 @@ _CHIEFS = {
 # A technical word that only qualifies a business function ("Head of Software
 # Sales", "Head of AI Partnerships") does not make the title technical, and
 # market research is not R&D.
-_NOT_BEFORE_BUSINESS = r"(?!\s+(?:sales|business|partnerships?|marketing|growth|vertrieb))"
+# Nor does one followed by another field ("Head of AI Ethics", "Head of R&D
+# Tax", "Head of Electronics Procurement").
+_NOT_BEFORE_BUSINESS = (r"(?!\s+(?:sales|business|partnerships?|marketing|growth|vertrieb|"
+                        r"procurement|purchasing|tax|finance|ethics|policy|compliance|"
+                        r"licensing|supply|grants?|communications|strategy|customer|legal|"
+                        r"governance))")
+# ... or preceded by a field that is not R&D ("User Research", "Equity
+# Research") or by a pre-sales one ("Sales Engineering").
+_NOT_AFTER = lambda *fields: "".join(rf"(?<!{field} )" for field in fields)
+_NOT_RND_RESEARCH = _NOT_AFTER("market", "user", "ux", "customer", "equity", "investment",
+                               "business", "product")
+_NOT_TECH_ENGINEERING = _NOT_AFTER("sales", "solutions", "customer")
 _ENGINEERING_WORDS = r"engineering|software|softwareentwicklung|machine learning"
 # Short words that are also first names ("Ai"): read in titles, never used
 # to tell a title from a name.
@@ -87,8 +98,9 @@ _FUNCTIONS = {
     "sales": r"sales|business development|partnerships?|vertrieb|ventes",
     # No plain "development" (business development), "technology" or
     # "platform" (both found in business titles; the CTO is a leader).
-    "engineering": rf"(?:{_ENGINEERING_WORDS}|{_ENGINEERING_SHORT})" + _NOT_BEFORE_BUSINESS,
-    "rnd": (r"(?<!market )(?:r&d|f&e|research|hardware|electronics|mechanical|"
+    "engineering": (_NOT_TECH_ENGINEERING + rf"(?:{_ENGINEERING_WORDS}|{_ENGINEERING_SHORT})"
+                    + _NOT_BEFORE_BUSINESS),
+    "rnd": (_NOT_RND_RESEARCH + r"(?:r&d|f&e|research|hardware|electronics|mechanical|"
             r"forschung(?:\s+(?:&|und)\s+entwicklung)?|entwicklung)" + _NOT_BEFORE_BUSINESS),
     # "Personal" is German for staff only when no other word follows it:
     # "Personal Care" and "Personal Banking" are English.

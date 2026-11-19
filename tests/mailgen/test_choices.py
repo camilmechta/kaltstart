@@ -62,3 +62,23 @@ def test_suggested_style():
     assert suggested_style(contact(), round_(size_category="large")) == "direct"
     personal = contact(person_name=None, address_type="personal")
     assert suggested_style(personal, round_(size_category="large")) == "direct"
+
+
+# Final review of the technical roles: the German compound must stay German.
+@pytest.mark.parametrize("role,expected", [
+    ("software_ai", "Bewerbung: Software- und KI-Praktikum bei Examplix"),
+    ("rd_hardware", "Bewerbung: F&E-Praktikum bei Examplix"),
+    ("business_development", "Bewerbung: Business-Development-Praktikum bei Examplix"),
+])
+def test_german_compound_subject_is_hyphenated(role, expected):
+    assert subject("formal", "de", "Examplix", "Seed-Runde", role_name(role, "de"),
+                   "internship") == expected
+
+
+@pytest.mark.parametrize("style", STYLES)
+@pytest.mark.parametrize("kind", REQUESTS)
+@pytest.mark.parametrize("wording", [0, 1, 2])
+@pytest.mark.parametrize("role", ROLES)
+def test_no_german_subject_joins_an_ampersand_with_hyphens(style, kind, wording, role):
+    text = subject(style, "de", "Examplix", "Seed-Runde", role_name(role, "de"), kind, wording)
+    assert "-&" not in text and "&-" not in text, text

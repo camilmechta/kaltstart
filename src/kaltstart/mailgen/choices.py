@@ -58,7 +58,7 @@ def _candidates(style: str, language: str, company: str, round: str, role: str,
                         f"Spontaneous application to {company}", f"Application: {kind}"]),
         }[style][wording]
     at = f"{Kind} bei {company}"
-    compound = f"{role.replace(' ', '-')}-{Kind}"
+    compound = f"{_GERMAN_COMPOUND_ROLES.get(role, role.replace(' ', '-'))}-{Kind}"
     return {
         "direct": ([f"{Kind} bei {company}?", f"{Kind}?"],
                    [f"{company}: {Kind}?", f"{Kind}?"],
@@ -76,6 +76,10 @@ def _candidates(style: str, language: str, company: str, round: str, role: str,
                    [f"{compound} bei {company}: Bewerbung", f"Bewerbung bei {company}",
                     f"Bewerbung: {Kind}"]),
     }[style][wording]
+
+
+# Role names with "&" do not join with hyphens ("Software-&-KI-Praktikum").
+_GERMAN_COMPOUND_ROLES = {"Software & KI": "Software- und KI", "Forschung & Entwicklung": "F&E"}
 
 
 def subject(style: str, language: str, company: str, round: str, role: str,

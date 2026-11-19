@@ -436,3 +436,18 @@ def test_a_long_run_of_credentials_is_read_in_linear_time():
 ])
 def test_technical_heads_on_a_team_page(body, expected):
     assert names(body) == expected
+
+
+# Final review of the technical roles: "AI" and "ML" in capitals are title
+# words, not another organisation's name.
+@pytest.mark.parametrize("text,categories", [
+    ("CTO & Head of AI", ("leadership", "engineering")),
+    ("Founder & Head of AI", ("leadership", "engineering")),
+    ("CTO and Head of AI", ("leadership", "engineering")),
+    ("CTO / Head of AI", ("leadership", "engineering")),
+    ("CTO & ML Lead", ("leadership", "engineering")),
+])
+def test_a_leader_who_also_leads_ai_is_kept(text, categories):
+    from kaltstart.contacts.people import _own_title
+    title = _own_title(text, "example")
+    assert title is not None and title.categories == categories

@@ -152,8 +152,14 @@ def _company_key(company_name: str | None) -> str:
     return "".join(words)
 
 
+# "AI" and "ML" in capitals are fields of work ("CTO & Head of AI"), not an
+# organisation; "Ai" as a first name stays a name.
+_FIELD_ACRONYMS = frozenset(("AI", "ML"))
+
+
 def _organisation(words: list[str]) -> list[str]:
-    return [w for w in words if w.lower().strip(".") not in _VOCABULARY]
+    return [w for w in words if w.lower().strip(".") not in _VOCABULARY
+            and w.strip(".") not in _FIELD_ACRONYMS]
 
 
 def _is_this_company(words: list[str], company_key: str) -> bool:
