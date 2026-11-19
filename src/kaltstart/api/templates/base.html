@@ -4,6 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Kaltstart{% endblock %}</title>
+  {% set description = "Startups that just raised money hire in the next months, but most never post the job. Kaltstart finds them across Switzerland, Germany and Austria, tells you who to write to and drafts your application." %}
+  <meta name="description" content="{{ description }}">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Kaltstart · Internships that are never posted">
+  <meta property="og:description" content="{{ description }}">
+  <meta property="og:image" content="{{ site_url }}/static/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/static/app.css?v={{ versions['app.css'] }}">
   <script src="/static/app.js?v={{ versions['app.js'] }}" defer></script>
 </head>

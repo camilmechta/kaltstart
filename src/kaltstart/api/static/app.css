@@ -292,7 +292,7 @@ input[type="checkbox"]:disabled { opacity: 0.6; cursor: not-allowed; }
 .hero-inner { padding-top: var(--space-8); padding-bottom: var(--space-7); }
 .hero-title { font-size: 52px; line-height: 56px; letter-spacing: -0.035em; max-width: 14ch;
   margin-bottom: var(--space-4); }
-.hero-sub { font-size: var(--text-lg); line-height: 30px; color: var(--muted); max-width: 60ch; }
+.hero-sub { font-size: var(--text-lg); line-height: 30px; color: var(--muted); max-width: 52ch; }
 .hero-actions { margin-top: var(--space-6); }
 .btn-large { padding: 12px var(--space-5); font-size: var(--text-base); }
 .stats { list-style: none; padding: 0; margin: var(--space-7) 0 0; display: grid;
@@ -565,3 +565,10 @@ details.legend[open] .legend-items { animation: reveal 220ms ease-out both; }
 .for-you-card:hover { border-color: var(--border-strong); }
 .for-you-name { font-weight: 600; font-size: var(--text-md); }
 .fresh { color: var(--primary); font-weight: 600; }
+
+/* "How it works" as three short steps, not a second row of cards (review 2026-11-19). */
+.how-steps { list-style: none; margin: var(--space-4) 0 0; padding: 0; display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-4); }
+.how-steps li { display: flex; gap: var(--space-3); align-items: flex-start; font-size: var(--text-md);
+  line-height: 24px; color: var(--muted); }
+.how-steps b { color: var(--text); }

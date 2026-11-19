@@ -44,6 +44,7 @@ class Page:
             csrf=state.session["csrf"], pending=getattr(state, "pending", 0),
             week=getattr(state, "week", 0), limits=rules.LIMITS,
             removal_contact=self._removal, path=request.url.path, versions=self._versions,
+            site_url=f"https://{request.url.netloc}",
             **context)
         # The session cookie is saved by the middleware, on every response.
         return HTMLResponse(html, status_code=status)

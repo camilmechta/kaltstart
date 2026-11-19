@@ -78,3 +78,39 @@ def test_the_example_is_honest_and_shows_linkedin(client):
     assert "PS:" in example and "Or on LinkedIn" in example
     note = example.split('class="example-note-text">', 1)[1].split("<", 1)[0]
     assert 0 < note_length(note) <= 200
+
+
+# Design review of the landing page (2026-11-19).
+def test_shared_links_have_a_description_a_preview_and_an_icon(client):
+    page = client.get("/").text
+    assert '<meta name="description" content="Startups that just raised money hire' in page
+    assert '<meta property="og:title" content="Kaltstart · Internships that are never posted">' in page
+    assert '<meta property="og:image" content="https://testserver/static/og.png">' in page
+    assert '<meta name="twitter:card" content="summary_large_image">' in page
+    assert '<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">' in page
+    assert client.get("/static/og.png").status_code == 200
+    assert client.get("/static/favicon.svg").status_code == 200
+
+
+def test_every_page_has_the_icon(client):
+    for path in ("/signin", "/about", "/privacy"):
+        assert 'href="/static/favicon.svg"' in client.get(path).text, path
+
+
+def test_visitors_without_a_code_know_what_to_do(client):
+    import html
+    import re
+    hero = html.unescape(client.get("/").text).split('class="hero"', 1)[1].split("</section>", 1)[0]
+    assert "No invitation code yet? Ask at removal@example.com." in re.sub(r"<[^>]+>", "", hero)
+    assert 'href="mailto:removal@example.com"' in hero
+
+
+def test_how_it_works_is_three_short_steps_not_cards(client):
+    how = client.get("/").text.split('id="how-title"', 1)[1].split("</section>", 1)[0]
+    assert 'class="how-steps"' in how and "how-card" not in how
+
+
+def test_the_hero_text_keeps_short_lines():
+    from pathlib import Path
+    css = (Path(__file__).parents[2] / "src" / "kaltstart" / "api" / "static" / "app.css").read_text()
+    assert ".hero-sub { font-size: var(--text-lg); line-height: 30px; color: var(--muted); max-width: 52ch; }" in css
