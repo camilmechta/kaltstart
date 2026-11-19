@@ -4,7 +4,7 @@
 {% block content %}
 <h1 class="title-xl">Sign in</h1>
 <p class="muted">Write to the startups that just raised. Beta, by invitation.</p>
-<form method="post" action="/signin{% if next %}?next={{ next|urlencode }}{% endif %}" class="card stack">
+<form method="post" action="/signin{% if next %}?next={{ next|urlencode }}{% endif %}" class="card stack" data-submit-once>
   <input type="hidden" name="csrf" value="{{ csrf }}">
   {% if error %}<p class="notice notice-error" role="alert">{{ error }}</p>{% endif %}
   <label>E-mail <input type="email" name="email" value="{{ email or '' }}" autocomplete="email" required></label>

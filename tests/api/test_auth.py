@@ -106,3 +106,31 @@ def test_the_app_asks_the_store_whether_a_code_is_valid(client, store):
     wrong = client.post("/signup", data={"email": "y@example.com", "password": "a-long-password",
                                          "code": "KS-TWO", "csrf": csrf(client, "/signup")})
     assert asked == ["KS-ONE", "KS-TWO"] and wrong.status_code == 400
+
+
+# A second click on "Sign in" (the friend's report, 2026-11-19): the first one
+# signed in and changed the form token, the second sent the old one.
+def test_a_second_click_on_sign_in_goes_to_the_companies(client):
+    from tests.api.conftest import CODE, csrf
+    client.post("/signup", data={"email": "lea@example.com", "password": "a-long-password",
+                                 "code": CODE, "csrf": csrf(client, "/signup")})
+    data = {"email": "lea@example.com", "password": "a-long-password", "csrf": csrf(client)}
+    assert client.post("/signin", data=data).status_code == 303
+    again = client.post("/signin", data=data)
+    assert again.status_code == 303 and again.headers["location"] == "/companies"
+
+
+def test_a_stale_sign_in_form_is_still_refused_when_signed_out(client):
+    from tests.api.conftest import csrf
+    csrf(client)
+    response = client.post("/signin", data={"email": "lea@example.com",
+                                            "password": "a-long-password", "csrf": "stale"})
+    assert response.status_code == 403
+
+
+def test_sign_in_and_sign_up_buttons_are_sent_once(client):
+    from pathlib import Path
+    for path in ("/signin", "/signup"):
+        assert "data-submit-once" in client.get(path).text, path
+    script = (Path(__file__).parents[2] / "src" / "kaltstart" / "api" / "static" / "app.js").read_text()
+    assert "data-submit-once" in script

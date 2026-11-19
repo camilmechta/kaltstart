@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- A second click on "Sign in" showed "This form has expired" although the
+  first click had signed the student in: a signed-in visitor sending the
+  sign-in form again is taken to the companies, and the sign-in and
+  sign-up buttons send their form once (D96).
+
 ### Added
 
 - The header shows "7 of 10 mails kept this week · 2 waiting" on every

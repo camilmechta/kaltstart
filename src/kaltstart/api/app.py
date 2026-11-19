@@ -132,6 +132,17 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
             raise HTTPException(403, "Forbidden")
         return form
 
+    async def signin_form_posted(request: Request) -> FormData | None:
+        """The sign-in form, or None when its token is stale but the visitor is
+        already signed in: a second click on "Sign in" after the first one
+        signed in and changed the token. Nothing is changed for them then."""
+        form = await request.form()
+        if csrf_ok(request.state.session, form.get("csrf")):
+            return form
+        if getattr(request.state, "user_id", None):
+            return None
+        raise HTTPException(403, "Forbidden")
+
     def signed_in(request: Request) -> RedirectResponse | None:
         if request.state.user_id:
             return None
@@ -155,7 +166,9 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
         return page(request, "signin.html", next=request.query_params.get("next", ""))
 
     @app.post("/signin")
-    def signin(request: Request, form: FormData = Depends(posted_form)):
+    def signin(request: Request, form: FormData | None = Depends(signin_form_posted)):
+        if form is None:
+            return redirect(request, safe_next(request.query_params.get("next")))
 
         email = (form.get("email") or "").strip().lower()[:254]
         target = safe_next(request.query_params.get("next") or form.get("next"))

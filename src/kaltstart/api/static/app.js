@@ -46,6 +46,29 @@
     });
   });
 
+  // Sign-in and sign-up: one click is enough. A second click would send the
+  // form again after the first one changed its token.
+  document.addEventListener("submit", function (event) {
+    var form = event.target.closest("form[data-submit-once]");
+    if (!form) return;
+    if (form.getAttribute("data-sent")) { event.preventDefault(); return; }
+    form.setAttribute("data-sent", "1");
+    var button = form.querySelector('button[type="submit"]');
+    if (button) {
+      button.setAttribute("aria-disabled", "true");
+      button.setAttribute("data-label", button.textContent);
+      button.textContent = button.textContent.indexOf("Create") === 0 ? "Creating your account…" : "Signing in…";
+    }
+  });
+  // Back to a page the browser kept: the form can be sent again.
+  window.addEventListener("pageshow", function () {
+    document.querySelectorAll("form[data-sent]").forEach(function (form) {
+      form.removeAttribute("data-sent");
+      var button = form.querySelector('button[type="submit"][data-label]');
+      if (button) { button.textContent = button.getAttribute("data-label"); button.removeAttribute("aria-disabled"); }
+    });
+  });
+
   // Live word counters: <textarea data-max-words="60"> and <span data-counter-for="id">.
   function count(field) {
     var words = field.value.trim() ? field.value.trim().split(/\s+/).length : 0;

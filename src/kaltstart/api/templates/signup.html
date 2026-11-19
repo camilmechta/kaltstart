@@ -7,7 +7,7 @@
 <p class="notice notice-success" role="status">Almost there: we sent you an e-mail. Confirm your address, then sign in.</p>
 <div class="actions"><a class="btn btn-primary" href="/signin">Sign in</a></div>
 {% else %}
-<form method="post" action="/signup" class="card stack">
+<form method="post" action="/signup" class="card stack" data-submit-once>
   <input type="hidden" name="csrf" value="{{ csrf }}">
   {% if error %}<p class="notice notice-error" role="alert">{{ error }}</p>{% endif %}
   <label>E-mail <input type="email" name="email" value="{{ email or '' }}" autocomplete="email" required></label>
