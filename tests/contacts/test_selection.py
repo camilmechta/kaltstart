@@ -153,8 +153,29 @@ def test_variants_of_unfit_addresses(address):
     assert not usable_address(address)
 
 
-@pytest.mark.parametrize("address", ["supportive.team@example.ch", "info-de@example.ch",
+@pytest.mark.parametrize("address", ["info-de@example.ch",
                                      "hello.ch@example.ch", "jobs-ch@example.ch"])
 def test_variants_that_stay_usable(address):
+    from kaltstart.contacts.selection import usable_address
+    assert usable_address(address)
+
+
+
+# Seen on the live site (2026-11-19): a refused word glued to another one.
+@pytest.mark.parametrize("address", ["customersupport@example.ch", "techsupport@example.ch",
+                                     "kundensupport@example.ch", "supportteam@example.ch",
+                                     "clientservice@example.ch", "privacyoffice@example.ch",
+                                     "billingteam@example.ch", "teamnoreply@example.ch",
+                                     "mediarelations@example.ch", "pressoffice@example.ch"])
+def test_refused_words_glued_to_another(address):
+    from kaltstart.contacts.selection import usable_address
+    assert not usable_address(address)
+
+
+@pytest.mark.parametrize("address", ["skincare@example.ch", "hello@example.ch",
+                                     "people@example.ch", "devteam.jobs@example.ch",
+                                     "careers@example.ch", "contact@example.ch",
+                                     "apply@example.ch", "office@example.ch"])
+def test_ordinary_words_are_not_caught(address):
     from kaltstart.contacts.selection import usable_address
     assert usable_address(address)

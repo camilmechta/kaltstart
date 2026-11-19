@@ -25,6 +25,14 @@ UNFIT_LOCAL_PARTS = frozenset((
     "developers"))
 
 
+# Words clear enough to be refused glued to another one, at the start or the
+# end of the local part (customersupport@, privacyoffice@, seen on live data).
+GLUED_UNFIT_WORDS = ("support", "service", "services", "noreply", "donotreply", "privacy",
+                     "datenschutz", "billing", "invoice", "invoices", "rechnung", "accounting",
+                     "buchhaltung", "press", "presse", "media", "helpdesk", "newsletter",
+                     "webmaster", "postmaster", "compliance", "security")
+
+
 def usable_address(address: str) -> bool:
     """False for an address no application should go to (support@, noreply@...),
     also in its usual variants: no_reply@, no.reply@, noreply+news@, support-de@,
@@ -32,7 +40,10 @@ def usable_address(address: str) -> bool:
     local = address.split("@", 1)[0].strip().lower().split("+", 1)[0]
     words = [w for w in re.split(r"[._-]", local) if w]
     candidates = {local, "".join(words), "-".join(words)} | ({words[0]} if words else set())
-    return not candidates & UNFIT_LOCAL_PARTS
+    if candidates & UNFIT_LOCAL_PARTS:
+        return False
+    joined = "".join(words)
+    return not any(joined.startswith(w) or joined.endswith(w) for w in GLUED_UNFIT_WORDS)
 
 
 def address_owner(address: str, people: Sequence[FoundPerson]) -> FoundPerson | None:
