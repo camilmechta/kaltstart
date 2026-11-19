@@ -46,14 +46,62 @@ from kaltstart.contacts.titles import CATEGORIES, ROLE_TO_CATEGORY, Title, class
     ("Co-Founder, Advisor & ETH Professor", ("leadership",), "head"),
 ])
 
+
 def test_titles_kept(text, categories, level):
     assert classify_title(text) == Title(categories, level)
+
+
+# Technical heads (technical roles design, section 5).
+@pytest.mark.parametrize("text,categories,level", [
+    ("Head of Engineering", ("engineering",), "head"),
+    ("VP Engineering", ("engineering",), "head"),
+    ("Director of Software", ("engineering",), "head"),
+    ("Head of AI", ("engineering",), "head"),
+    ("Head of AI/ML", ("engineering",), "head"),
+    ("Machine Learning Lead", ("engineering",), "head"),
+    ("Chief AI Officer", ("engineering",), "head"),
+    ("Engineering Manager", ("engineering",), "manager"),
+    ("Leiter Softwareentwicklung", ("engineering",), "head"),
+    ("Head of R&D", ("rnd",), "head"),
+    ("Head of Research", ("rnd",), "head"),
+    ("Head of Hardware", ("rnd",), "head"),
+    ("Director Electronics", ("rnd",), "head"),
+    ("Chief Scientific Officer", ("rnd",), "head"),
+    ("Leiter Forschung & Entwicklung", ("rnd",), "head"),
+    ("Entwicklungsleiterin", ("rnd",), "head"),
+    ("R&D Manager", ("rnd",), "manager"),
+    ("Hardware Manager", ("rnd",), "manager"),
+    ("Head of Data Engineering", ("data", "engineering"), "head"),
+    ("CTO", ("leadership",), "head"),
+])
+def test_technical_titles_kept(text, categories, level):
+    assert classify_title(text) == Title(categories, level)
+
+
+@pytest.mark.parametrize("text,categories", [
+    ("Head of Business Development", ("sales",)),
+    ("Leiter Geschäftsentwicklung", None),
+    ("Head of Software Sales", ("sales",)),
+    ("Head of AI Partnerships", ("sales",)),
+    ("Head of Market Research", None),
+    ("Market Research Manager", None),
+])
+def test_business_titles_stay_business(text, categories):
+    title = classify_title(text)
+    assert (title.categories if title else None) == categories
+
+
+@pytest.mark.parametrize("text", [
+    "Software Engineer", "Hardware Engineer", "Research Scientist", "ML Engineer",
+    "Senior Software Developer"])
+def test_technical_individuals_are_not_kept(text):
+    assert classify_title(text) is None
 
 
 @pytest.mark.parametrize("text", [
     # Review Focus 2: looks like a kept title, is not.
     "Account Manager", "Project Manager", "Office Manager", "Product Owner",
-    "Customer Success Manager", "Head of Engineering", "Engineering Manager",
+    "Customer Success Manager",
     "Founder Associate", "Head of CEO Office", "Founders Associate",
     # No head or manager title.
     "Software Engineer", "Product Designer", "Data Scientist", "Sales Representative",
@@ -72,9 +120,10 @@ def test_titles_not_kept(text):
 
 def test_constants():
     assert CATEGORIES == ("leadership", "product", "growth", "data", "operations",
-                          "sales", "recruiting")
+                          "sales", "engineering", "rnd", "recruiting")
     assert ROLE_TO_CATEGORY == {"product": "product", "growth": "growth", "data": "data",
-                                "ops": "operations", "bd": "sales"}
+                                "ops": "operations", "bd": "sales",
+                                "software": "engineering", "rnd": "rnd"}
 
 
 # Found by the review before the first run on real sites.

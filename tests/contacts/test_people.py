@@ -164,7 +164,7 @@ QUOTE = "“They cut our planning time in half and we would not go back to the o
     card("Anika Probe", "Personal Assistant to the Founder &amp; CEO"),
     # Titles that are not kept.
     card("Mia Probe", "Software Engineer"),
-    card("Mia Probe", "Head of Engineering"),
+    card("Mia Probe", "Hardware Engineer"),
     card("Mia Probe", "Account Manager"),
     card("Mia Probe", "Board Member"),
 ])
@@ -426,3 +426,13 @@ def test_a_long_run_of_credentials_is_read_in_linear_time():
     start = time.monotonic()
     names(body, kind="home")
     assert time.monotonic() - start < 0.5
+
+
+# The new technical words must not turn a name into a title (technical roles plan, Task 2).
+@pytest.mark.parametrize("body,expected", [
+    (card("Ai Beispiel", "Head of Product"), [("Ai Beispiel", "Head of Product")]),
+    (card("Mia Probe", "Head of R&amp;D"), [("Mia Probe", "Head of R&D")]),
+    (card("Tim Muster", "VP Engineering"), [("Tim Muster", "VP Engineering")]),
+])
+def test_technical_heads_on_a_team_page(body, expected):
+    assert names(body) == expected

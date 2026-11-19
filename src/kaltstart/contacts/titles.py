@@ -1,6 +1,6 @@
 """Job titles: which ones are kept, in which category, at which level.
 
-Kept: the people who lead the company, lead one of five functions, or
+Kept: the people who lead the company, lead one of seven functions, or
 recruit. Individual contributors, board members, advisors and investors are
 not, and neither is a title someone no longer holds.
 """
@@ -9,10 +9,11 @@ import re
 from dataclasses import dataclass
 
 CATEGORIES = ("leadership", "product", "growth", "data", "operations", "sales",
-              "recruiting")
+              "engineering", "rnd", "recruiting")
 # A student's target role (design spec, section 7.3) and the category it maps to.
 ROLE_TO_CATEGORY = {"product": "product", "growth": "growth", "data": "data",
-                    "ops": "operations", "bd": "sales"}
+                    "ops": "operations", "bd": "sales",
+                    "software": "engineering", "rnd": "rnd"}
 
 
 @dataclass(frozen=True)
@@ -66,14 +67,29 @@ _CHIEFS = {
     "growth": _words("cmo", "chief marketing officer", "chief growth officer"),
     "data": _words("chief data officer"),
     "sales": _words("cro", "cco", "chief revenue officer", "chief commercial officer"),
+    "engineering": _words("chief ai officer"),
+    "rnd": _words("chief scientific officer"),
     "recruiting": _words("chro", "chief people officer", "chief human resources officer"),
 }
+# A technical word that only qualifies a business function ("Head of Software
+# Sales", "Head of AI Partnerships") does not make the title technical, and
+# market research is not R&D.
+_NOT_BEFORE_BUSINESS = r"(?!\s+(?:sales|business|partnerships?|marketing|growth|vertrieb))"
+_ENGINEERING_WORDS = r"engineering|software|softwareentwicklung|machine learning"
+# Short words that are also first names ("Ai"): read in titles, never used
+# to tell a title from a name.
+_ENGINEERING_SHORT = r"ai|ml"
 _FUNCTIONS = {
     "product": r"product|produkt(?!ion)\w*|produit",
     "growth": r"growth|marketing",
     "data": r"data|analytics|daten",
     "operations": r"operations|betrieb|opérations",
     "sales": r"sales|business development|partnerships?|vertrieb|ventes",
+    # No plain "development" (business development), "technology" or
+    # "platform" (both found in business titles; the CTO is a leader).
+    "engineering": rf"(?:{_ENGINEERING_WORDS}|{_ENGINEERING_SHORT})" + _NOT_BEFORE_BUSINESS,
+    "rnd": (r"(?<!market )(?:r&d|f&e|research|hardware|electronics|mechanical|"
+            r"forschung(?:\s+(?:&|und)\s+entwicklung)?|entwicklung)" + _NOT_BEFORE_BUSINESS),
     # "Personal" is German for staff only when no other word follows it:
     # "Personal Care" and "Personal Banking" are English.
     "recruiting": (r"people|hr|rh|human resources|talent acquisition|talent|recruit\w*|"
@@ -85,6 +101,7 @@ _COMPOUND_HEADS = {
     "growth": r"marketing",
     "operations": r"betriebs?",
     "sales": r"vertriebs?|verkaufs?",
+    "rnd": r"entwicklungs",
     "recruiting": r"personal|hr-?",
 }
 _HEAD_WORDS = (r"head|director|vp|vice president|chief|lead|leiter(?:in)?|"
@@ -131,7 +148,7 @@ _RECRUITER = _words(r"recruiter(?:in)?")
 LEADERSHIP = _LEADERSHIP
 # Any word a job title is made of: used to tell a title from a name.
 TITLE_WORD = _words(*_RUNS_THE_COMPANY, _PRESIDENT, _HEAD_WORDS, r"manager(?:in)?",
-                    _ANY_FUNCTION, r"recruiter(?:in)?",
+                    *(f for c, f in _FUNCTIONS.items() if c != "engineering"), _ENGINEERING_WORDS, r"recruiter(?:in)?",
                     *(rf"(?:{prefix})leiter(?:in)?" for prefix in _COMPOUND_HEADS.values()),
                     *(pattern.pattern for pattern in _CHIEFS.values()))
 # German leadership words may be followed directly by the name ("Gründerin Anna Muster").
