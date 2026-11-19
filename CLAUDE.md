@@ -57,8 +57,9 @@ environment variables listed in the README.
 - Contact scraper: `robots.txt` is read first and obeyed; at least 2 seconds
   between requests to a site; at most 8 pages per company; never LinkedIn or
   any other site; no project name in the `User-Agent`, no browser imitation.
-- People kept by the scraper: leaders, heads and managers of five functions
-  (product, growth, data, operations, sales) and recruiters, read with their
+- People kept by the scraper: leaders, heads and managers of seven functions
+  (product, growth, data, operations, sales, engineering, R&D) and
+  recruiters, read with their
   job title on the company's own site. Never prose, never a testimonial,
   never somebody of another organisation. Only name, title, categories,
   level and source page are kept.

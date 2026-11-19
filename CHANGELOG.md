@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Two target roles for technical students, Software & AI and R&D &
+  Hardware: profile cards, mail paragraphs in English and German, and
+  engineering and R&D heads read by the contact scraper; at a small
+  company the CTO is suggested before a founder for these roles; migration
+  `0009` (D93).
+
 ### Security
 
 - Three ways a company website could stall the nightly contact scraper are
