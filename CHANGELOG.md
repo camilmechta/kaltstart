@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- A public privacy page, `/privacy`, linked from every page and from
+  sign-up: what Kaltstart keeps about students and about people at
+  companies, what it never does, where the data is, how to use one's
+  rights, and that all personal data is deleted when the project ends
+  (D94).
+
 - Two target roles for technical students, Software & AI and R&D &
   Hardware: profile cards, mail paragraphs in English and German, and
   engineering and R&D heads read by the contact scraper; at a small
