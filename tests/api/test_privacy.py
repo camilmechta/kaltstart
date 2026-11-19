@@ -34,3 +34,27 @@ def test_the_signup_page_explains_the_data_use(client):
 def test_a_signed_in_student_can_read_it(client):
     ready(client)
     assert client.get("/privacy").status_code == 200
+
+
+# Final review of the privacy page: every sentence must match what the app does.
+def test_the_page_says_what_kept_mails_and_typed_names_hold(client):
+    page = client.get("/privacy").text
+    for words in ("whether you attach a CV", "with their status and dates",
+                  "when your invitation code was used",
+                  "A student may also type a name",
+                  "stay in that mail until you ask",
+                  "a fingerprint of your name"):
+        assert words in page, words
+    assert "Nothing comes from social networks or other websites" not in page
+
+
+def test_the_page_describes_the_cookie_and_the_ip_counting(client):
+    page = client.get("/privacy").text
+    for words in ("protects forms", "14 days after your last visit",
+                  "kept in your browser", "IP address is counted in memory",
+                  "Cloudflare"):
+        assert words in page, words
+
+
+def test_the_page_mentions_the_sign_in_logs_of_supabase(client):
+    assert "Supabase, which handles sign-in, keeps its own technical logs" in client.get("/privacy").text
