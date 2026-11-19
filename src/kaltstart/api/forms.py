@@ -56,7 +56,7 @@ def parse_profile(form, student_id: str) -> tuple[Profile, list[Showcase], dict[
     languages = ("en", "de") if german else ("en",)
     role = form.get("target_role") or ""
     if role not in ROLES:
-        errors["target_role"] = "Target role: choose one of the five roles."
+        errors["target_role"] = "Target role: choose one of the seven roles."
     request = form.get("request") or ""
     if request not in REQUESTS:
         errors["request"] = "Choose internship or part-time."

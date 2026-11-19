@@ -25,7 +25,9 @@ _PEOPLE = (("Anna Muster", "Co-Founder & CEO", ("leadership",), "head"),
            ("Clara Vorlage", "Product Manager", ("product",), "manager"),
            ("Noah Entwurf", "Talent Acquisition Manager", ("recruiting",), "manager"),
            ("Lea Probe", "Head of Data", ("data",), "head"),
-           ("Mia Muster", "VP Sales", ("sales",), "head"))
+           ("Mia Muster", "VP Sales", ("sales",), "head"),
+           ("Tim Muster", "Head of Engineering", ("engineering",), "head"),
+           ("Eva Probe", "Head of R&D", ("rnd",), "head"))
 
 
 def seeded_store(now: datetime, count: int = 36) -> InMemoryAppStore:

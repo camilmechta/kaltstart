@@ -9,13 +9,17 @@
 {% elif role == 'growth' %}<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>
 {% elif role == 'data' %}<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>
 {% elif role == 'operations' %}<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9 7 7M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/>
-{% else %}<rect width="20" height="14" x="2" y="7" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>{% endif %}
+{% elif role == 'business_development' %}<rect width="20" height="14" x="2" y="7" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+{% elif role == 'software_ai' %}<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+{% elif role == 'rd_hardware' %}<rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2M15 20v2M2 15h2M2 9h2M20 15h2M20 9h2M9 2v2M9 20v2"/>{% endif %}
 </svg>{% endmacro %}
 {% set role_hints = {'product': 'Roadmap, user research, new features',
                      'growth': 'Marketing, acquisition, campaigns',
                      'data': 'Dashboards, analyses, decisions backed by data',
                      'operations': 'Processes, tools, making things run at scale',
-                     'business_development': 'Partners, sales, new markets'} %}
+                     'business_development': 'Partners, sales, new markets',
+                     'software_ai': 'Building products, machine learning, infrastructure',
+                     'rd_hardware': 'Prototypes, electronics, mechanics, lab work'} %}
 {% set german = 'de' in profile.languages %}
 {% block content %}
 <p class="kicker">Your profile</p>

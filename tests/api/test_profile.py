@@ -168,3 +168,27 @@ def test_the_university_is_asked_and_kept(client, store, auth):
     assert response.status_code == 400 and "University is required." in response.text
     save_profile(client, university="EPFL")
     assert store.profile(user_id(auth)).university == "EPFL"
+
+
+def test_the_profile_shows_seven_role_cards_with_their_hints(client):
+    sign_up_and_in(client)
+    page = client.get("/profile").text
+    positions = [page.index(f'value="{role}"') for role in ROLES]
+    assert positions == sorted(positions)
+    for text in ("Software &amp; AI", "R&amp;D &amp; Hardware",
+                 "Building products, machine learning, infrastructure",
+                 "Prototypes, electronics, mechanics, lab work"):
+        assert text in page, text
+
+
+def test_saving_a_technical_role(client, store, auth):
+    sign_up_and_in(client)
+    save_profile(client, target_role="software_ai")
+    assert store.profile(user_id(auth)).target_role == "software_ai"
+    assert 'value="software_ai" checked' in client.get("/profile").text
+
+
+def test_an_unknown_role_names_the_seven_roles(client):
+    sign_up_and_in(client)
+    page = save_profile(client, target_role="engineering").text
+    assert "Target role: choose one of the seven roles." in page

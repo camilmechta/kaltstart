@@ -1,18 +1,22 @@
 """Who the mail goes to, decided on the server from the stored contacts
 (spec 9b point 4): the form only says which choice the student made."""
 
+import re
 from dataclasses import dataclass
 from typing import Sequence
 
+from kaltstart.api.forms import ROLE_LABELS
 from kaltstart.api.store import CompanyRow, EmailRow, PersonRow, Profile, Showcase
 from kaltstart.contacts.exclusions import normalise_name, person_key
 from kaltstart.contacts.models import FoundEmail, FoundPerson
-from kaltstart.contacts.selection import address_owner, choose_contact, choose_person
+from kaltstart.contacts.selection import (
+    TECHNICAL_ROLES, address_owner, choose_contact, choose_person)
 from kaltstart.mailgen import models as mg
 
 # The student's role, as mailgen spells it, to the spelling of contacts.selection.
 ROLE_TO_SELECTION = {"product": "product", "growth": "growth", "data": "data",
-                     "operations": "ops", "business_development": "bd"}
+                     "operations": "ops", "business_development": "bd",
+                     "software_ai": "software", "rd_hardware": "rnd"}
 CHOICES = ("suggested", "other_on_list", "typed", "team")
 MAX_TYPED_NAME = 40
 
@@ -117,11 +121,11 @@ def to_mailgen(profile: Profile, showcases: Sequence[Showcase], company: Company
             mg.Contact(recipient.address, recipient.address_type, recipient.person_name))
 
 
-_ROLE_LABELS = {"product": "Product", "growth": "Growth", "data": "Data",
-                "operations": "Operations", "business_development": "Business development"}
 # The categories of contacts.titles for each target role.
 _ROLE_CATEGORY = {"product": "product", "growth": "growth", "data": "data",
-                  "operations": "operations", "business_development": "sales"}
+                  "operations": "operations", "business_development": "sales",
+                  "software_ai": "engineering", "rd_hardware": "rnd"}
+_CTO = re.compile(r"(?<!\w)(?:cto|chief technology officer)(?!\w)", re.IGNORECASE)
 
 
 def why(person: PersonRow, profile: Profile | None, company: CompanyRow) -> str:
@@ -130,8 +134,10 @@ def why(person: PersonRow, profile: Profile | None, company: CompanyRow) -> str:
     role = profile.target_role if profile else None
     if role and _ROLE_CATEGORY.get(role) in person.categories:
         return (f"Their title, {person.title}, matches your target role: "
-                f"{_ROLE_LABELS[role]}.")
+                f"{ROLE_LABELS[role]}.")
     if "recruiting" in person.categories and company.size_category != "small":
         return "At a company this size, the recruiting team handles applications."
+    if ROLE_TO_SELECTION.get(role or "") in TECHNICAL_ROLES and _CTO.search(person.title):
+        return "At a small company, the CTO reads applications for technical roles."
     return ("At a small company, the founders and the leadership read applications "
             "themselves.")

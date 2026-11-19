@@ -36,3 +36,9 @@ def test_company_names_are_unique():
     rows, total = store.companies(ListFilters(), "dev", NOW)
     names = [r.name for r in rows]
     assert len(set(names)) == len(names) == total
+
+
+def test_the_seed_has_technical_heads():
+    from kaltstart.api.seed import _PEOPLE
+    categories = {c for _, _, cats, level in _PEOPLE if level == "head" for c in cats}
+    assert {"engineering", "rnd"} <= categories
