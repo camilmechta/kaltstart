@@ -10,7 +10,7 @@ from typing import Protocol, Sequence
 
 from kaltstart.api import rules
 from kaltstart.api.rules import MailRecord, Refusal
-from kaltstart.contacts.selection import usable_address
+from kaltstart.contacts.selection import usable_email
 
 PAGE_SIZE = 50
 RECENT_ROUND_DAYS = 365
@@ -331,7 +331,7 @@ class InMemoryAppStore:
 
     def emails(self, company_id: str) -> list[EmailRow]:
         """The addresses an application may go to (never support@, noreply@...)."""
-        return [e for e in self._emails.get(company_id, []) if usable_address(e.address)]
+        return [e for e in self._emails.get(company_id, []) if usable_email(e.address, e.type)]
 
     def contact_summary(self, company_ids: Sequence[str]) -> dict[str, tuple[int, bool]]:
         """For each company: how many people are named, and whether a careers

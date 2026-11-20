@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Owner's walk-through (D106): sales, marketing, partnership and other
+  commercial addresses are never used; with nobody named, writing to the
+  team comes first; a preview says nothing is kept and links back to the
+  companies.
 - Phones (D105): the sign-up page says how to get a code, sign-up signs
   you in and opens your profile, the signed-in header fits in two rows with
   larger tap targets, and the size legend starts folded on a phone.

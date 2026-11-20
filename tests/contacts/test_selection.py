@@ -179,3 +179,62 @@ def test_refused_words_glued_to_another(address):
 def test_ordinary_words_are_not_caught(address):
     from kaltstart.contacts.selection import usable_address
     assert usable_address(address)
+
+
+# Owner's walk-through, 2026-11-20: a sales address was offered. The words come
+# from the shared address starts in the live database (each at 3+ companies),
+# with their usual German and plural forms.
+@pytest.mark.parametrize("local", [
+    "sales", "sale", "vertrieb", "verkauf", "marketing", "partners", "partner",
+    "partnerships", "partnership", "bizdev", "business", "affiliate", "affiliates",
+    "sponsoring", "advertising", "ads", "werbung", "investors", "investor", "ir",
+    "events", "booking", "bookings", "reservations", "tickets", "demo", "onboarding",
+    "procurement", "purchasing", "einkauf"])
+def test_commercial_addresses_are_not_for_an_application(local):
+    from kaltstart.contacts.selection import usable_address
+    assert not usable_address(f"{local}@example.ch")
+
+
+@pytest.mark.parametrize("address", ["salesteam@example.ch", "sales-ch@example.ch",
+                                     "sales.de@example.ch", "teamsales@example.ch",
+                                     "marketingteam@example.ch", "vertrieb-de@example.ch",
+                                     "partnerships.eu@example.ch", "procurement-ch@example.ch"])
+def test_commercial_words_glued_or_with_a_country(address):
+    from kaltstart.contacts.selection import usable_address
+    assert not usable_address(address)
+
+
+@pytest.mark.parametrize("local", ["founders", "hi", "hallo", "hey", "work", "hiring", "join",
+                                   "bewerbung", "karriere", "talent", "recruiting"])
+def test_the_other_shared_starts_stay_usable(local):
+    from kaltstart.contacts.selection import usable_address
+    assert usable_address(f"{local}@example.ch")
+
+
+# Final review, 2026-11-20: surnames such as Rosales or Sales, and <word>.jobs.
+@pytest.mark.parametrize("address", ["maria.rosales@example.ch", "anna.sales@example.ch",
+                                     "tsales@example.ch", "sale.marco@example.ch"])
+def test_a_persons_own_address_is_never_refused_for_a_word(address):
+    from kaltstart.contacts.selection import usable_email
+    assert usable_email(address, "personal")
+
+
+@pytest.mark.parametrize("address", ["ir.jobs@example.ch", "sales.jobs@example.ch",
+                                     "business.jobs@example.ch", "jobs-sales@example.ch",
+                                     "marketing-careers@example.ch"])
+def test_an_address_naming_jobs_stays_usable(address):
+    from kaltstart.contacts.selection import usable_address
+    assert usable_address(address)
+
+
+@pytest.mark.parametrize("address", ["noreply-jobs@example.ch", "jobs.noreply@example.ch",
+                                     "donotreply.careers@example.ch"])
+def test_a_no_reply_address_stays_refused_even_with_jobs(address):
+    from kaltstart.contacts.selection import usable_address
+    assert not usable_address(address)
+
+
+def test_shared_addresses_are_still_filtered_by_usable_email():
+    from kaltstart.contacts.selection import usable_email
+    assert not usable_email("sales@example.ch", "generic")
+    assert usable_email("info@example.ch", "generic")

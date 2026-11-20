@@ -554,3 +554,35 @@ def test_the_kept_linkedin_page_says_where_to_come_back(client, store, auth):
     response = post(client, "keep", choice="other_on_list", person="0", channel="linkedin")
     page = client.get(response.headers["location"]).text
     assert "Once they accept, open this message again from My mails and paste the message." in page
+
+
+# --- Owner's walk-through, 2026-11-20 ----------------------------------------
+
+def test_with_nobody_named_the_team_comes_first(client, store):
+    from dataclasses import replace
+    store.add_company(replace(C1, id="c9", name="Nobody Named"), emails=EMAILS, people=[])
+    ready(client)
+    page = client.get("/companies/c9").text
+    assert page.index('value="team"') < page.index('value="typed"')
+    assert 'name="choice" value="team" checked' not in page           # still not preselected
+
+
+def test_with_people_named_the_team_stays_last(client):
+    ready(client)
+    page = client.get("/companies/c1").text
+    assert page.index('value="typed"') < page.index('value="team"')
+
+
+def test_after_a_preview_the_way_back_is_said(client):
+    ready(client)
+    page = post(client, "preview", choice="suggested").text
+    after_keep = page.split("Keep this mail", 1)[1]
+    assert "Nothing is kept until you click Keep." in after_keep
+    assert '<a href="/companies">Back to the companies</a>' in after_keep
+
+
+def test_the_way_back_is_also_under_a_linkedin_preview(client):
+    ready(client)
+    page = post(client, "preview", choice="suggested", channel="linkedin").text
+    after_keep = page.split("Keep this message", 1)[1]
+    assert '<a href="/companies">Back to the companies</a>' in after_keep

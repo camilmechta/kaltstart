@@ -184,3 +184,15 @@ def test_a_company_with_only_an_unfit_address_has_none():
     assert "c1" not in ids and "c2" in ids
     assert store.company("c1") is None
     assert [e.address for e in store.emails("c2")] == ["info@c2.example.ch"]
+
+
+def test_a_persons_own_address_with_a_refused_word_is_kept():
+    from kaltstart.api.store import EmailRow, InMemoryAppStore
+    from tests.api.test_compose import C1
+    store = InMemoryAppStore(invitation="dev")
+    store.add_company(C1, emails=[EmailRow("maria.rosales@c1.example.ch", "personal",
+                                           "https://c1.example.ch/team"),
+                                  EmailRow("sales@c1.example.ch", "generic",
+                                           "https://c1.example.ch/contact")], people=[])
+    assert [e.address for e in store.emails(C1.id)] == ["maria.rosales@c1.example.ch"]
+    assert store.company(C1.id) is not None

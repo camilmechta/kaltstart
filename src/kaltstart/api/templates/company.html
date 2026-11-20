@@ -1,4 +1,11 @@
 {% extends "base.html" %}
+{% macro team_card() %}
+      <label class="option-card">
+        <input type="radio" name="choice" value="team" {% if form.get('choice') == 'team' %}checked{% endif %}>
+        <span class="option-title">No name, write to the team</span>
+        <p class="option-detail">Your mail opens with "Hi {{ company.name }} team". Goes to the company's careers or general address.</p>
+      </label>
+{% endmacro %}
 {% block title %}{{ company.name }} · Kaltstart{% endblock %}
 {% block main_class %}container column{% endblock %}
 {% block content %}
@@ -37,6 +44,8 @@
         <p class="option-detail">{{ suggested.name.split()[0] }} was found on the company's own website, on {% if suggested.source_url|web_link %}<a href="{{ suggested.source_url|web_link }}" rel="noopener noreferrer" target="_blank">this page</a>{% else %}a page of its site{% endif %}, on {{ suggested.read_at.strftime('%-d %b %Y') }}. People change jobs: check the page before you choose.</p>
       </label>
       {% endif %}
+      {# With nobody named, writing to the team is the usual choice: it comes first (walk-through 2026-11-20). #}
+      {% if not people %}{{ team_card() }}{% endif %}
       {% if people|length > (1 if suggested and not profile_missing else 0) %}
       <label class="option-card">
         <input type="radio" name="choice" value="other_on_list" {% if form.get('choice') == 'other_on_list' %}checked{% endif %}>
@@ -58,11 +67,7 @@
         <p class="option-detail">Optional, for the person you chose above. Kaltstart never guesses an address: if you found theirs yourself, your mail goes there and greets them by name. It is kept with this mail only.</p>
         <input type="text" inputmode="email" autocomplete="off" name="their_address" value="{{ form.get('their_address', '') }}" maxlength="254" placeholder="name@company.com" aria-label="Their address, if you know it">
       </label>
-      <label class="option-card">
-        <input type="radio" name="choice" value="team" {% if form.get('choice') == 'team' %}checked{% endif %}>
-        <span class="option-title">No name, write to the team</span>
-        <p class="option-detail">Your mail opens with "Hi {{ company.name }} team". Goes to the company's careers or general address.</p>
-      </label>
+      {% if people %}{{ team_card() }}{% endif %}
     </div>
   </section>
 
@@ -145,6 +150,7 @@
     <div class="actions"><button class="btn btn-primary" type="submit">Keep this mail</button>
       <span class="small muted">Keeping takes one of the 3 slots of {{ company.name }} for 30 days.</span></div>
     {% endif %}
+    <p class="small muted" style="margin-top:12px">Not for you? Nothing is kept until you click Keep. <a href="/companies">Back to the companies</a></p>
   </form>
 </section>
 {% endif %}

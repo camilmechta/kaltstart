@@ -22,7 +22,14 @@ UNFIT_LOCAL_PARTS = frozenset((
     "buchhaltung", "finance", "orders", "order", "bestellung", "shop", "store",
     "newsletter", "unsubscribe", "webmaster", "postmaster", "hostmaster", "security",
     "compliance", "returns", "retoure", "feedback", "bugs", "status", "api", "dev",
-    "developers"))
+    "developers",
+    # Commercial addresses (owner's walk-through, 2026-11-20: a sales address was
+    # offered). Taken from the address starts shared by 3+ companies in the data.
+    "sales", "sale", "vertrieb", "verkauf", "marketing", "partners", "partner",
+    "partnerships", "partnership", "bizdev", "business", "affiliate", "affiliates",
+    "sponsoring", "advertising", "ads", "werbung", "investors", "investor", "ir",
+    "events", "booking", "bookings", "reservations", "tickets", "demo", "onboarding",
+    "procurement", "purchasing", "einkauf"))
 
 
 # Words clear enough to be refused glued to another one, at the start or the
@@ -30,7 +37,8 @@ UNFIT_LOCAL_PARTS = frozenset((
 GLUED_UNFIT_WORDS = ("support", "service", "services", "noreply", "donotreply", "privacy",
                      "datenschutz", "billing", "invoice", "invoices", "rechnung", "accounting",
                      "buchhaltung", "press", "presse", "media", "helpdesk", "newsletter",
-                     "webmaster", "postmaster", "compliance", "security")
+                     "webmaster", "postmaster", "compliance", "security",
+                     "sales", "vertrieb", "marketing", "partnerships", "procurement")
 
 
 def usable_address(address: str) -> bool:
@@ -40,10 +48,22 @@ def usable_address(address: str) -> bool:
     local = address.split("@", 1)[0].strip().lower().split("+", 1)[0]
     words = [w for w in re.split(r"[._-]", local) if w]
     candidates = {local, "".join(words), "-".join(words)} | ({words[0]} if words else set())
+    joined = "".join(words)
+    # An address naming jobs or careers is for applications (ir.jobs@,
+    # sales.jobs@), unless it is a no-reply one (review 2026-11-20).
+    if (any(w in CAREERS_LOCAL_PARTS for w in words)
+            and not any(n in joined for n in ("noreply", "donotreply"))):
+        return True
     if candidates & UNFIT_LOCAL_PARTS:
         return False
-    joined = "".join(words)
     return not any(joined.startswith(w) or joined.endswith(w) for w in GLUED_UNFIT_WORDS)
+
+
+def usable_email(address: str, kind: str) -> bool:
+    """usable_address for shared addresses only: a person's own address is a
+    name, never a service, so a surname such as Rosales or Sales is never
+    refused for the word it contains (review 2026-11-20)."""
+    return kind == "personal" or usable_address(address)
 
 
 def address_owner(address: str, people: Sequence[FoundPerson]) -> FoundPerson | None:

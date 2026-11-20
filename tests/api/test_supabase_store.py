@@ -62,8 +62,8 @@ TABLES = {
          "sectors": ["Robotics"], "website": "https://one.example.ch", "description": "Robots."},
         {"id": "c2", "name": "Example Two", "country": "Germany", "city": "Berlin",
          "sectors": ["Fintech"], "website": "https://two.example.de", "description": "Money."}],
-    "contact_emails": [{"company_id": "c1", "address": "info@c1.example.ch"},
-                       {"company_id": "c2", "address": "info@c2.example.ch"}],
+    "contact_emails": [{"company_id": "c1", "address": "info@c1.example.ch", "type": "generic"},
+                       {"company_id": "c2", "address": "info@c2.example.ch", "type": "generic"}],
     "contact_exclusions": [{"company_id": "c2", "person_key": None, "address_key": None}],
     "mails": [],
 }
@@ -169,8 +169,8 @@ def test_a_company_page_follows_the_stores_clock():
 
 def test_the_live_store_sets_unfit_addresses_aside():
     """Honest addresses, point 3: a company with only support@ counts as without address."""
-    tables = dict(TABLES, contact_emails=[{"company_id": "c1", "address": "support@c1.example.ch"},
-                                          {"company_id": "c2", "address": "info@c2.example.ch"}])
+    tables = dict(TABLES, contact_emails=[{"company_id": "c1", "address": "support@c1.example.ch", "type": "generic"},
+                                          {"company_id": "c2", "address": "info@c2.example.ch", "type": "generic"}])
     assert store(Recorder(tables))._with_address() == {"c2"}
 
 
@@ -200,3 +200,15 @@ def test_mail_records_carry_the_sent_date():
     [record] = store(recorder).mail_records()
     assert record.sent_at == NOW
     assert "sent_at" in unquote(str(recorder.of("GET", "mails")[0].url))
+
+
+def test_a_persons_own_address_with_a_refused_word_is_kept_from_supabase():
+    rows = [{"address": "maria.rosales@c1.example.ch", "type": "personal",
+             "source_url": "https://c1.example.ch/team", "company_id": "c1"},
+            {"address": "sales@c1.example.ch", "type": "generic",
+             "source_url": "https://c1.example.ch/contact", "company_id": "c1"}]
+    recorder = Recorder(tables={"contact_emails": rows})
+    assert [e.address for e in store(recorder).emails("c1")] == ["maria.rosales@c1.example.ch"]
+    assert store(Recorder(tables={"contact_emails": rows}))._with_address() == {"c1"}
+    only_sales = [r for r in rows if r["type"] == "generic"]
+    assert store(Recorder(tables={"contact_emails": only_sales}))._with_address() == set()
