@@ -299,7 +299,9 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
 # What the sign-in page says for each reason of auth.sign_in (design 2026-11-19).
 SIGN_IN_ERRORS = {
     "credentials": (400, "Wrong e-mail or password."),
-    "unconfirmed": (400, "Confirm your e-mail address first: open the link we sent you."),
+    # Only accounts created before D103 can be unconfirmed; no new link can be sent.
+    "unconfirmed": (400, "This account is not confirmed yet. Write to the address at the bottom of "
+                         "the page and we confirm it."),
     "busy": (429, "Too many sign-ins right now. Try again in a few minutes."),
     "unavailable": (503, "Sign-in is not working right now. Try again in a moment."),
 }

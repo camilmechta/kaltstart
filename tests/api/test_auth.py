@@ -8,10 +8,13 @@ def test_sign_up_with_a_wrong_code_creates_nobody(client, auth):
     assert auth.users == {}
 
 
-def test_sign_up_with_the_code_asks_to_confirm_the_email(client, auth):
+def test_sign_up_with_the_code_says_the_account_is_ready(client, auth):
+    # E-mail confirmation is off in Supabase (D103): no mail is sent at sign-up.
     page = client.post("/signup", data={"email": "lea@example.com", "password": "a-long-password",
                                         "code": CODE, "csrf": csrf(client, "/signup")})
-    assert page.status_code == 200 and "confirm" in page.text.lower()
+    assert page.status_code == 200 and "Your account is ready" in page.text
+    assert "sent you" not in page.text
+    assert "confirm" not in page.text.lower()
     assert "lea@example.com" in auth.users
 
 

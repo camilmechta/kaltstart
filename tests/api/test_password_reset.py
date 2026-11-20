@@ -38,7 +38,8 @@ def test_supabase_errors_become_reasons(exc, reason):
 
 @pytest.mark.parametrize("reason,message", [
     ("credentials", "Wrong e-mail or password."),
-    ("unconfirmed", "Confirm your e-mail address first: open the link we sent you."),
+    ("unconfirmed", "This account is not confirmed yet. Write to the address at the bottom of "
+                    "the page and we confirm it."),
     ("busy", "Too many sign-ins right now. Try again in a few minutes."),
     ("unavailable", "Sign-in is not working right now. Try again in a moment."),
 ])

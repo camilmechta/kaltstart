@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- No e-mail confirmation at sign-up (D103): Supabase's own e-mail service
+  sends 2 e-mails an hour, so confirmation is off and the sign-up page says
+  the account is ready; an account left unconfirmed is told to write to
+  the contact address. The setup guide now lists migrations up to `0011`.
 - Show the value (D102): the landing page leads with "Internships that are
   never posted", says why it works in three points and shows an honest
   example (a general address with its PS, and the LinkedIn note); the list
