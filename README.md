@@ -94,7 +94,7 @@ Mid-November 2026:
 
 ## How it was built
 
-I am a business student at the University of St. Gallen and I do not write
+I am an Economics student at the University of St. Gallen and I do not write
 code myself. I built Kaltstart as a product builder with
 [Claude Code](https://claude.com/claude-code): I defined the product, wrote
 and approved every specification, made the decisions in
