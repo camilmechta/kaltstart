@@ -1,5 +1,6 @@
-"""The Render Blueprint (owner's choice of host, 2026-11-17): free plan in
-Frankfurt, deploys only when the checks pass, and no secret in the file."""
+"""The Render Blueprint (owner's choice of host, 2026-11-17): a Starter
+instance in Frankfurt since D107, so the site never sleeps, deploys only when
+the checks pass, and no secret in the file."""
 
 from pathlib import Path
 
@@ -12,12 +13,12 @@ def blueprint():
     return yaml.safe_load((ROOT / "render.yaml").read_text())
 
 
-def test_one_free_docker_web_service_in_frankfurt():
+def test_one_always_on_docker_web_service_in_frankfurt():
     services = blueprint()["services"]
     assert len(services) == 1
     web = services[0]
     assert (web["type"], web["runtime"], web["plan"], web["region"]) == (
-        "web", "docker", "free", "frankfurt")
+        "web", "docker", "starter", "frankfurt")       # D107: never asleep
     assert web["branch"] == "main" and web["autoDeployTrigger"] == "checksPass"
     assert web["healthCheckPath"] == "/about"
 

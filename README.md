@@ -9,7 +9,6 @@ person and a good reason to write takes hours. Kaltstart does that part, and
 leaves the student the part that gets them hired.
 
 **Live beta, by invitation:** [kaltstart.onrender.com](https://kaltstart.onrender.com)
-(the first load can take a minute: the free server sleeps).
 
 ![The Kaltstart landing page](docs/images/landing.png)
 

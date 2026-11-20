@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- The site never sleeps (D107): Render's Starter instance instead of the
+  free one, so no visitor waits for it to wake up.
 - Owner's walk-through (D106): sales, marketing, partnership and other
   commercial addresses are never used; with nobody named, writing to the
   team comes first; a preview says nothing is kept and links back to the

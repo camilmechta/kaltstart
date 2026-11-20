@@ -1,5 +1,6 @@
 # Render Blueprint for the Kaltstart web app (decision D82).
-# Free plan in Frankfurt; a deploy starts only when the GitHub checks of the
+# A Starter instance in Frankfurt (D107: the free one slept after 15 minutes
+# and made visitors wait up to a minute); a deploy starts only when the GitHub checks of the
 # commit on main pass. No secret is written here: Render asks for the values
 # marked "sync: false" when the Blueprint is created, and generates the
 # session secret itself.
@@ -7,7 +8,7 @@ services:
   - type: web
     name: kaltstart
     runtime: docker
-    plan: free
+    plan: starter
     region: frankfurt
     branch: main
     autoDeployTrigger: checksPass
