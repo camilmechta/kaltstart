@@ -36,7 +36,7 @@ def sign_in_reason(exc: Exception) -> str:
 
 
 class Auth(Protocol):
-    def sign_up(self, email: str, password: str, invitation_code: str) -> bool: ...
+    def sign_up(self, email: str, password: str, invitation_code: str) -> Tokens | bool: ...
     def sign_in(self, email: str, password: str) -> Tokens | str: ...
     def request_password_reset(self, email: str) -> None: ...
     def reset_password(self, token_hash: str, password: str) -> str: ...
@@ -58,18 +58,21 @@ class FakeAuth:
         self.reset_tokens: dict[str, str] = {}             # token hash -> email
         self.fail_sign_in_with: str | None = None          # a reason, to test the pages
         self.refused_passwords: set[str] = set()           # refused as Supabase would
+        self.confirm_required = False                       # D103: off in production
 
     @staticmethod
     def _hash(salt: str, password: str) -> str:
         return hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 100_000).hex()
 
-    def sign_up(self, email: str, password: str, invitation_code: str) -> bool:
+    def sign_up(self, email: str, password: str, invitation_code: str) -> Tokens | bool:
         email = email.strip().lower()
         if not email or email in self.users or len(password) < 8:
             return False
         salt = secrets.token_hex(8)
         self.users[email] = (salt, self._hash(salt, password), secrets.token_hex(8))
-        return True
+        if self.confirm_required:                  # as Supabase with "Confirm email" on
+            return True
+        return self._tokens(self.users[email][2])
 
     def _tokens(self, user_id: str) -> Tokens:
         tokens = Tokens(secrets.token_urlsafe(16), secrets.token_urlsafe(16))
@@ -145,14 +148,16 @@ class SupabaseAuth:
         from supabase import create_client
         return create_client(self._url, key)
 
-    def sign_up(self, email: str, password: str, invitation_code: str) -> bool:
+    def sign_up(self, email: str, password: str, invitation_code: str) -> Tokens | bool:
+        """The new account's session when Supabase gives one (confirmation off,
+        D103), True when it was created without one, False when refused."""
         try:
-            self._client(self._anon).auth.sign_up({
+            session = self._client(self._anon).auth.sign_up({
                 "email": email, "password": password,
-                "options": {"data": {"invitation_code": invitation_code}}})
-            return True
+                "options": {"data": {"invitation_code": invitation_code}}}).session
         except Exception:
             return False
+        return Tokens(session.access_token, session.refresh_token) if session else True
 
     def sign_in(self, email: str, password: str) -> Tokens | str:
         try:

@@ -120,11 +120,20 @@ def test_each_size_says_why_a_student_would_aim_at_it(client):
 
 def test_the_size_legend_folds_away_once_a_mail_is_kept(client, store, auth):
     from tests.api.test_mails import keep
+    # Folded in the page, unfolded by app.js on a wide screen only: on a phone
+    # the three cards pushed the first company two screens down (review 2026-11-20).
     sign_up_and_in(client)
-    assert '<details class="legend" open' in client.get("/companies").text
+    page = client.get("/companies").text
+    assert '<details class="legend" data-open-wide>' in page
     keep(store, user_id(auth), "dev01")
     page = client.get("/companies").text
-    assert '<details class="legend"' in page and '<details class="legend" open' not in page
+    assert '<details class="legend">' in page and "data-open-wide" not in page
+
+
+def test_app_js_unfolds_the_legend_on_wide_screens_only():
+    from pathlib import Path
+    js = (Path(__file__).parents[2] / "src/kaltstart/api/static/app.js").read_text()
+    assert "details[data-open-wide]" in js and "(min-width: 641px)" in js
 
 
 def test_each_row_counts_the_people_named(client, store):

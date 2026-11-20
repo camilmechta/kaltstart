@@ -227,3 +227,26 @@ def test_the_script_sends_a_recovery_fragment_to_the_reset_page():
     for words in ('params.get("type") === "recovery"', "/reset-password", "history.replaceState",
                   "access_token"):
         assert words in script, words
+
+
+
+class _SignUp:
+    """A Supabase client whose sign_up answers with or without a session."""
+    def __init__(self, session):
+        self.auth = self
+        self._session = session
+
+    def sign_up(self, params):
+        return type("Answer", (), {"session": self._session})()
+
+
+def test_supabase_sign_up_returns_its_session_or_true(monkeypatch):
+    from kaltstart.api.auth import Tokens
+    real = SupabaseAuth("https://example.supabase.co", "anon", "service")
+    session = type("Session", (), {"access_token": "a", "refresh_token": "r"})()
+    monkeypatch.setattr(real, "_client", lambda key: _SignUp(session))
+    assert real.sign_up("lea@example.com", NEW, "KS-1") == Tokens("a", "r")
+    monkeypatch.setattr(real, "_client", lambda key: _SignUp(None))
+    assert real.sign_up("lea@example.com", NEW, "KS-1") is True
+    monkeypatch.setattr(real, "_client", lambda key: _Raising(ConnectionError("down")))
+    assert real.sign_up("lea@example.com", NEW, "KS-1") is False

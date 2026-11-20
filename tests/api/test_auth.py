@@ -8,14 +8,51 @@ def test_sign_up_with_a_wrong_code_creates_nobody(client, auth):
     assert auth.users == {}
 
 
-def test_sign_up_with_the_code_says_the_account_is_ready(client, auth):
-    # E-mail confirmation is off in Supabase (D103): no mail is sent at sign-up.
+def test_sign_up_signs_in_and_opens_the_profile(client, auth):
+    response = client.post("/signup", data={"email": "lea@example.com",
+                                            "password": "a-long-password", "code": CODE,
+                                            "csrf": csrf(client, "/signup")})
+    assert response.status_code == 303 and response.headers["location"] == "/profile"
+    assert "lea@example.com" in auth.users
+    assert client.get("/companies").status_code == 200        # signed in, not sent to /signin
+
+
+def test_sign_up_renews_the_form_token(client):
+    old = csrf(client, "/signup")
+    client.post("/signup", data={"email": "lea@example.com", "password": "a-long-password",
+                                 "code": CODE, "csrf": old})
+    assert client.post("/signout", data={"csrf": old}).status_code == 403
+
+
+def test_sign_up_never_tries_a_password_through_sign_in(client, auth):
+    # Review 2026-11-20: a second sign-in call would let /signup test passwords
+    # on an existing account if Supabase ever answered it with a fake success.
+    def refuse(*args):
+        raise AssertionError("sign-up must use the session of sign_up itself")
+    auth.sign_in = refuse
+    response = client.post("/signup", data={"email": "lea@example.com",
+                                            "password": "a-long-password", "code": CODE,
+                                            "csrf": csrf(client, "/signup")})
+    assert response.status_code == 303 and response.headers["location"] == "/profile"
+
+
+def test_without_a_session_from_sign_up_the_account_page_says_to_sign_in(client, auth):
+    # E-mail confirmation is off in Supabase (D103); if it ever comes back,
+    # sign_up gives no session and the student signs in by hand.
+    auth.confirm_required = True
     page = client.post("/signup", data={"email": "lea@example.com", "password": "a-long-password",
                                         "code": CODE, "csrf": csrf(client, "/signup")})
     assert page.status_code == 200 and "Your account is ready" in page.text
     assert "sent you" not in page.text
-    assert "confirm" not in page.text.lower()
+    assert 'class="btn btn-primary" href="/signin"' in page.text
     assert "lea@example.com" in auth.users
+    assert client.get("/companies").status_code == 303        # not signed in
+
+
+def test_a_signed_in_student_is_not_shown_the_sign_up_form(client):
+    sign_up_and_in(client)
+    response = client.get("/signup")
+    assert response.status_code == 303 and response.headers["location"] == "/companies"
 
 
 def test_the_eleventh_sign_up_attempt_in_an_hour_is_refused(client):
@@ -93,21 +130,15 @@ def test_a_failed_sign_in_keeps_the_email(client):
     assert 'value="nobody@example.com"' in page
 
 
-def test_after_sign_up_a_sign_in_button_is_shown(client):
-    from tests.api.conftest import csrf
-    page = client.post("/signup", data={"email": "new@example.com", "password": "longenough1",
-                                        "code": "dev", "csrf": csrf(client, "/signup")}).text
-    assert 'class="btn btn-primary" href="/signin"' in page
-
-
 def test_the_app_asks_the_store_whether_a_code_is_valid(client, store):
     from tests.api.conftest import csrf
     asked = []
     store.invitation_ok = lambda code: asked.append(code) or code == "KS-ONE"
     client.post("/signup", data={"email": "x@example.com", "password": "a-long-password",
                                  "code": "KS-ONE", "csrf": csrf(client, "/signup")})
+    # Signed in by the first sign-up, so the form token is read on another page.
     wrong = client.post("/signup", data={"email": "y@example.com", "password": "a-long-password",
-                                         "code": "KS-TWO", "csrf": csrf(client, "/signup")})
+                                         "code": "KS-TWO", "csrf": csrf(client, "/companies")})
     assert asked == ["KS-ONE", "KS-TWO"] and wrong.status_code == 400
 
 

@@ -114,3 +114,14 @@ def test_the_hero_text_keeps_short_lines():
     from pathlib import Path
     css = (Path(__file__).parents[2] / "src" / "kaltstart" / "api" / "static" / "app.css").read_text()
     assert ".hero-sub { font-size: var(--text-lg); line-height: 30px; color: var(--muted); max-width: 52ch; }" in css
+
+
+def test_the_sign_up_page_and_the_last_call_say_how_to_get_a_code(client):
+    import html
+    import re
+    hint = "No invitation code yet? Ask at removal@example.com."
+    signup = html.unescape(client.get("/signup").text)
+    assert hint in re.sub(r"<[^>]+>", "", signup)
+    assert 'href="mailto:removal@example.com"' in signup.split('id="code-help"', 1)[1]
+    final = html.unescape(client.get("/").text).split('id="final-title"', 1)[1].split("</section>", 1)[0]
+    assert hint in re.sub(r"<[^>]+>", "", final)

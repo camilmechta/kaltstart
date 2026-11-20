@@ -261,6 +261,8 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
 
     @app.get("/signup")
     def signup_form(request: Request):
+        if request.state.user_id:          # Back after sign-up: no second account
+            return redirect(request, "/companies")
         return page(request, "signup.html")
 
     @app.post("/signup")
@@ -279,7 +281,13 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
             return page(request, "signup.html", status=400, email=form.get("email", "")[:254],
                         error="Sign-up failed. Check your invitation code, your e-mail, and that "
                               "the password has at least 8 characters.")
-        return page(request, "signup.html", done=True)
+        # Confirmation is off (D103): Supabase gives the new account's session,
+        # so a phone user does not type everything twice. Never a second sign-in
+        # call: it would let this form test passwords on existing accounts.
+        if not isinstance(ok, Tokens):
+            return page(request, "signup.html", done=True)
+        request.state.session.update(access=ok.access, refresh=ok.refresh, csrf=new_csrf())
+        return redirect(request, "/profile")
 
     @app.post("/signout")
     def signout(request: Request, form: FormData = Depends(posted_form)):

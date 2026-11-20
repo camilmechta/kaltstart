@@ -70,7 +70,7 @@
   </select>
   <label class="choice filter-check"><input type="checkbox" name="person" value="1" {% if filters.with_person %}checked{% endif %}> Only companies that name people</label>
 </form>
-<details class="legend" {% if get_started %}open{% endif %}>
+<details class="legend"{% if get_started %} data-open-wide{% endif %}>
   <summary class="legend-title">Who reads your mail: Small, Medium or Large</summary>
   <div class="legend-items">
     {% for key, (label, reader, rounds, _sentence, why) in size_info.items() %}

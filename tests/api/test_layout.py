@@ -176,3 +176,24 @@ def test_the_no_reply_pill_and_the_reply_line_have_their_own_style():
     css = (Path(__file__).parents[2] / "src/kaltstart/api/static/app.css").read_text()
     assert ".status-pill.status-no_reply" in css
     assert ".progress-check" in css
+
+
+def test_on_a_phone_the_signed_in_header_fits_in_two_rows():
+    """Review of 2026-11-20: the header took a quarter of a phone screen and its
+    links were 23px high. Checked in the browser; this pins the rules."""
+    from pathlib import Path
+    root = Path(__file__).parents[2] / "src/kaltstart/api"
+    css = (root / "static/app.css").read_text()
+    base = (root / "templates/base.html").read_text()
+    assert "nav-signed-in" in base and 'class="pill-short"' in base
+    phone = css.split("/* --- phone header", 1)[1]
+    assert "flex-basis: 100%" in phone and ".pill-long { display: none; }" in phone
+    assert "min-height: 44px" in phone
+
+
+def test_the_short_counter_is_on_every_signed_in_page(client):
+    from tests.api.conftest import sign_up_and_in
+    sign_up_and_in(client)
+    page = client.get("/companies").text
+    assert '<span class="pill-short">0/10 kept</span>' in page
+    assert "0 of 10 mails kept this week · 0 waiting" in page

@@ -574,3 +574,21 @@ details.legend[open] .legend-items { animation: reveal 220ms ease-out both; }
 .how-steps li { display: flex; gap: var(--space-3); align-items: flex-start; font-size: var(--text-md);
   line-height: 24px; color: var(--muted); }
 .how-steps b { color: var(--text); }
+
+/* --- phone header (review 2026-11-20): two rows, 44px tap targets ---------- */
+.pill-short { display: none; }
+@media (max-width: 640px) {
+  /* Row 1: logo, beta, actions. A zero-height break. Row 2: links, counter. */
+  .nav-signed-in { row-gap: 0; column-gap: var(--space-3); padding-bottom: 0; }
+  .nav-signed-in .nav-actions { order: 1; margin-left: auto; }
+  .nav-signed-in::after { content: ""; order: 2; flex-basis: 100%; height: 0; }
+  .nav-signed-in .nav-links { order: 3; width: auto; }
+  .nav-signed-in .pill { order: 4; margin-left: auto; white-space: nowrap; }
+  .nav-signed-in .nav-links a { display: inline-flex; align-items: center; min-height: 44px;
+    white-space: nowrap; }
+  .nav-signed-in .nav-links a::after { bottom: 0; }
+  .nav-signed-in .nav-actions .btn-quiet { min-height: 44px; padding: 0 var(--space-2); }
+  .nav-signed-in .theme-toggle { width: 44px; height: 44px; }
+  .pill-long { display: none; }
+  .pill-short { display: inline; }
+}

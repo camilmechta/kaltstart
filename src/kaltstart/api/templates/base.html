@@ -19,7 +19,7 @@
 </head>
 <body>
   <header class="nav">
-    <div class="nav-inner">
+    <div class="nav-inner{% if user_id %} nav-signed-in{% endif %}">
       <a class="logo" href="/" aria-label="Kaltstart, home"><b>Kalt</b>start</a>
       <span class="beta-tag">Beta</span>
       {% if user_id %}
@@ -28,7 +28,7 @@
         <a href="/mails" {% if path.startswith('/mails') %}aria-current="page"{% endif %}>My mails</a>
         <a href="/profile" {% if path.startswith('/profile') %}aria-current="page"{% endif %}>Profile</a>
       </nav>
-      <a class="pill" href="/mails" title="You can keep {{ limits.speed }} mails in {{ limits.speed_days }} days, abandoned ones included. Waiting: kept but not yet marked as sent or abandoned; at {{ limits.pending }}, update them to keep new ones.">{{ week }} of {{ limits.speed }} mails kept this week · {{ pending }} waiting</a>
+      <a class="pill" href="/mails" title="You can keep {{ limits.speed }} mails in {{ limits.speed_days }} days, abandoned ones included. Waiting: kept but not yet marked as sent or abandoned; at {{ limits.pending }}, update them to keep new ones."><span class="pill-long">{{ week }} of {{ limits.speed }} mails kept this week · {{ pending }} waiting</span><span class="pill-short">{{ week }}/{{ limits.speed }} kept</span></a>
       {% endif %}
       <div class="nav-actions">
         <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch between light and dark" title="Light or dark">

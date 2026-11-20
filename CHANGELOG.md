@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Phones (D105): the sign-up page says how to get a code, sign-up signs
+  you in and opens your profile, the signed-in header fits in two rows with
+  larger tap targets, and the size legend starts folded on a phone.
 - No e-mail confirmation at sign-up (D103): Supabase's own e-mail service
   sends 2 e-mails an hour, so confirmation is off and the sign-up page says
   the account is ready; an account left unconfirmed is told to write to

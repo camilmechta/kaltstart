@@ -16,6 +16,13 @@
     return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
   }
 
+  // The size legend opens for a new student on a wide screen only: on a phone
+  // its three cards pushed the first company two screens down.
+  document.addEventListener("DOMContentLoaded", function () {
+    if (!window.matchMedia("(min-width: 641px)").matches) return;
+    document.querySelectorAll("details[data-open-wide]").forEach(function (d) { d.open = true; });
+  });
+
   document.addEventListener("click", function (event) {
     var toggle = event.target.closest("[data-theme-toggle]");
     if (toggle) {
