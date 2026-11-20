@@ -11,6 +11,12 @@
   <div class="actions">{{ actions(mail, 'generated', '/mails') }}</div>
 </div>
 {% endfor %}
+{% for mail, days in reply_reminders %}
+<div class="notice notice-warning" style="margin-top:16px">
+  Your mail to <b>{{ companies[mail.company_id] }}</b> was sent {{ days }} days ago: did they reply?
+  <div class="actions">{{ actions(mail, 'sent', '/mails') }}</div>
+</div>
+{% endfor %}
 {% if rows %}
 <ul class="rows" style="margin-top:24px">
   {% for mail, shown in rows %}

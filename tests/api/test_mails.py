@@ -1,3 +1,4 @@
+import html
 from datetime import timedelta
 
 import pytest
@@ -125,3 +126,82 @@ def test_the_mail_page_reminds_to_attach_the_cv(client, store, auth):
     assert "Attach your CV before you send it." in client.get(f"/mails/{mail_id}").text
     save_profile(client)
     assert "Attach your CV" not in client.get(f"/mails/{mail_id}").text
+
+
+# --- Did they reply? (design 2026-11-20) -----------------------------------------
+
+def sent(store, me, company="dev01", days=15):
+    mail_id = keep(store, me, company, days=days + 1)
+    store.set_status(me, mail_id, "sent", NOW - timedelta(days=days))
+    return mail_id
+
+
+def test_a_sent_mail_can_be_marked_no_reply_then_still_get_a_reply(client, store, auth):
+    sign_up_and_in(client)
+    me = user_id(auth)
+    mail_id = sent(store, me)
+    assert "No reply yet" in client.get(f"/mails/{mail_id}").text
+    status(client, mail_id, "no_reply")
+    assert store.mail(me, mail_id).status == "no_reply"
+    page = client.get(f"/mails/{mail_id}").text
+    assert 'status-pill status-no_reply">No reply<' in page
+    assert "No reply yet" not in page and "Got a reply" in page
+    status(client, mail_id, "human_reply")
+    assert store.mail(me, mail_id).status == "human_reply"
+
+
+def test_a_reply_cannot_go_back_to_no_reply(client, store, auth):
+    sign_up_and_in(client)
+    me = user_id(auth)
+    mail_id = sent(store, me)
+    status(client, mail_id, "human_reply")
+    status(client, mail_id, "no_reply")
+    assert store.mail(me, mail_id).status == "human_reply"
+
+
+def test_no_reply_is_not_offered_before_sending(client, store, auth):
+    sign_up_and_in(client)
+    me = user_id(auth)
+    mail_id = keep(store, me)
+    status(client, mail_id, "no_reply")
+    assert store.mail(me, mail_id).status == "generated"
+
+
+def test_my_mails_asks_about_a_mail_sent_14_days_ago_or_more(client, store, auth):
+    sign_up_and_in(client)
+    me = user_id(auth)
+    old = sent(store, me, "dev01", days=15)
+    sent(store, me, "dev02", days=3)
+    page = html.unescape(client.get("/mails").text)
+    assert page.count("did they reply?") == 1
+    assert "was sent 15 days ago: did they reply?" in page
+    notice = page.split("did they reply?")[1].split("</div>\n</div>")[0]
+    assert "Got a reply" in notice and "Positive reply" in notice and "No reply yet" in notice
+    status(client, old, "no_reply")
+    assert "did they reply?" not in client.get("/mails").text
+
+
+def test_another_students_old_sent_mail_asks_nothing(client, store, auth):
+    sent(store, "someone-else", "dev01", days=20)
+    sign_up_and_in(client)
+    assert "did they reply?" not in client.get("/mails").text
+    assert "did they reply?" not in client.get("/companies").text
+
+
+def test_the_company_list_points_to_the_mails_to_check(client, store, auth):
+    sign_up_and_in(client)
+    me = user_id(auth)
+    sent(store, me, "dev01", days=15)
+    page = client.get("/companies").text
+    assert "1 mail sent 2 weeks ago or more: did they reply?" in page
+    assert 'class="progress-strip progress-check"' in page
+    sent(store, me, "dev02", days=20)
+    page = client.get("/companies").text
+    assert "2 mails sent 2 weeks ago or more: did they reply?" in page
+    assert 'href="/mails"' in page.split("2 mails sent 2 weeks ago")[0].rsplit("<a", 1)[1]
+
+
+def test_a_recent_sent_mail_adds_no_line_to_the_company_list(client, store, auth):
+    sign_up_and_in(client)
+    sent(store, user_id(auth), "dev01", days=3)
+    assert "did they reply?" not in client.get("/companies").text

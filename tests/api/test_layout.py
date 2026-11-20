@@ -169,3 +169,10 @@ def test_the_site_is_a_beta_open_to_any_university(client):
     top = header(client.get("/").text)
     assert 'class="beta-tag"' in top and ">Beta<" in top
     assert "Beta · by invitation" in client.get("/").text
+
+
+def test_the_no_reply_pill_and_the_reply_line_have_their_own_style():
+    from pathlib import Path
+    css = (Path(__file__).parents[2] / "src/kaltstart/api/static/app.css").read_text()
+    assert ".status-pill.status-no_reply" in css
+    assert ".progress-check" in css

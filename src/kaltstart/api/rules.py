@@ -12,6 +12,7 @@ CAP_DAYS = 30
 PENDING_LIMIT = 5
 PRESUMED_SENT_DAYS = 7
 REMINDER_HOURS = 72
+REPLY_REMINDER_DAYS = 14          # "Did they reply?" after this many days (design 2026-11-20)
 _PENDING = ("generated", "copied")
 
 
@@ -47,6 +48,7 @@ class MailRecord:
     created_at: datetime
     round_id: str | None = None
     copied: bool = False            # the text was copied once: it may have been sent
+    sent_at: datetime | None = None # when it was marked sent (Did they reply?)
 
 
 @dataclass(frozen=True)
@@ -125,6 +127,12 @@ def needs_reminder(mail: MailRecord, now: datetime) -> bool:
     age = _age(mail, now)
     return (mail.status in _PENDING and timedelta(hours=REMINDER_HOURS) <= age
             < timedelta(days=PRESUMED_SENT_DAYS))
+
+
+def needs_reply_reminder(status: str, sent_at: datetime | None, now: datetime) -> bool:
+    """A mail marked sent at least REPLY_REMINDER_DAYS ago with no answer yet."""
+    return status == "sent" and sent_at is not None and \
+        now - sent_at >= timedelta(days=REPLY_REMINDER_DAYS)
 
 
 def places_left(company_id: str, round_id: str | None, size: str | None,

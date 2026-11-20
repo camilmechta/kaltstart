@@ -25,7 +25,7 @@ _PROFILE_FIELDS = ("first_name", "last_name", "programme", "degree_level", "atta
                    "preferred_countries", "preferred_sectors")
 _MAIL_COLUMNS = ("id,student_id,company_id,round_id,address,address_type,person_name,person_key,"
                  "person_choice,person_source_url,style,language,company_line,used_company_line,"
-                 "subject,body,status,created_at,copied_at,sent_at,human_reply_at,"
+                 "subject,body,status,created_at,copied_at,sent_at,no_reply_at,human_reply_at,"
                  "positive_reply_at,abandoned_at,variant,size_category,redacted_at")
 
 
@@ -37,7 +37,7 @@ def _is_uuid(value: str) -> bool:
     return True
 
 
-_COPIED = ("copied", "sent", "human_reply", "positive_reply")
+_COPIED = ("copied", "sent", "no_reply", "human_reply", "positive_reply")
 
 
 def _dt(value: str | None) -> datetime | None:
@@ -239,10 +239,11 @@ class SupabaseAppStore:
     # --- mails -----------------------------------------------------------------
     def mail_records(self) -> list[MailRecord]:
         rows = self._read_all("mails", "id,student_id,company_id,person_key,status,created_at,"
-                                       "round_id,copied_at", ("id",))
+                                       "round_id,copied_at,sent_at", ("id",))
         return [MailRecord(r["id"], r["student_id"], r["company_id"], r["person_key"],
                            r["status"], _dt(r["created_at"]), round_id=r.get("round_id"),
-                           copied=bool(r.get("copied_at")) or r["status"] in _COPIED)
+                           copied=bool(r.get("copied_at")) or r["status"] in _COPIED,
+                           sent_at=_dt(r.get("sent_at")))
                 for r in rows]
 
     def reserve(self, student_id: str, mail: NewMail, now: datetime) -> Refusal | str:

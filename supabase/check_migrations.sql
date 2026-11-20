@@ -24,4 +24,8 @@ select
   coalesce((select pg_get_constraintdef(oid) from pg_constraint
             where conname = 'mails_address_type_check') like '%student%', false) as m0010_student,
   coalesce((select pg_get_constraintdef(oid) from pg_constraint
-            where conname = 'mails_address_type_check') like '%linkedin%', false) as m0011_linkedin;
+            where conname = 'mails_address_type_check') like '%linkedin%', false) as m0011_linkedin,
+  coalesce((select pg_get_constraintdef(oid) from pg_constraint
+            where conname = 'mails_status_check') like '%no_reply%', false)
+    and exists (select 1 from information_schema.columns where table_schema = 'public'
+                and table_name = 'mails' and column_name = 'no_reply_at')       as m0012_no_reply;

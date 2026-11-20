@@ -129,3 +129,13 @@ def test_progress_replaces_get_started(client, store, auth):
     page = client.get("/companies").text
     assert "Get started" not in page
     assert "Your applications: 2 kept · 1 sent · 1 reply" in page
+
+
+def test_a_no_reply_mail_counts_as_sent_not_as_a_reply(client, store, auth):
+    sign_up_and_in(client)
+    save_profile(client, pref_country="")
+    me = user_id(auth)
+    first = keep(store, me, "c1")
+    store.set_status(me, first, "sent", NOW)
+    store.set_status(me, first, "no_reply", NOW)
+    assert "Your applications: 1 kept · 1 sent · 0 replies" in client.get("/companies").text

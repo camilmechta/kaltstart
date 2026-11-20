@@ -14,7 +14,8 @@ from kaltstart.contacts.selection import usable_address
 
 PAGE_SIZE = 50
 RECENT_ROUND_DAYS = 365
-STATUSES = ("generated", "copied", "sent", "human_reply", "positive_reply", "abandoned")
+STATUSES = ("generated", "copied", "sent", "no_reply", "human_reply", "positive_reply",
+            "abandoned")
 
 
 @dataclass(frozen=True)
@@ -128,11 +129,16 @@ class Mail:
     size_category: str | None = None
     redacted: bool = False          # cleared after a removal on request (D87)
 
+    @property
+    def sent_at(self) -> datetime | None:
+        return self.status_dates.get("sent")
+
     def record(self) -> MailRecord:
         copied = ("copied" in self.status_dates
-                  or self.status in ("copied", "sent", "human_reply", "positive_reply"))
+                  or self.status in ("copied", "sent", "no_reply", "human_reply", "positive_reply"))
         return MailRecord(self.id, self.student_id, self.company_id, self.person_key,
-                          self.status, self.created_at, round_id=self.round_id, copied=copied)
+                          self.status, self.created_at, round_id=self.round_id, copied=copied,
+                          sent_at=self.sent_at)
 
 
 @dataclass(frozen=True)

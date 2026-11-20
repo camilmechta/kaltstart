@@ -182,3 +182,21 @@ def test_a_person_removed_on_request_is_found_by_key():
     live.person_excluded("c1", "k-mia")
     request = recorder.of("GET", "contact_exclusions")[-1]
     assert param(request, "company_id") == "eq.c1" and param(request, "person_key") == "eq.k-mia"
+
+
+def test_no_reply_is_stored_with_its_date_and_read_back():
+    recorder = Recorder(update=[{"id": "m1"}])
+    assert store(recorder).set_status("s1", "m1", "no_reply", NOW)
+    assert json.loads(recorder.of("PATCH", "mails")[0].content)["no_reply_at"] == NOW.isoformat()
+    from kaltstart.api.supabase_store import _MAIL_COLUMNS
+    assert "no_reply_at" in _MAIL_COLUMNS.split(",")
+
+
+def test_mail_records_carry_the_sent_date():
+    recorder = Recorder(tables={"mails": [{
+        "id": "m1", "student_id": "s1", "company_id": "c1", "person_key": None,
+        "status": "sent", "created_at": NOW.isoformat(), "round_id": None, "copied_at": None,
+        "sent_at": NOW.isoformat()}]})
+    [record] = store(recorder).mail_records()
+    assert record.sent_at == NOW
+    assert "sent_at" in unquote(str(recorder.of("GET", "mails")[0].url))

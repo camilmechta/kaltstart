@@ -85,14 +85,17 @@ def register(app: FastAPI) -> None:
     from fastapi.responses import Response
     from kaltstart.api import rules
 
-    ORDER = {"generated": 0, "copied": 1, "sent": 2, "human_reply": 3, "positive_reply": 4}
-    LABELS = {"generated": "Kept", "copied": "Copied", "sent": "Sent",
+    ORDER = {"generated": 0, "copied": 1, "sent": 2, "no_reply": 3, "human_reply": 4,
+             "positive_reply": 5}
+    LABELS = {"generated": "Kept", "copied": "Copied", "sent": "Sent", "no_reply": "No reply",
               "human_reply": "Got a reply", "positive_reply": "Positive reply",
               "abandoned": "Abandoned", "presumed_sent": "Presumed sent"}
 
     def allowed(current: str, new: str) -> bool:
         if new == "abandoned":
             return current in ("generated", "copied")
+        if new == "no_reply":                 # only an answer about a mail marked sent
+            return current == "sent"
         return current in ORDER and new in ORDER and ORDER[new] > ORDER[current]
 
     def names_of(mails):
@@ -110,7 +113,11 @@ def register(app: FastAPI) -> None:
         rows = [(m, rules.shown_status(m.record(), now)) for m in mails]
         reminders = [(m, (now - m.created_at).days) for m in mails
                      if rules.needs_reminder(m.record(), now)]
+        to_check = sorted((m for m in mails if rules.needs_reply_reminder(m.status, m.sent_at, now)),
+                          key=lambda m: m.sent_at)
+        reply_reminders = [(m, (now - m.sent_at).days) for m in to_check]
         return page(request, "mails.html", rows=rows, reminders=reminders, labels=LABELS,
+                    reply_reminders=reply_reminders,
                     companies=names_of(mails))
 
     @app.get("/mails/{mail_id}")
@@ -236,10 +243,13 @@ def register(app: FastAPI) -> None:
         if own:
             shown_statuses = [rules.shown_status(m, now) for m in own]
             progress = {"kept": len(own),
-                        "sent": sum(s in ("sent", "human_reply", "positive_reply", "presumed_sent")
+                        "sent": sum(s in ("sent", "no_reply", "human_reply", "positive_reply",
+                                          "presumed_sent")
                                     for s in shown_statuses),
                         "replies": sum(s in ("human_reply", "positive_reply")
-                                       for s in shown_statuses)}
+                                       for s in shown_statuses),
+                        "to_check": sum(rules.needs_reply_reminder(m.status, m.sent_at, now)
+                                        for m in own)}
         for_you = []
         if profile_done and category and page_number == 1 and not filters.query:
             for_you = pick_for_you(profile, category, {m.company_id for m in own}, now)

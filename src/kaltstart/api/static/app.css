@@ -430,6 +430,7 @@ details.legend[open] > summary.legend-title { margin-bottom: var(--space-2); }
 .status-pill::before { content: ""; width: 6px; height: 6px; border-radius: var(--radius-full); background: currentColor; }
 .status-pill.status-generated, .status-pill.status-copied { background: var(--primary-soft); color: var(--link); }
 .status-pill.status-sent, .status-pill.status-presumed_sent { background: var(--accent-soft); color: var(--accent); }
+.status-pill.status-no_reply { background: var(--surface-2); color: var(--muted); }
 .status-pill.status-human_reply, .status-pill.status-positive_reply { background: color-mix(in srgb, var(--success) 14%, transparent); color: var(--success); }
 .copy-row .btn { white-space: nowrap; min-width: 104px; justify-content: center; }
 #generate fieldset { margin-bottom: var(--space-4); }
@@ -556,6 +557,7 @@ details.legend[open] .legend-items { animation: reveal 220ms ease-out both; }
   border: 1px solid var(--border); border-radius: var(--radius-lg); color: var(--text);
   text-decoration: none; font-size: var(--text-md); }
 .progress-strip:hover { border-color: var(--border-strong); }
+.progress-check { border-left: 3px solid var(--warning); }   /* Did they reply? (D104) */
 .for-you { margin: 0 0 var(--space-8); }
 .for-you-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: var(--space-3); margin-top: var(--space-3); }

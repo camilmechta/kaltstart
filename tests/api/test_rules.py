@@ -164,3 +164,13 @@ def test_the_weekly_refusal_agrees_with_the_count():
     mails = [mail(n, company=f"c{n}", status="sent", days=n * 0.5) for n in range(1, 11)]
     assert week_count("s1", mails, NOW) == LIMITS.speed
     assert refusal("s1", "new", None, mails, NOW).reason == "student_speed"
+
+
+def test_the_reply_reminder_comes_14_days_after_sending():
+    from kaltstart.api.rules import REPLY_REMINDER_DAYS, needs_reply_reminder
+    assert REPLY_REMINDER_DAYS == 14
+    assert needs_reply_reminder("sent", NOW - timedelta(days=14), NOW)
+    assert not needs_reply_reminder("sent", NOW - timedelta(days=14) + timedelta(minutes=1), NOW)
+    for answered in ("no_reply", "human_reply", "positive_reply"):
+        assert not needs_reply_reminder(answered, NOW - timedelta(days=30), NOW)
+    assert not needs_reply_reminder("sent", None, NOW)       # an old row without its date

@@ -23,6 +23,9 @@
 {% endif %}
 {% if progress %}
 <a class="progress-strip" href="/mails">Your applications: {{ progress.kept }} kept · {{ progress.sent }} sent · {{ progress.replies }} {{ 'reply' if progress.replies == 1 else 'replies' }} <span aria-hidden="true">→</span></a>
+{% if progress.to_check %}
+<a class="progress-strip progress-check" href="/mails">{{ progress.to_check }} {{ 'mail' if progress.to_check == 1 else 'mails' }} sent 2 weeks ago or more: did they reply? <span aria-hidden="true">→</span></a>
+{% endif %}
 {% endif %}
 {% if for_you %}
 <section class="for-you" aria-labelledby="for-you-title">

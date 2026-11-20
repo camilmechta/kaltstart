@@ -21,7 +21,7 @@ these environment variables: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`,
 default, so that the sign-up and sign-in limits read the real client
 address). The image installs the exact versions of `requirements.txt` and
 runs as an unprivileged user. The live app uses `render.yaml` on Render,
-which deploys `main` once the checks pass. Before the first sign-up, apply the migrations `0001` to `0011` in the Supabase SQL editor, check
+which deploys `main` once the checks pass. Before the first sign-up, apply the migrations `0001` to `0012` in the Supabase SQL editor, check
 them with `supabase/check_migrations.sql` (every column must be true).
 In Supabase, Authentication, Sign In / Providers, turn "Confirm email" off
 (D103: the built-in e-mail service sends 2 e-mails an hour, password

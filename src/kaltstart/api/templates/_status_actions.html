@@ -1,7 +1,8 @@
 {% macro actions(mail, shown, back) %}
 {% set options = [] %}
 {% if mail.status in ('generated', 'copied') %}{% set options = [('sent', 'I sent it'), ('abandoned', 'Abandon')] %}
-{% elif mail.status == 'sent' %}{% set options = [('human_reply', 'Got a reply'), ('positive_reply', 'Positive reply')] %}
+{% elif mail.status == 'sent' %}{% set options = [('human_reply', 'Got a reply'), ('positive_reply', 'Positive reply'), ('no_reply', 'No reply yet')] %}
+{% elif mail.status == 'no_reply' %}{% set options = [('human_reply', 'Got a reply'), ('positive_reply', 'Positive reply')] %}
 {% elif mail.status == 'human_reply' %}{% set options = [('positive_reply', 'Positive reply')] %}{% endif %}
 {% for value, label in options %}
 <form method="post" action="/mails/{{ mail.id }}/status" class="inline">

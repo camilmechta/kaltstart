@@ -20,6 +20,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Did they reply? (D104): 14 days after a mail is marked sent, My mails
+  asks whether they replied, with a new "No reply yet" answer, and the
+  company list points to it; migration `0012`.
 - LinkedIn as a second channel (D101): the app writes a connection note of
   at most 200 characters (counted by code on every combination) and a
   message for once the request is accepted; the kept page links to a
