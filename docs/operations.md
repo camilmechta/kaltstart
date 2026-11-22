@@ -21,7 +21,9 @@ these environment variables: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`,
 default, so that the sign-up and sign-in limits read the real client
 address). The image installs the exact versions of `requirements.txt` and
 runs as an unprivileged user. The live app uses `render.yaml` on Render,
-which deploys `main` once the checks pass. Before the first sign-up, apply the migrations `0001` to `0012` in the Supabase SQL editor, check
+which deploys `main` once the checks pass. Its free instance sleeps after
+15 minutes without a visit, so an outside scheduler on the owner's account
+opens `/about` every 10 minutes (D108). Before the first sign-up, apply the migrations `0001` to `0012` in the Supabase SQL editor, check
 them with `supabase/check_migrations.sql` (every column must be true).
 In Supabase, Authentication, Sign In / Providers, turn "Confirm email" off
 (D103: the built-in e-mail service sends 2 e-mails an hour, password
@@ -63,9 +65,6 @@ The database schema is in `supabase/migrations/0001_ingestion.sql`. The
 workflow `.github/workflows/nightly.yml` runs `sync` every night and `backfill`
 every Sunday, and can run any command by hand from the Actions tab. GitHub
 disables scheduled workflows after 60 days without repository activity.
-
-The workflow `.github/workflows/keep-awake.yml` opens the site's `/about`
-page every 10 minutes, so Render's free instance rarely sleeps (D108).
 
 ### Contacts
 
