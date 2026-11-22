@@ -27,6 +27,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- The site stays awake (D108): a GitHub workflow opens the light `/about`
+  page every 10 minutes, so Render's free instance rarely sleeps.
 - Did they reply? (D104): 14 days after a mail is marked sent, My mails
   asks whether they replied, with a new "No reply yet" answer, and the
   company list points to it; migration `0012`.

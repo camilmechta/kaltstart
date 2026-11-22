@@ -64,6 +64,9 @@ workflow `.github/workflows/nightly.yml` runs `sync` every night and `backfill`
 every Sunday, and can run any command by hand from the Actions tab. GitHub
 disables scheduled workflows after 60 days without repository activity.
 
+The workflow `.github/workflows/keep-awake.yml` opens the site's `/about`
+page every 10 minutes, so Render's free instance rarely sleeps (D108).
+
 ### Contacts
 
 ```

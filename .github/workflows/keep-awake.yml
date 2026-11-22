@@ -1,0 +1,24 @@
+name: keep-awake
+
+# Render's free instance sleeps after 15 minutes without a visit and takes up
+# to a minute to wake (D108). This opens the light /about page (no database
+# read) every 10 minutes so a student rarely meets a sleeping site. GitHub
+# may start a scheduled run a few minutes late, so the site can still sleep
+# now and then. Nothing of the page is printed in the public log.
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: >-
+          curl --fail --silent --show-error --output /dev/null
+          --max-time 90 --retry 3 --retry-delay 20 --retry-all-errors
+          https://kaltstart.onrender.com/about
