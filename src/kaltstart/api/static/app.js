@@ -32,6 +32,15 @@
       return;
     }
 
+    // Opening the kept mail in the mail app counts as copying it (D109); the
+    // link itself still opens the mail app.
+    var mailApp = event.target.closest("a[data-mail-app]");
+    if (mailApp) {
+      var copiedForm = document.getElementById(mailApp.getAttribute("data-copied-form"));
+      if (copiedForm) fetch(copiedForm.action, { method: "POST", body: new FormData(copiedForm), credentials: "same-origin", keepalive: true });
+      return;
+    }
+
     // Copy buttons: data-copy="<id of the element holding the text>".
     var button = event.target.closest("[data-copy]");
     if (!button) return;

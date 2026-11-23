@@ -27,6 +27,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Beta additions (D109): a "Send feedback" link on every page, and an
+  "Open in my mail app" button that opens a kept mail filled in.
 - The site stays awake (D108): an outside scheduler opens the light
   `/about` page every 10 minutes, so Render's free instance does not sleep.
   The GitHub workflow tried first ran only every 45 to 55 minutes.

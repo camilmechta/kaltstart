@@ -6,6 +6,7 @@ import hashlib
 import hmac
 import logging
 import os
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
@@ -61,6 +62,7 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
     env = Environment(loader=FileSystemLoader(HERE / "templates"),
                       autoescape=select_autoescape(["html"]), trim_blocks=True, lstrip_blocks=True)
     env.filters["web_link"] = web_link
+    env.globals["mailto_link"] = mailto_link
     from kaltstart.contacts.names import title_hint
     env.filters["title_hint"] = title_hint
     from kaltstart.mailgen.linkedin import note_length
@@ -348,6 +350,23 @@ def web_link(url: str | None) -> str | None:
     if url and url.strip().lower().startswith(("https://", "http://")):
         return url.strip()
     return None
+
+
+_ONE_ADDRESS = re.compile(r"[A-Za-z0-9._+\-']+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")
+
+
+def mailto_link(address: str | None, subject: str | None, body: str | None) -> str | None:
+    """A mailto: link that opens the student's own mail app filled in (D109),
+    only for exactly one plain address: never a second recipient, a header or
+    a field slipped in through the address. Deliberately stricter than the
+    addresses the app keeps: a rare address it refuses (non-ASCII, "%", "!")
+    only loses the button, and the Copy buttons still work."""
+    if not address or not _ONE_ADDRESS.fullmatch(address):
+        return None
+    def part(text: str | None) -> str:
+        lines = (text or "").replace("\r\n", "\n").replace("\r", "\n").split("\n")
+        return "%0D%0A".join(quote(line, safe="") for line in lines)
+    return f"mailto:{address}?subject={part(subject)}&body={part(body)}"
 
 
 def app_from_env() -> FastAPI:
