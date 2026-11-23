@@ -196,3 +196,13 @@ def test_a_persons_own_address_with_a_refused_word_is_kept():
                                            "https://c1.example.ch/contact")], people=[])
     assert [e.address for e in store.emails(C1.id)] == ["maria.rosales@c1.example.ch"]
     assert store.company(C1.id) is not None
+
+
+def test_an_old_general_recruiting_address_is_read_as_careers():
+    """D110: an address stored as general before the recruiting words were added."""
+    store = InMemoryAppStore(invitation="code-123")
+    store.add_company(company(1), emails=[EmailRow("hiring@c1.example.ch", "generic", None),
+                                          EmailRow("info@c1.example.ch", "generic", None)], people=[])
+    assert {e.address: e.type for e in store.emails("c1")} == {
+        "hiring@c1.example.ch": "careers", "info@c1.example.ch": "generic"}
+    assert store.contact_summary(["c1"])["c1"] == (0, True)

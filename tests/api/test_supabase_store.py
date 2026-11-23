@@ -212,3 +212,14 @@ def test_a_persons_own_address_with_a_refused_word_is_kept_from_supabase():
     assert store(Recorder(tables={"contact_emails": rows}))._with_address() == {"c1"}
     only_sales = [r for r in rows if r["type"] == "generic"]
     assert store(Recorder(tables={"contact_emails": only_sales}))._with_address() == set()
+
+
+def test_the_live_store_reads_an_old_general_recruiting_address_as_careers():
+    """D110: addresses stored as general before the recruiting words were added."""
+    tables = dict(TABLES, contact_emails=[
+        {"company_id": "c1", "address": "work@c1.example.ch", "type": "generic", "source_url": None},
+        {"company_id": "c1", "address": "info@c1.example.ch", "type": "generic", "source_url": None}])
+    live = store(Recorder(tables))
+    assert {e.address: e.type for e in live.emails("c1")} == {
+        "work@c1.example.ch": "careers", "info@c1.example.ch": "generic"}
+    assert live.contact_summary(["c1"])["c1"][1] is True

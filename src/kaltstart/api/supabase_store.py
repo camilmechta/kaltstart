@@ -13,7 +13,7 @@ from supabase import Client, create_client
 
 from kaltstart.api.rules import LIMITS, MailRecord, Refusal
 from kaltstart.contacts.names import clean_name
-from kaltstart.contacts.selection import usable_email
+from kaltstart.contacts.selection import read_type, usable_email
 from kaltstart.api.store import (
     RECENT_ROUND_DAYS, STATUSES, CompanyRow, EmailRow, ListFilters, Mail, NewMail, PersonRow,
     Profile, Showcase, eligible, field_people_of, shown_people)
@@ -210,7 +210,7 @@ class SupabaseAppStore:
     def emails(self, company_id: str) -> list[EmailRow]:
         rows = (self._client.table("contact_emails").select("address,type,source_url")
                 .eq("company_id", company_id).order("address").execute().data)
-        return [EmailRow(r["address"], r["type"], r["source_url"]) for r in rows
+        return [EmailRow(r["address"], read_type(r["address"], r["type"]), r["source_url"]) for r in rows
                 if usable_email(r["address"], r["type"])]
 
     def company_names(self, company_ids: Sequence[str]) -> dict[str, str]:
@@ -228,8 +228,10 @@ class SupabaseAppStore:
         people = (self._client.table("contact_people").select("company_id,name")
                   .in_("company_id", ids).execute().data)
         people = [r for r in people if clean_name(r.get("name"))]
-        careers = (self._client.table("contact_emails").select("company_id")
-                   .in_("company_id", ids).eq("type", "careers").execute().data)
+        shared = (self._client.table("contact_emails").select("company_id,address,type")
+                  .in_("company_id", ids).in_("type", ["careers", "generic"]).execute().data)
+        careers = [r for r in shared if read_type(r["address"], r["type"]) == "careers"
+                   and usable_email(r["address"], r["type"])]
         counts = {c: 0 for c in ids}
         for row in people:
             counts[row["company_id"]] += 1

@@ -7,7 +7,32 @@ from kaltstart.contacts.models import FoundEmail, FoundPerson, ProposedContact
 from kaltstart.contacts.titles import FOUNDER, ROLE_TO_CATEGORY
 
 CAREERS_LOCAL_PARTS = ("careers", "career", "jobs", "talent", "hr", "karriere",
-                       "recruiting")
+                       "recruiting",
+                       # Recruiting addresses left as general before (D110).
+                       "work", "hiring", "join", "joinus", "apply", "application",
+                       "applications", "bewerbung", "bewerbungen", "recruitment",
+                       "recruit", "talents")
+
+
+# The words that keep an address usable even with an unfit word in it
+# (ir.jobs@, sales.jobs@). Only the long, unambiguous ones: work, join or apply
+# would let support.work@ or work.sales@ through (review 2026-11-23, D110).
+OVERRIDE_CAREERS_WORDS = ("careers", "career", "jobs", "talent", "hr", "karriere",
+                          "recruiting")
+
+
+def careers_address(address: str) -> bool:
+    """The whole local part is a recruiting word: jobs@, join-us@, jobs+de@.
+    A word inside another one (workshop@, teamwork@) is not."""
+    local = address.split("@", 1)[0].strip().lower().split("+", 1)[0]
+    return "".join(re.split(r"[._-]", local)) in CAREERS_LOCAL_PARTS
+
+
+def read_type(address: str, stored: str) -> str:
+    """The type the app uses: a general address stored before D110 whose
+    local part is a recruiting word is read as careers. Never changes a
+    personal address."""
+    return "careers" if stored == "generic" and careers_address(address) else stored
 
 
 # Local parts that are not meant for an application: customer support,
@@ -51,7 +76,7 @@ def usable_address(address: str) -> bool:
     joined = "".join(words)
     # An address naming jobs or careers is for applications (ir.jobs@,
     # sales.jobs@), unless it is a no-reply one (review 2026-11-20).
-    if (any(w in CAREERS_LOCAL_PARTS for w in words)
+    if (any(w in OVERRIDE_CAREERS_WORDS for w in words)
             and not any(n in joined for n in ("noreply", "donotreply"))):
         return True
     if candidates & UNFIT_LOCAL_PARTS:
@@ -87,7 +112,7 @@ def address_type(address: str, people: Sequence[FoundPerson]) -> str:
     """`personal`, `careers` or `generic`. Personal needs a person kept."""
     if address_owner(address, people):
         return "personal"
-    if address.split("@", 1)[0].lower() in CAREERS_LOCAL_PARTS:
+    if careers_address(address):
         return "careers"
     return "generic"
 

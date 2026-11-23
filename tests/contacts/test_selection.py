@@ -2,7 +2,7 @@ import pytest
 
 from kaltstart.contacts.models import FoundEmail, FoundPerson, ProposedContact
 from kaltstart.contacts.selection import (
-    CAREERS_LOCAL_PARTS, address_type, choose_contact, choose_person)
+    CAREERS_LOCAL_PARTS, address_type, choose_contact, choose_person, read_type, usable_address)
 
 
 def person(name, title, categories, level="head"):
@@ -20,7 +20,36 @@ FOUNDER_PRODUCT = person("Leo Probe", "Co-Founder & Head of Product", ("leadersh
 
 def test_careers_local_parts():
     assert CAREERS_LOCAL_PARTS == (
-        "careers", "career", "jobs", "talent", "hr", "karriere", "recruiting")
+        "careers", "career", "jobs", "talent", "hr", "karriere", "recruiting",
+        # Recruiting addresses left as general before (D110).
+        "work", "hiring", "join", "joinus", "apply", "application", "applications",
+        "bewerbung", "bewerbungen", "recruitment", "recruit", "talents")
+
+
+@pytest.mark.parametrize("address", [
+    "work@example.ch", "hiring@example.ch", "join@example.de", "join-us@example.de",
+    "joinus@example.de", "join.us@example.de", "Bewerbung@example.de", "bewerbungen@example.de",
+    "apply@example.com", "recruitment@example.com", "jobs+de@example.de"])
+def test_recruiting_addresses_are_careers(address):
+    assert address_type(address, []) == "careers"
+
+
+@pytest.mark.parametrize("address", [
+    "workshop@example.ch", "network@example.ch", "info@example.ch", "joiner@example.de",
+    "teamwork@example.de", "hello@example.com"])
+def test_words_that_only_contain_a_recruiting_word_stay_general(address):
+    assert address_type(address, []) == "generic"
+
+
+@pytest.mark.parametrize("address,stored,expected", [
+    ("work@example.ch", "generic", "careers"),       # read before D110, upgraded when read
+    ("bewerbung@example.de", "generic", "careers"),
+    ("info@example.ch", "generic", "generic"),
+    ("jobs@example.ch", "careers", "careers"),
+    ("work@example.ch", "personal", "personal"),     # never changes a person's address
+])
+def test_the_type_read_upgrades_an_old_general_recruiting_address(address, stored, expected):
+    assert read_type(address, stored) == expected
 
 
 @pytest.mark.parametrize("address,people,expected", [
@@ -238,3 +267,11 @@ def test_shared_addresses_are_still_filtered_by_usable_email():
     from kaltstart.contacts.selection import usable_email
     assert not usable_email("sales@example.ch", "generic")
     assert usable_email("info@example.ch", "generic")
+
+
+@pytest.mark.parametrize("address", [
+    "support.work@example.ch", "apply-support@example.ch", "work.sales@example.ch",
+    "join.sales@example.ch", "recruit-marketing@example.de"])
+def test_a_short_recruiting_word_never_makes_an_unfit_address_usable(address):
+    # Review 2026-11-23 (D110): only the long careers words override an unfit word.
+    assert not usable_address(address)

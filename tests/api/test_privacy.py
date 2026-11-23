@@ -69,3 +69,10 @@ def test_the_page_mentions_the_address_a_student_gives(client):
 def test_the_page_mentions_linkedin(client):
     page = client.get("/privacy").text
     assert "For a LinkedIn message, Kaltstart keeps the texts and the person's name, as for a mail; it never visits LinkedIn." in page.replace("&#39;", "'")
+
+
+def test_the_page_says_what_happens_to_a_feedback_mail(client):
+    # D110: the feedback link of D109 sends a mail to the contact address.
+    page = client.get("/privacy").text
+    assert "A feedback mail you send through the link at the bottom of each page stays in that mailbox" in page
+    assert "deleted when the beta ends" in page
