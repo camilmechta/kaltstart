@@ -27,7 +27,7 @@ packaging==26.3
 postgrest==2.34.1
 propcache==0.5.4
 pycparser==3.12
-pydantic==2.14.3
+pydantic==2.14.4
 pydantic_core==2.50.4
 PyJWT==2.15.1
 python-dotenv==1.2.4
