@@ -1,6 +1,6 @@
 # Exact versions installed in the Docker image (pip freeze of 'pip install .'
 # in a clean environment). Regenerate after changing pyproject.toml.
-annotated-doc==0.0.6
+annotated-doc==0.0.7
 annotated-types==0.8.0
 anyio==4.16.0
 beautifulsoup4==4.15.0
