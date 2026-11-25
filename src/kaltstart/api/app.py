@@ -63,6 +63,9 @@ def create_app(store: AppStore, auth: Auth, *, session_secret: str, removal_cont
                       autoescape=select_autoescape(["html"]), trim_blocks=True, lstrip_blocks=True)
     env.filters["web_link"] = web_link
     env.globals["mailto_link"] = mailto_link
+    from kaltstart.api.universities import UNIVERSITIES, listed
+    env.globals["universities"] = UNIVERSITIES          # profile list (D113)
+    env.globals["university_listed"] = listed
     from kaltstart.contacts.names import title_hint
     env.filters["title_hint"] = title_hint
     from kaltstart.mailgen.linkedin import note_length

@@ -126,7 +126,10 @@
       var rule = el.getAttribute("data-show-when").split("=");
       var selector = 'input[name="' + rule[0] + '"]' + (rule[1] ? '[value="' + rule[1] + '"]' : "");
       var input = document.querySelector(selector);
-      if (input) el.hidden = !input.checked;
+      if (input) { el.hidden = !input.checked; return; }
+      // A list: data-show-when="university=other" (D113).
+      var list = document.querySelector('select[name="' + rule[0] + '"]');
+      if (list && rule[1]) el.hidden = list.value !== rule[1];
     });
   }
   // Filters: a choice applies at once; typed text lights the button up until
@@ -145,6 +148,7 @@
     }
   });
   document.addEventListener("change", function (event) {
+    if (event.target.matches("select")) { sync(); return; }
     if (!event.target.matches("input[type=checkbox], input[type=radio]")) return;
     sync();
     // A short press on the card or chip that was just chosen.

@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- University list (D113): the profile offers the main universities of the
+  three countries, and "Other, not listed" with a field to type it.
 - Header (D112): the three pages in one segmented control, and the weekly
   counter as a bubble with a large number.
 - Recruiting addresses (D110): `work@`, `hiring@`, `join@`, `bewerbung@` and

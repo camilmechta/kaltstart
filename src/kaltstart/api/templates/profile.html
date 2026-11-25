@@ -39,7 +39,20 @@
       <label>First name <input class="{{ cls('first_name') }}" type="text" name="first_name" value="{{ profile.first_name }}" autocomplete="given-name" maxlength="40">{{ error('first_name') }}</label>
       <label>Last name <input class="{{ cls('last_name') }}" type="text" name="last_name" value="{{ profile.last_name }}" autocomplete="family-name" maxlength="40">{{ error('last_name') }}</label>
     </div>
-    <label>Your university <input class="{{ cls('university') }}" type="text" name="university" value="{{ profile.university }}" placeholder="e.g. HSG, EPFL, ETH Zurich" maxlength="30" autocomplete="organization">{{ error('university') }}</label>
+    {% set uni = profile.university or '' %}
+    {% set other = uni and not university_listed(uni) %}
+    <label>Your university
+      <select class="{{ cls('university') }}" name="university" autocomplete="organization">
+        <option value=""{% if not uni %} selected{% endif %}>Choose your university</option>
+        {% for country, unis in universities %}
+        <optgroup label="{{ country }}">
+          {% for value, label in unis %}<option value="{{ value }}"{% if uni == value %} selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </optgroup>
+        {% endfor %}
+        <option value="other"{% if other %} selected{% endif %}>Other, not listed</option>
+      </select>{{ error('university') }}</label>
+    <label data-show-when="university=other" {% if not other and uni %}hidden{% endif %}>Your university, as it should appear in your mails <input type="text" name="university_other" value="{{ uni if other else '' }}" placeholder="e.g. Hochschule Luzern" maxlength="30"></label>
     {% set level = profile.degree_level %}
     <fieldset>
       <legend class="field-label">Your degree</legend>

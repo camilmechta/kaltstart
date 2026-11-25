@@ -7,6 +7,7 @@ The last candidate holds no name at all, so a note always exists.
 """
 
 from kaltstart.mailgen import generator as g
+from kaltstart.mailgen.generator import GERMAN_NAMES, at_university
 from kaltstart.mailgen.choices import axes
 from kaltstart.mailgen.models import Company, Round, Student
 from kaltstart.mailgen.phrases import role_paragraph, role_words, round_name, student_text
@@ -43,6 +44,7 @@ def _note_candidates(student: Student, company: Company, round: Round, person: s
     me = (f"{_clean(student.first_name)} {_clean(student.last_name)}" if style == "formal"
           else _clean(student.first_name))
     uni = " ".join((student.university or "HSG").split())
+    uni_de = GERMAN_NAMES.get(uni, uni)
     stage = round_name(round.stage, language)
     role = role_words(student.role, language)
     level = _level(student, language)
@@ -51,7 +53,8 @@ def _note_candidates(student: Student, company: Company, round: Round, person: s
     if language == "en":
         req = f"a part-time role in {role}" if part_time else f"an internship in {role}"
         short = "a part-time role" if part_time else "an internship"
-        who = f"a {level} student at {uni}" if level else f"a student at {uni}"
+        who = (f"a {level} student {at_university(uni, 'en')}" if level
+               else f"a student {at_university(uni, 'en')}")
         if style == "formal":
             return [
                 f"Dear {person}, congratulations on the {stage} at {name}. I am {who} seeking {req} "
@@ -78,7 +81,8 @@ def _note_candidates(student: Student, company: Company, round: Round, person: s
     req = (f"eine Teilzeitstelle im Bereich {role}" if part_time
            else f"ein Praktikum im Bereich {role}")
     short = "eine Teilzeitstelle" if part_time else "ein Praktikum"
-    studies = f"Ich studiere {level} an der {uni}" if level else f"Ich studiere an der {uni}"
+    studies = (f"Ich studiere {level} {at_university(uni_de, 'de')}" if level
+               else f"Ich studiere {at_university(uni_de, 'de')}")
     if style == "formal":
         return [
             f"Guten Tag {person}, herzlichen Glückwunsch zur {stage} von {name}. {studies} und "

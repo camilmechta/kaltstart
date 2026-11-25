@@ -176,13 +176,35 @@ def _degree(student: Student) -> str | None:
     return f"{student.level.capitalize()} in {student.programme.strip()}"
 
 
+# German names of the listed universities that have one (D113): a German
+# mail says "an der Universität Wien", not "an der University of Vienna".
+GERMAN_NAMES = {
+    "ETH Zurich": "ETH Zürich", "University of Zurich": "Universität Zürich",
+    "University of Basel": "Universität Basel", "University of Bern": "Universität Bern",
+    "University of Geneva": "Universität Genf", "University of Lausanne": "Universität Lausanne",
+    "Heidelberg University": "Universität Heidelberg",
+    "University of Mannheim": "Universität Mannheim", "University of Cologne": "Universität zu Köln",
+    "Goethe University Frankfurt": "Goethe-Universität Frankfurt",
+    "University of Vienna": "Universität Wien", "WU Vienna": "WU Wien",
+    "University of Innsbruck": "Universität Innsbruck",
+}
+NEUTER_UNIVERSITIES = frozenset({"KIT"})          # "am KIT", not "an der KIT"
+
+
 def _university(student: Student, language: str, formal: bool) -> str:
     """The student's university; HSG is spelled out in the formal style."""
     name = " ".join((student.university or "HSG").split())
     if formal and name == "HSG":
         return ("the University of St. Gallen (HSG)" if language == "en"
                 else "Universität St. Gallen (HSG)")
-    return name
+    return GERMAN_NAMES.get(name, name) if language == "de" else name
+
+
+def at_university(uni: str, language: str) -> str:
+    """"at the University of Zurich", "at TUM", "an der ETH Zürich", "am KIT"."""
+    if language == "en":
+        return f"at the {uni}" if uni.startswith("University of ") else f"at {uni}"
+    return f"am {uni}" if uni in NEUTER_UNIVERSITIES else f"an der {uni}"
 
 
 def _intro(style: str, language: str, student: Student) -> str:
@@ -192,22 +214,22 @@ def _intro(style: str, language: str, student: Student) -> str:
     if degree:
         if language == "en":
             if style == "formal":
-                return (f"I am completing a {degree} at {uni} "
+                return (f"I am completing a {degree} {at_university(uni, 'en')} "
                         f"and am applying for {request}.")
-            return f"I'm doing a {degree} at {uni} and am looking for {request}."
+            return f"I'm doing a {degree} {at_university(uni, 'en')} and am looking for {request}."
         if style == "formal":
-            return (f"Ich absolviere einen {degree} an der {uni} und "
+            return (f"Ich absolviere einen {degree} {at_university(uni, 'de')} und "
                     f"bewerbe mich um {request}.")
-        return f"Ich mache einen {degree} an der {uni} und suche {request}."
+        return f"Ich mache einen {degree} {at_university(uni, 'de')} und suche {request}."
     if language == "en":
         if style == "formal":
-            return (f"I study {student.programme} at {uni} "
+            return (f"I study {student.programme} {at_university(uni, 'en')} "
                     f"and am applying for {request}.")
-        return f"I study {student.programme} at {uni} and am looking for {request}."
+        return f"I study {student.programme} {at_university(uni, 'en')} and am looking for {request}."
     if style == "formal":
-        return (f"Ich studiere {student.programme} an der {uni} und "
+        return (f"Ich studiere {student.programme} {at_university(uni, 'de')} und "
                 f"bewerbe mich um {request}.")
-    return f"Ich studiere {student.programme} an der {uni} und suche {request}."
+    return f"Ich studiere {student.programme} {at_university(uni, 'de')} und suche {request}."
 
 
 def _close(style: str, language: str, role: str, team: bool, number: int = 0) -> str:

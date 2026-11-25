@@ -10,10 +10,10 @@ STYLES = ("direct", "round", "formal")
 LANGUAGES = ("en", "de")
 VARIANTS = 3
 
-# Bounds on what the student types, so that every mail fits in 210 words
-# (decision D72). The showcase sentence may be longer than the sentence
+# Bounds on what the student types, so that every mail fits in 211 words
+# (decision D72; 211 since D113 adds "the" before "University of"). The showcase sentence may be longer than the sentence
 # about the company: it is the heart of every mail.
-MAX_BODY_WORDS = 210
+MAX_BODY_WORDS = 211
 # A mail to a named person through a shared address ends with a PS saying why
 # (honest addresses, 2026-11-19): 25 more words at most, with the longest texts.
 MAX_FORWARDED_BODY_WORDS = 235

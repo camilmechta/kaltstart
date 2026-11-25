@@ -43,8 +43,16 @@ def parse_profile(form, student_id: str) -> tuple[Profile, list[Showcase], dict[
     if level not in ("bachelor", "master"):
         errors["degree_level"] = "Choose Bachelor or Master."
     university = _text(form, "university")
+    # Not in the list: typed (D113). Without the script the field also shows
+    # while the list is still empty, so a name typed there counts too.
+    if university == "" and _text(form, "university_other"):
+        university = "other"
+    if university == "other":
+        university = _text(form, "university_other")
+        if not university:
+            errors["university"] = "Type your university, or pick it in the list."
     if not university:
-        errors["university"] = "University is required."
+        errors.setdefault("university", "University is required.")
     elif len(university) > MAX_UNIVERSITY_CHARS:
         errors["university"] = f"University: at most {MAX_UNIVERSITY_CHARS} characters."
     if not programme:
