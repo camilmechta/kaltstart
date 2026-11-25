@@ -43,7 +43,10 @@
 </section>
 {% endif %}
 <p class="kicker" id="companies">New rounds · Switzerland · Germany · Austria</p>
-<h1 class="title-xl">Who just raised money</h1>
+<div class="list-title">
+  <h1 class="title-xl">Who just raised money</h1>
+  {% if updated %}<span class="updated-pill"><span class="updated-dot" aria-hidden="true"></span>{{ updated }}<span class="visually-hidden">. New funding rounds from Tech.eu are added every night.</span></span>{% endif %}
+</div>
 <p class="muted">{{ total }} {{ "company matches" if total == 1 else "companies match" }} your filters, newest rounds first. Each company takes at most 3 mails a month, so founders are not flooded.</p>
 <form method="get" action="/companies" class="filters" role="search" data-auto-submit>
   <div class="search-apply">

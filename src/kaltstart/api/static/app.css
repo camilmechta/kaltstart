@@ -592,3 +592,14 @@ details.legend[open] .legend-items { animation: reveal 220ms ease-out both; }
   .pill-long { display: none; }
   .pill-short { display: inline; }
 }
+
+/* --- "Updated" bubble of the company list (D111) */
+.list-title { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); }
+.updated-pill { display: inline-flex; align-items: center; gap: var(--space-2);
+  font-size: var(--text-sm); font-variant-numeric: tabular-nums; color: var(--accent);
+  background: var(--accent-soft); border: 1px solid var(--border); border-radius: var(--radius-full);
+  padding: 4px var(--space-3); white-space: nowrap; }
+.updated-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); flex: none; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden;
+  margin: -1px; padding: 0; border: 0;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }

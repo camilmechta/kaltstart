@@ -70,4 +70,5 @@ def seeded_store(now: datetime, count: int = 36) -> InMemoryAppStore:
             person_source_url=None, style="direct", language="en", company_line=None,
             used_company_line=False, subject="Glacier Systems internship?", body="Hi team!"),
             now - timedelta(days=2))
+    store.set_last_update(now - timedelta(hours=5))   # the nightly run, D111
     return store

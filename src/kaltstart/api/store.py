@@ -225,6 +225,7 @@ class AppStore(Protocol):
     def companies(self, filters: ListFilters, student_id: str,
                   now: datetime) -> tuple[list[CompanyRow], int]: ...
     def sectors(self) -> list[str]: ...
+    def last_update(self) -> datetime | None: ...
     def company(self, company_id: str) -> CompanyRow | None: ...
     def people(self, company_id: str) -> list[PersonRow]: ...
     def emails(self, company_id: str) -> list[EmailRow]: ...
@@ -252,6 +253,7 @@ class InMemoryAppStore:
         self._profiles: dict[str, Profile] = {}
         self._showcases: dict[str, list[Showcase]] = {}
         self._mails: list[Mail] = []
+        self._last_update: datetime | None = None
         self._lock = threading.Lock()
 
     # --- set-up, for tests and the seed -------------------------------------
@@ -320,6 +322,13 @@ class InMemoryAppStore:
 
     def sectors(self) -> list[str]:
         return sorted({c.sector for c in self._companies.values() if c.sector})
+
+    def set_last_update(self, at: datetime | None) -> None:
+        self._last_update = at
+
+    def last_update(self) -> datetime | None:
+        """When the funding rounds were last brought up to date (D111)."""
+        return self._last_update
 
     def company(self, company_id: str) -> CompanyRow | None:
         if company_id in self._excluded or not self.emails(company_id):

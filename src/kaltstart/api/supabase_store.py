@@ -163,6 +163,13 @@ class SupabaseAppStore:
         return eligible(self._company_rows(now), self._with_address(), self._excluded(),
                         self.mail_records(), filters, student_id, now, with_person)
 
+    def last_update(self) -> datetime | None:
+        """The end of the latest successful sync or backfill (D111)."""
+        rows = (self._client.table("sync_runs").select("finished_at")
+                .eq("status", "success").in_("command", ["backfill", "sync"])
+                .order("finished_at", desc=True).limit(1).execute().data)
+        return datetime.fromisoformat(rows[0]["finished_at"]) if rows else None
+
     def sectors(self) -> list[str]:
         rows = self._read_all("companies", "id,sectors", ("id",))
         return sorted({(r["sectors"] or [None])[0] for r in rows} - {None})

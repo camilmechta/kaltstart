@@ -30,6 +30,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- "Updated today, 04:12" (D111): the company list says when the funding
+  rounds were last brought up to date, in Swiss time.
 - Beta additions (D109): a "Send feedback" link on every page, and an
   "Open in my mail app" button that opens a kept mail filled in.
 - The site stays awake (D108): an outside scheduler opens the light

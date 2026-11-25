@@ -9,6 +9,37 @@ from kaltstart.api.session import safe_next
 
 log = logging.getLogger("kaltstart.api")
 
+try:
+    from zoneinfo import ZoneInfo
+    SWISS_TIME = ZoneInfo("Europe/Zurich")
+except Exception:          # no time zone data on the host: say so in UTC
+    SWISS_TIME = None
+
+
+def _updated(store, now) -> str | None:
+    """The bubble is a detail: a failed read hides it, never the list."""
+    try:
+        return updated_label(store.last_update(), now)
+    except Exception:
+        log.warning("last update time could not be read")
+        return None
+
+
+def updated_label(at, now) -> str | None:
+    """ "Updated today, 04:12" in Swiss time, for the company list (D111)."""
+    if at is None:
+        return None
+    if SWISS_TIME is None:
+        return f"Updated {at.strftime('%-d %b, %H:%M')} UTC"
+    local, today = at.astimezone(SWISS_TIME), now.astimezone(SWISS_TIME).date()
+    if local.date() == today:
+        day = "today"
+    elif (today - local.date()).days == 1:
+        day = "yesterday"
+    else:
+        day = local.strftime("%-d %b")
+    return f"Updated {day}, {local.strftime('%H:%M')}"
+
 
 def raised_ago(day, now) -> str | None:
     """ "Raised 5 days ago" for a round of the last 30 days, else None
@@ -259,6 +290,7 @@ def register(app: FastAPI) -> None:
         pages = max((total + 49) // 50, 1)
         link = lambda n: "/companies?" + urlencode(base + [("page", str(n))])
         return page(request, "companies.html", items=items, total=total, filters=filters,
+                    updated=_updated(store, now),
                     countries=COUNTRIES, sectors=store.sectors(), sizes=SIZES, size_info=SIZE_INFO,
                     page_number=page_number, pages=pages,
                     previous=link(page_number - 1) if page_number > 1 else None,

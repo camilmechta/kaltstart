@@ -223,3 +223,17 @@ def test_the_live_store_reads_an_old_general_recruiting_address_as_careers():
     assert {e.address: e.type for e in live.emails("c1")} == {
         "work@c1.example.ch": "careers", "info@c1.example.ch": "generic"}
     assert live.contact_summary(["c1"])["c1"][1] is True
+
+
+def test_the_live_store_reads_the_last_successful_sync():
+    """D111: the end of the latest successful sync or backfill."""
+    recorder = Recorder(dict(TABLES, sync_runs=[{"finished_at": "2026-11-16T03:12:30+00:00"}]))
+    assert store(recorder).last_update() == datetime(2026, 11, 16, 3, 12, 30, tzinfo=timezone.utc)
+    request = recorder.of("GET", "sync_runs")[0]
+    assert param(request, "status") == "eq.success"
+    assert param(request, "command") == "in.(backfill,sync)"
+    assert param(request, "order") == "finished_at.desc"
+
+
+def test_the_live_store_has_no_update_before_the_first_run():
+    assert store(Recorder(dict(TABLES, sync_runs=[]))).last_update() is None
