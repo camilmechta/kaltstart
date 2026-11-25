@@ -22,8 +22,8 @@ def test_the_navigation_once_signed_in(client):
     page = client.get("/companies").text
     for link in ('href="/companies"', 'href="/mails"', 'href="/profile"'):
         assert link in page
-    assert '<a class="pill" href="/mails"' in page
-    assert "0 of 10 mails kept this week · 0 waiting" in page
+    assert '<a class="pill pill-stats" href="/mails"' in page
+    assert '<b class="pill-number">0</b>' in page and "/ 10 kept this week" in page
 
 
 TEMPLATES = Path(__file__).parents[2] / "src" / "kaltstart" / "api" / "templates"
@@ -187,7 +187,7 @@ def test_on_a_phone_the_signed_in_header_fits_in_two_rows():
     base = (root / "templates/base.html").read_text()
     assert "nav-signed-in" in base and 'class="pill-short"' in base
     phone = css.split("/* --- phone header", 1)[1]
-    assert "flex-basis: 100%" in phone and ".pill-long { display: none; }" in phone
+    assert "flex-basis: 100%" in phone and ".pill-stats .pill-long { display: none; }" in phone
     assert "min-height: 44px" in phone
 
 
@@ -196,4 +196,4 @@ def test_the_short_counter_is_on_every_signed_in_page(client):
     sign_up_and_in(client)
     page = client.get("/companies").text
     assert '<span class="pill-short">0/10 kept</span>' in page
-    assert "0 of 10 mails kept this week · 0 waiting" in page
+    assert "/ 10 kept this week" in page and "0 waiting" in page

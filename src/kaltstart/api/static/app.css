@@ -575,6 +575,23 @@ details.legend[open] .legend-items { animation: reveal 220ms ease-out both; }
   line-height: 24px; color: var(--muted); }
 .how-steps b { color: var(--text); }
 
+/* --- segmented pages and counter bubble (D112, owner's example) --------- */
+.segmented { gap: 2px; padding: 4px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-full); }
+.segmented a { padding: 6px var(--space-4); border-radius: var(--radius-full);
+  border: 1px solid transparent; color: var(--muted); font-weight: 500;
+  transition: background-color 150ms ease-out, color 150ms ease-out; }
+.segmented a::after { display: none; }
+.segmented a:hover { color: var(--text); background: var(--surface-2); }
+.segmented a[aria-current="page"] { color: var(--link); background: var(--primary-soft);
+  border-color: color-mix(in srgb, var(--link) 40%, transparent); }
+.pill-stats { display: inline-flex; align-items: center; gap: var(--space-2);
+  background: var(--surface); padding: 6px var(--space-4); }
+.pill-number { font-size: var(--text-lg); font-weight: 700; color: var(--accent); line-height: 1; }
+.pill-waiting { color: var(--accent); padding-left: var(--space-2); }
+.pill-waiting::before { content: "• " / ""; }
+.pill-stats .pill-long { display: inline-flex; align-items: baseline; gap: var(--space-1); }
+
 /* --- phone header (review 2026-11-20): two rows, 44px tap targets ---------- */
 .pill-short { display: none; }
 @media (max-width: 640px) {
@@ -587,9 +604,12 @@ details.legend[open] .legend-items { animation: reveal 220ms ease-out both; }
   .nav-signed-in .nav-links a { display: inline-flex; align-items: center; min-height: 44px;
     white-space: nowrap; }
   .nav-signed-in .nav-links a::after { bottom: 0; }
+  .nav-signed-in .segmented { padding: 2px; }
+  .nav-signed-in .segmented a { min-height: 44px; padding: 0 var(--space-2); font-size: 14px; }
+  .nav-signed-in .pill-stats { padding: 4px 10px; }
   .nav-signed-in .nav-actions .btn-quiet { min-height: 44px; padding: 0 var(--space-2); }
   .nav-signed-in .theme-toggle { width: 44px; height: 44px; }
-  .pill-long { display: none; }
+  .pill-stats .pill-long { display: none; }
   .pill-short { display: inline; }
 }
 

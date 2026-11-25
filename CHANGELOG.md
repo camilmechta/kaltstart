@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Header (D112): the three pages in one segmented control, and the weekly
+  counter as a bubble with a large number.
 - Recruiting addresses (D110): `work@`, `hiring@`, `join@`, `bewerbung@` and
   the like count as careers addresses, also for companies already read;
   the privacy page says what happens to a feedback mail.
